@@ -321,9 +321,6 @@ int main(int argc, char* argv[])
             }
             
             path_queue.pop();
-        } else if (algo == "bfs_greedy" && i != max-1 && !path_queue.empty()) {
-           
-        }
         else if (algo == "astar" && i != max-1) {
             while (visited_bad.count(frontier.top().pos) != 0) frontier.pop();
             i = frontier.top().pos;
