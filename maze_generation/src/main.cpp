@@ -12,11 +12,15 @@
 
 
 // Define Constants
-const int dim = 16;
-const int max = dim * dim;
+int dim = 16;
+int max = dim * dim;
+int interval = 20000;
+int seed = 0;
+std::string algo;
+std::string gen_algo;
 std::vector<std::vector<int> > adj_matrix;
-const std::vector<int> start_pos(140, 40);
-const int cell_size = 20;
+std::vector<int> start_pos(140, 40);
+int cell_size = 20;
 
 struct Node {
     int pos;
@@ -146,8 +150,6 @@ static std::vector<std::vector<int> > generate_maze_rdfs() {
         }
         adj_matrix.push_back(row);
     }
-    std::random_device rd;
-    std::mt19937 eng(rd());
     std::uniform_real_distribution<> distr(0, 3);
     std::stack<int> path;
 
@@ -161,7 +163,7 @@ static std::vector<std::vector<int> > generate_maze_rdfs() {
         std::vector<int> unvisited;
         if ((unvisited = get_unvisited_neighbors(current, visited)).size() != 0) {
             path.push(current);
-            next = unvisited[(int) distr(eng) % unvisited.size()];
+            next = unvisited[(int) rand() % unvisited.size()];
             adj_matrix[current][next] = 1;
             adj_matrix[next][current] = 1;
             current = next;
@@ -195,17 +197,43 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 int main(int argc, char* argv[])
 {
-    std::string algo;
-    if (argc != 2 || ((algo = std::string(argv[1])) != "dfs" && (algo = std::string(argv[1])) != "dfs_greedy" && (algo = std::string(argv[1])) != "bfs_greedy" && std::string(argv[1]) != "bfs" && std::string(argv[1]) != "astar" && std::string(argv[1]) != "random"))return -1;
+    if (!glfwInit()) 
+        return EXIT_FAILURE;
+
+    if ((argc != 5 && argc != 6)
+     || ((algo = std::string(argv[2])) != "dfs" && (algo = std::string(argv[2])) != "dfs_greedy" && (algo = std::string(argv[2])) != "bfs_greedy" && std::string(argv[2]) != "bfs" && std::string(argv[2]) != "astar" && std::string(argv[2]) != "random")
+     || ((algo = std::string(argv[1])) != "rdfs")) return -1;
+
+    algo = std::string(argv[2]);
+    gen_algo = std::string(argv[1]);
+    dim = std::stoi(std::string(argv[3]));
+    max = dim * dim;
+    start_pos = std::vector<int>(25, 25);
+    interval = std::stoi(std::string(argv[4]));
+    seed = argc == 5 ? 0 : std::stoi(std::string(argv[5]));
+    srand(seed);
+    cell_size = 20;
+
+    time_t now = time(0);
+    tm* localTime = localtime(&now);
+
+    int hour = localTime->tm_hour;
+    int min = localTime->tm_min; 
+    int sec = localTime->tm_sec;
+
+    std::string title = gen_algo + " " + algo + " " + std::to_string(dim) + "x" + std::to_string(dim) + " " + std::to_string(seed);
+
+    int window_dim = 50 + dim * cell_size;
+    if (window_dim > 800) {
+        cell_size = 750 / dim;
+        window_dim = 800;
+    }
 
     GLFWwindow* window;
+    window = glfwCreateWindow(window_dim, window_dim, title.c_str(), NULL, NULL);
     glfwSetErrorCallback(error_callback);
     glfwSetKeyCallback(window, key_callback);
 
-    if (!glfwInit())
-        return EXIT_FAILURE;
-
-    window = glfwCreateWindow(700, 700, "MAZE", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return EXIT_FAILURE;
@@ -214,7 +242,7 @@ int main(int argc, char* argv[])
     glfwMakeContextCurrent(window);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, 700, 700, 0, -1, 1);
+    glOrtho(0, window_dim, window_dim, 0, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -223,8 +251,8 @@ int main(int argc, char* argv[])
     long distance = 0;
     std::set<int> visited;
     std::set<int> visited_bad;
-    std::array<long, max> costs;
-    std::array<int, max> manhattan_distances;
+    std::vector<long> costs(max);
+    std::vector<int> manhattan_distances(max);
     std::queue<int> path_queue;
     std::stack<int> path_stack;
     std::priority_queue<Node, std::vector<Node>, 
@@ -237,6 +265,7 @@ int main(int argc, char* argv[])
     frontier.push(first);
     manhattan_distances[0] = manhattan_distance_from_goal(i);
     costs[0] = -1;
+    bool done = false;
     while (!glfwWindowShouldClose(window))
     { 
         glClear(GL_COLOR_BUFFER_BIT);
@@ -365,6 +394,11 @@ int main(int argc, char* argv[])
         for (int cell : visited_bad)
             fill_cell(start_pos, cell_size, cell, sqrt(adj_matrix.size()), "red");
         draw_maze();
+        if (i == max - 1 && !done) {
+            std::cout <<  "SOLVING COMPLETE" << std::endl;
+            done = true;
+        }
+        usleep(interval * 1000);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
