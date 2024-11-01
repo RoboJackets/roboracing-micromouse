@@ -30,7 +30,7 @@ struct Node {
 
 struct LeastF { 
   int operator()(const Node& n1, const Node& n2) { 
-    return (n1.cost + n1.manhattan_distance) -  (n2.cost + n2.manhattan_distance);
+    return (n1.cost + n1.manhattan_distance) - (n2.cost + n2.manhattan_distance);
   } 
 }; 
 
@@ -44,7 +44,7 @@ void print_stack(std::stack<int> s) {
 
 void print_priority_queue(std::priority_queue<Node, std::vector<Node>, LeastF > pq) {
     while (!pq.empty()) {
-        std::cout << pq.top().pos << " : " << pq.top().cost + pq.top().manhattan_distance << ", ";
+        std::cout << pq.top().cost + pq.top().manhattan_distance << ", ";
         pq.pop();
     }
     std::cout << std::endl;
@@ -61,6 +61,13 @@ void print_queue(std::queue<int> q) {
 void print_vector(const std::vector<int>& vec) {
     for (const int& element : vec) {
         std::cout << element << " ";
+    }
+    std::cout << std::endl;
+}
+
+void print_vector(const std::vector<Node>& vec) {
+    for (const Node& element : vec) {
+        std::cout << element.pos << " ";
     }
     std::cout << std::endl;
 }
@@ -214,13 +221,6 @@ int main(int argc, char* argv[])
     srand(seed);
     cell_size = 20;
 
-    time_t now = time(0);
-    tm* localTime = localtime(&now);
-
-    int hour = localTime->tm_hour;
-    int min = localTime->tm_min; 
-    int sec = localTime->tm_sec;
-
     std::string title = gen_algo + " " + algo + " " + std::to_string(dim) + "x" + std::to_string(dim) + " " + std::to_string(seed);
 
     int window_dim = 50 + dim * cell_size;
@@ -257,12 +257,13 @@ int main(int argc, char* argv[])
     std::stack<int> path_stack;
     std::priority_queue<Node, std::vector<Node>, 
                            LeastF > frontier; 
+    std::vector<Node> frontier_;
     path_queue.push(i);
     Node first;
     first.pos = i;
     first.manhattan_distance = manhattan_distance_from_goal(0);
     first.cost = 0;
-    frontier.push(first);
+    frontier_.push_back(first);
     manhattan_distances[0] = manhattan_distance_from_goal(i);
     costs[0] = -1;
     bool done = false;
@@ -354,23 +355,31 @@ int main(int argc, char* argv[])
            
         }
         else if (algo == "astar" && i != max-1) {
-            while (visited_bad.count(frontier.top().pos) != 0) frontier.pop();
-            i = frontier.top().pos;
-            distance = frontier.top().cost;
-            ++distance;
+            int min = 100000;
+            for (int j = 0; j < frontier_.size(); ++j) {
+                if (visited_bad.count(frontier_.at(j).pos) != 0) {
+                    frontier_.erase(frontier_.begin() + j);
+                }
+                else if (frontier_.at(j).cost + frontier_.at(j).manhattan_distance < min) {
+                    min = frontier_.at(j).cost + frontier_.at(j).manhattan_distance;
+                    i = frontier_.at(j).pos;
+                    distance = frontier_.at(j).cost;
+                    ++distance;
+                }
+            }
             visited_bad.insert(i);
             std::vector<int> neighbors = get_connected_neighbors(i);
             int valid_neighbor_count = 0;
-            for (int neighbor : neighbors)
+            for (int neighbor : neighbors) {
                 if (visited_bad.count(neighbor) == 0) {
                     Node n;
                     n.pos = neighbor;
                     n.cost = distance;
                     n.manhattan_distance = manhattan_distance_from_goal(neighbor);
-                    frontier.push(n);
+                    frontier_.push_back(n);
                     costs[n.pos] = distance;
-                    std::cout <<  (n.cost + n.manhattan_distance) << std::endl;
                     }
+            }
             if (i == max - 1) {
                 visited_bad.erase(i);
                 visited.insert(i);
