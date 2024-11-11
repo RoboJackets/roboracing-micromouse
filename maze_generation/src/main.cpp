@@ -6,6 +6,7 @@
 #include <set>
 #include <map>
 #include <random>
+#include <chrono>
 #include <unistd.h>
 #include <algorithm>
 
@@ -28,24 +29,18 @@ struct Node {
     int manhattan_distance;
 };
 
-struct LeastF { 
-  int operator()(const Node& n1, const Node& n2) { 
-    return (n1.cost + n1.manhattan_distance) - (n2.cost + n2.manhattan_distance);
-  } 
-}; 
+class CompareNodes
+{
+public:
+    bool operator() (const Node &a, const Node &b) {
+        return a.cost + a.manhattan_distance > b.cost + b.manhattan_distance;
+    }
+};
 
 void print_stack(std::stack<int> s) {
     while (!s.empty()) {
         std::cout << s.top() << " ";
         s.pop();
-    }
-    std::cout << std::endl;
-}
-
-void print_priority_queue(std::priority_queue<Node, std::vector<Node>, LeastF > pq) {
-    while (!pq.empty()) {
-        std::cout << pq.top().cost + pq.top().manhattan_distance << ", ";
-        pq.pop();
     }
     std::cout << std::endl;
 }
@@ -149,6 +144,8 @@ static void draw_maze() {
 static std::vector<std::vector<int> > generate_maze_rdfs() {
     std::cout<< "Generating maze..." << std::endl;
     int max = dim * dim;
+    int k = 0;
+    auto start_time = std::chrono::high_resolution_clock::now();
     std::vector<std::vector<int> > adj_matrix;
     for (int i = 0; i < dim * dim; ++i) {
         std::vector<int> row;
@@ -156,6 +153,8 @@ static std::vector<std::vector<int> > generate_maze_rdfs() {
             row.push_back(0);
         }
         adj_matrix.push_back(row);
+        if (k++ % 100 == 0)
+            std::cout << "#time_count " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count() / 1000.0 << std::endl;
     }
     std::uniform_real_distribution<> distr(0, 3);
     std::stack<int> path;
@@ -176,8 +175,11 @@ static std::vector<std::vector<int> > generate_maze_rdfs() {
             current = next;
             path.push(current);
         }
+        if (k++ % 100 == 0)
+            std::cout << "#time_count " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count() / 1000.0 << std::endl;
         visited.insert(current);
     } while (path.size() != 0);
+    std::cout << "#elapsed_time " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count() / 1000.0 << std::endl;
     return adj_matrix;
 }
 
@@ -220,7 +222,7 @@ int main(int argc, char* argv[])
     seed = argc == 5 ? 0 : std::stoi(std::string(argv[5]));
     srand(seed);
     cell_size = 20;
-
+    
     std::string title = gen_algo + " " + algo + " " + std::to_string(dim) + "x" + std::to_string(dim) + " " + std::to_string(seed);
 
     int window_dim = 50 + dim * cell_size;
@@ -255,20 +257,21 @@ int main(int argc, char* argv[])
     std::vector<int> manhattan_distances(max);
     std::queue<int> path_queue;
     std::stack<int> path_stack;
-    std::priority_queue<Node, std::vector<Node>, 
-                           LeastF > frontier; 
-    std::vector<Node> frontier_;
+    std::priority_queue<Node, std::vector<Node>, CompareNodes> frontier; 
     path_queue.push(i);
     Node first;
     first.pos = i;
     first.manhattan_distance = manhattan_distance_from_goal(0);
     first.cost = 0;
-    frontier_.push_back(first);
+    frontier.push(first);
     manhattan_distances[0] = manhattan_distance_from_goal(i);
     costs[0] = -1;
     bool done = false;
+    int k = 0;
+    auto start_time = std::chrono::high_resolution_clock::now();
+    std::cout << "Solving..." << std::endl;
     while (!glfwWindowShouldClose(window))
-    { 
+    {
         glClear(GL_COLOR_BUFFER_BIT);
         if (algo == "random") {
             std::vector<int> neighbors = get_connected_neighbors(i);
@@ -355,18 +358,12 @@ int main(int argc, char* argv[])
            
         }
         else if (algo == "astar" && i != max-1) {
-            int min = 100000;
-            for (int j = 0; j < frontier_.size(); ++j) {
-                if (visited_bad.count(frontier_.at(j).pos) != 0) {
-                    frontier_.erase(frontier_.begin() + j);
-                }
-                else if (frontier_.at(j).cost + frontier_.at(j).manhattan_distance < min) {
-                    min = frontier_.at(j).cost + frontier_.at(j).manhattan_distance;
-                    i = frontier_.at(j).pos;
-                    distance = frontier_.at(j).cost;
-                    ++distance;
-                }
+            while (visited_bad.count(frontier.top().pos) != 0) {
+                frontier.pop();
             }
+            i = frontier.top().pos;
+            distance = frontier.top().cost;
+            ++distance;
             visited_bad.insert(i);
             std::vector<int> neighbors = get_connected_neighbors(i);
             int valid_neighbor_count = 0;
@@ -376,7 +373,7 @@ int main(int argc, char* argv[])
                     n.pos = neighbor;
                     n.cost = distance;
                     n.manhattan_distance = manhattan_distance_from_goal(neighbor);
-                    frontier_.push_back(n);
+                    frontier.push(n);
                     costs[n.pos] = distance;
                     }
             }
@@ -403,13 +400,10 @@ int main(int argc, char* argv[])
         for (int cell : visited_bad)
             fill_cell(start_pos, cell_size, cell, sqrt(adj_matrix.size()), "red");
         draw_maze();
-        if (i == max - 1 && !done) {
-            std::cout <<  "SOLVING COMPLETE" << std::endl;
-            done = true;
-        }
         usleep(interval * 1000);
         glfwSwapBuffers(window);
         glfwPollEvents();
+        if (i == max-1) std::cout << "SOLVING COMPLETE" << std::endl;
     }
     glfwDestroyWindow(window);
     glfwTerminate();

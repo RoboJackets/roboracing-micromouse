@@ -2,18 +2,53 @@ from pathlib import Path
 import subprocess
 from tkinter import *
 
+run_once = False
+
 def run_maze_sim():
+    generating = False
+    solving = False
     sim = subprocess.Popen([str(Path(__file__).resolve().parent.parent) + "/bin/Maze", selected_algo_gen.get(), "astar" if selected_algo_solve.get() == "A*" else selected_algo_solve.get(), dim.get("1.0", END), interval.get("1.0", END), seed.get("1.0", END)], stdout=subprocess.PIPE, text=True)
+    old_line_pos = ""
+    stdout.config(state=NORMAL)
+    if stdout.index("end") != "2.0":
+        stdout.insert(END, "\n\n")
+    stdout.config(state=DISABLED)
     for line in sim.stdout:
         stdout.config(state=NORMAL)
-        stdout.insert(END, line)
-        stdout.config(state=DISABLED)
+        if line.strip() == "Generating maze..." and not generating:
+            stdout.insert(END, line + "\n")
+            stdout.insert(END, "Elapsed Time: 0s", "red")
+            generating = True
+            old_line_pos = stdout.index("end-1l")
+        elif line.startswith("#time_count") and generating:
+            stdout.delete(f"{old_line_pos} linestart", f"{old_line_pos} lineend")
+            time = line.split(' ', 1)[1].strip()
+            stdout.insert(old_line_pos, f"Elapsed Time: {time}s", "red")
+        elif line.startswith("#elapsed_time") and generating:
+            stdout.delete(f"{old_line_pos} linestart", f"{old_line_pos} lineend")
+            time = line.split(' ', 1)[1].strip()
+            stdout.insert(old_line_pos, f"Elapsed Time: {time}s", "green")
+            generating = False
+        if line.strip() == "Solving..." and not solving:
+            stdout.insert(END, "\n\n" + line + "\n")
+            solving = True
+            old_line_pos = stdout.index("end-1l")
+        elif line.startswith("#time_count") and solving:
+            stdout.delete(f"{old_line_pos} linestart", f"{old_line_pos} lineend")
+            time = line.split(' ', 1)[1].strip()
+            stdout.insert(old_line_pos, f"Elapsed Time: {time}s", "red")
+        elif line.startswith("#elapsed_time") and solving:
+            stdout.delete(f"{old_line_pos} linestart", f"{old_line_pos} lineend")
+            time = line.split(' ', 1)[1].strip()
+            stdout.insert(old_line_pos, f"Elapsed Time: {time}s", "green")
+            generating = False
         stdout.see(END)
         stdout.update()
         if line.strip() == "SOLVING COMPLETE":
-            sim.stdout.close()
-            root.update_idletasks()
+            stdout.insert(END, "SOLVING COMPLETE")
+            stdout.config(state=DISABLED)
             return
+        stdout.config(state=DISABLED)
 
 algos_gen = ['rdfs']
 algos_solve = ['dfs', 'bfs', 'dfs_greedy', 'A*']
@@ -60,5 +95,7 @@ launch.grid(row=10, column=0)
 
 stdout = Text(frame, height=23, width=25, state=DISABLED)
 stdout.grid(row=0, column=1, rowspan=10)
+stdout.tag_configure("red", foreground="red")
+stdout.tag_configure("green", foreground="green")
 
 root.mainloop()
