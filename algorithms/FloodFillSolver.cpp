@@ -5,9 +5,8 @@
 #include "../mms-cpp/API.h"
 #include "Mouse.h"
 
-void log(const std::string &text) { std::cerr << text << std::endl; }
+void log(const std::string& text) { std::cerr << text << std::endl; }
 int dists[16][16];
-int goals[][2] = {{7, 7}, {7, 8}, {8, 7}, {8, 8}};
 unsigned char walls[16][16];  // 1000: top, 0100: right, 0010: down, 0001: left
 MouseState state{};
 
@@ -40,7 +39,8 @@ void floodFill() {
     }
   }
   std::queue<Coord> queue{};
-  for (auto &g : goals) {
+  for (int i = 0; i < state.currentGoals.count; i++) {
+    const int* g = state.currentGoals.cells[i];
     dists[g[0]][g[1]] = 0;
     queue.push({g[1], g[0]});
   }
@@ -185,15 +185,15 @@ void traverse() {
 }
 
 bool atGoal() {
-  for (auto &g : goals) {
-    if (g[0] == state.y && g[1] == state.x) {
-      return true;
-    }
+  for (int i = 0; i < state.currentGoals.count; ++i) {
+    const int* g = state.currentGoals.cells[i];
+    if (g[0] == state.y && g[1] == state.x) return true;
   }
   return false;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
+  // init border:
   for (int i = 0; i < 16; i++) {
     walls[i][0] |= LEFT;
     walls[0][i] |= DOWN;
@@ -207,8 +207,11 @@ int main(int argc, char *argv[]) {
   log("Running...");
   API::setColor(0, 0, 'G');
   API::setText(0, 0, "start");
-  while (!atGoal()) {
-    traverse();
-    logCells();
+  while (true) {
+    while (!atGoal()) {
+      traverse();
+      logCells();
+    }
+    state.toggleGoalType();
   }
 }

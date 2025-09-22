@@ -5,13 +5,33 @@ constexpr unsigned char TOP{0b1000};
 constexpr unsigned char RIGHT{0b0100};
 constexpr unsigned char DOWN{0b0010};
 constexpr unsigned char LEFT{0b0001};
+constexpr int centerGoals[][2] = {{7, 7}, {7, 8}, {8, 7}, {8, 8}};
+constexpr int startGoal[][2] = {{0, 0}};
+
+enum class GoalType { Center, Start };
+
+struct Goals {
+  const int (*cells)[2];
+  int count;
+};
+
+constexpr Goals CENTER_GOALS{centerGoals, 4};
+constexpr Goals START_GOALS{startGoal, 1};
 
 struct Coord {
-  int x;
-  int y;
+  int x = 0;
+  int y = 0;
 };
 struct MouseState {
   int x = 0;
   int y = 0;
   unsigned char dir = TOP;  // 1000: top, 0100: right, 0010: down, 0001: left
+  Goals currentGoals = CENTER_GOALS;
+  void setGoalType(GoalType t) {
+    currentGoals = (t == GoalType::Center) ? CENTER_GOALS : START_GOALS;
+  }
+  void toggleGoalType() {
+    currentGoals =
+        (currentGoals.count == CENTER_GOALS.count) ? START_GOALS : CENTER_GOALS;
+  }
 };
