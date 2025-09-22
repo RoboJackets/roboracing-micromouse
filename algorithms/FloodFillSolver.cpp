@@ -83,7 +83,7 @@ void floodFill() {
   for (int x = 0; x < 16; x++) {
     for (int y = 0; y < 16; y++) {
       if (!explored[y][x]) {
-        dists[y][x] -= 2;
+        dists[y][x] -= 0;
       }
     }
   }
