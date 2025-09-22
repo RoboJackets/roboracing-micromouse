@@ -27,11 +27,13 @@ struct MouseState {
   int y = 0;
   unsigned char dir = TOP;  // 1000: top, 0100: right, 0010: down, 0001: left
   Goals currentGoals = CENTER_GOALS;
+  GoalType type = GoalType::Center;
   void setGoalType(GoalType t) {
     currentGoals = (t == GoalType::Center) ? CENTER_GOALS : START_GOALS;
   }
   void toggleGoalType() {
-    currentGoals =
-        (currentGoals.count == CENTER_GOALS.count) ? START_GOALS : CENTER_GOALS;
+    (type == GoalType::Center) ? (type = GoalType::Start)
+                               : (type = GoalType::Center);
+    setGoalType(type);
   }
 };

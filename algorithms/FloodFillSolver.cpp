@@ -7,8 +7,17 @@
 
 void log(const std::string& text) { std::cerr << text << std::endl; }
 int dists[16][16];
+bool explored[16][16];
 unsigned char walls[16][16];  // 1000: top, 0100: right, 0010: down, 0001: left
 MouseState state{};
+
+bool atGoal() {
+  for (int i = 0; i < state.currentGoals.count; ++i) {
+    const int* g = state.currentGoals.cells[i];
+    if (g[0] == state.y && g[1] == state.x) return true;
+  }
+  return false;
+}
 
 char convertDir(unsigned char dir) {
   switch (dir) {
@@ -71,6 +80,13 @@ void floodFill() {
       queue.push({c.x, c.y + 1});
     }
   }
+  for (int x = 0; x < 16; x++) {
+    for (int y = 0; y < 16; y++) {
+      if (!explored[y][x]) {
+        dists[y][x] -= 2;
+      }
+    }
+  }
 }
 
 void updateWalls() {
@@ -114,8 +130,6 @@ void updateWalls() {
 }
 
 void traverse() {
-  updateWalls();
-  floodFill();
   int currentDist = dists[state.y][state.x];
   int best = 300;
   unsigned char bestDir = TOP;
@@ -165,7 +179,8 @@ void traverse() {
       API::turnLeft();
       break;
   }
-
+  state.dir = bestDir;
+  API::moveForward();
   switch (bestDir) {
     case TOP:
       state.y++;
@@ -180,20 +195,18 @@ void traverse() {
       state.y--;
       break;
   }
-  state.dir = bestDir;
-  API::moveForward();
-}
-
-bool atGoal() {
-  for (int i = 0; i < state.currentGoals.count; ++i) {
-    const int* g = state.currentGoals.cells[i];
-    if (g[0] == state.y && g[1] == state.x) return true;
-  }
-  return false;
+  explored[state.y][state.x] = true;
+  API::setColor(state.x, state.y, 'B');
 }
 
 int main(int argc, char* argv[]) {
   // init border:
+  explored[0][0] = true;
+  for (int i = 0; i < CENTER_GOALS.count; ++i) {
+    int gx = CENTER_GOALS.cells[i][1];
+    int gy = CENTER_GOALS.cells[i][0];
+    explored[gy][gx] = true;
+  }
   for (int i = 0; i < 16; i++) {
     walls[i][0] |= LEFT;
     walls[0][i] |= DOWN;
@@ -208,10 +221,16 @@ int main(int argc, char* argv[]) {
   API::setColor(0, 0, 'G');
   API::setText(0, 0, "start");
   while (true) {
-    while (!atGoal()) {
-      traverse();
-      logCells();
+    updateWalls();
+    if (atGoal()) {
+      log("goal!");
+      state.toggleGoalType();
+      floodFill();
+      
+      API::setColor(state.x, state.y, 'R');
     }
-    state.toggleGoalType();
+    floodFill();
+    traverse();
+    logCells();
   }
 }
