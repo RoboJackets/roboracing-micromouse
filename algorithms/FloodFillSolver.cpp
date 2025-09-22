@@ -225,8 +225,6 @@ int main(int argc, char* argv[]) {
     if (atGoal()) {
       log("goal!");
       state.toggleGoalType();
-      floodFill();
-      
       API::setColor(state.x, state.y, 'R');
     }
     floodFill();
