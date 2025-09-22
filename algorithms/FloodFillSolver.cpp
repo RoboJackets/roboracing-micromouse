@@ -225,7 +225,10 @@ int main(int argc, char* argv[]) {
     if (atGoal()) {
       log("goal!");
       state.toggleGoalType();
+      floodFill();
+      logCells();
       API::setColor(state.x, state.y, 'R');
+      continue;
     }
     floodFill();
     traverse();
