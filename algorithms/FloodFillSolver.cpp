@@ -41,6 +41,51 @@ void logCells() {
   }
 }
 
+int dirToDist(unsigned char dir1, unsigned char dir2) {
+  if (dir1 == dir2) {
+    return 0;
+  }
+  unsigned char rot1 = dir1;
+  unsigned char rot2 = dir2;
+  if (dir1 == LEFT) {
+    rot1 = RCIRC4(dir1);
+    rot2 = RCIRC4(dir2);
+  }
+  if (dir1 == RIGHT) {
+    rot1 = LCIRC4(dir1);
+    rot2 = LCIRC4(dir2);
+  }
+  if (dir1 == DOWN) {
+    rot1 = LCIRC4(LCIRC4(dir1));
+    rot2 = LCIRC4(LCIRC4(dir2));
+  }
+  if (rot2 == LEFT || rot2 == RIGHT) {
+    return 1;
+  }
+  return 2;
+}
+
+int turningPenalty() {
+  if (!(walls[state.y][state.x] & TOP)) {
+    dists[state.y + 1][state.x] +=
+        state.currentGoals.turnPenalty * dirToDist(state.dir, TOP);
+  }
+  if (!(walls[state.y][state.x] & LEFT)) {
+    dists[state.y][state.x - 1] +=
+        state.currentGoals.turnPenalty * dirToDist(state.dir, LEFT);
+  }
+  if (!(walls[state.y][state.x] & DOWN)) {
+    dists[state.y - 1][state.x] +=
+        state.currentGoals.turnPenalty * dirToDist(state.dir, DOWN);
+  }
+  if (!(walls[state.y][state.x] & RIGHT)) {
+    dists[state.y][state.x + 1] +=
+        state.currentGoals.turnPenalty * dirToDist(state.dir, RIGHT);
+    std::cerr << std::to_string(dirToDist(state.dir, RIGHT)) << std::endl;
+  }
+  return 0;
+}
+
 void floodFill() {
   for (int x = 0; x < 16; x++) {
     for (int y = 0; y < 16; y++) {
@@ -80,10 +125,11 @@ void floodFill() {
       queue.push({c.x, c.y + 1});
     }
   }
+  turningPenalty();
   for (int x = 0; x < 16; x++) {
     for (int y = 0; y < 16; y++) {
       if (!explored[y][x]) {
-        dists[y][x] -= 0;
+        dists[y][x] -= state.currentGoals.explorationWeight;
       }
     }
   }
@@ -231,7 +277,7 @@ int main(int argc, char* argv[]) {
       continue;
     }
     floodFill();
-    traverse();
     logCells();
+    traverse();
   }
 }

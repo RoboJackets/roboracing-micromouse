@@ -13,10 +13,12 @@ enum class GoalType { Center, Start };
 struct Goals {
   const int (*cells)[2];
   int count;
+  int explorationWeight = 1;
+  int turnPenalty = 0;
 };
 
-constexpr Goals CENTER_GOALS{centerGoals, 4};
-constexpr Goals START_GOALS{startGoal, 1};
+constexpr Goals CENTER_GOALS{centerGoals, 4, 0, 0};
+constexpr Goals START_GOALS{startGoal, 1, 0, 0};
 
 struct Coord {
   int x = 0;
