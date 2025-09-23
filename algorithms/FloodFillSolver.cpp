@@ -210,6 +210,22 @@ void traverse() {
   }
   if (tie) {
     applyTiebreaker();
+    logCells();
+    int bestDirArray[4] = {500, 500, 500, 500};
+    if (!(walls[state.y][state.x] & TOP)) {
+      bestDirArray[0] = dists[state.y + 1][state.x];
+    }
+    if (!(walls[state.y][state.x] & LEFT)) {
+      bestDirArray[1] = dists[state.y][state.x - 1];
+    }
+    if (!(walls[state.y][state.x] & DOWN)) {
+      bestDirArray[2] = dists[state.y - 1][state.x];
+    }
+    if (!(walls[state.y][state.x] & RIGHT)) {
+      bestDirArray[3] = dists[state.y][state.x + 1];
+    }
+    best = 300;
+    bestDirID = -1;
     for (int i = 0; i < 4; i++) {
       if (bestDirArray[i] < best) {
         bestDirID = i;
