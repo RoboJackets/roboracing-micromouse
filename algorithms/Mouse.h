@@ -17,8 +17,8 @@ struct Goals {
   int turnPenalty = 0;
 };
 
-constexpr Goals CENTER_GOALS{centerGoals, 4, 0, 0};
-constexpr Goals START_GOALS{startGoal, 1, 0, 0};
+constexpr Goals CENTER_GOALS{centerGoals, 4, 0, 1};
+constexpr Goals START_GOALS{startGoal, 1, 1, 0};
 
 struct Coord {
   int x = 0;
