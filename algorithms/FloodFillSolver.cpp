@@ -266,7 +266,11 @@ int main(int argc, char* argv[]) {
   log("Running...");
   API::setColor(0, 0, 'G');
   API::setText(0, 0, "start");
+  int totalRuns = 0;
   while (true) {
+    if (totalRuns >= 2){
+      break;
+    }
     updateWalls();
     if (atGoal()) {
       log("goal!");
@@ -274,6 +278,7 @@ int main(int argc, char* argv[]) {
       floodFill();
       logCells();
       API::setColor(state.x, state.y, 'R');
+      totalRuns++;
       continue;
     }
     floodFill();
