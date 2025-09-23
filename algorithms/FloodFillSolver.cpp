@@ -46,7 +46,6 @@ void logCells() {
   }
 }
 
-// minimal relative-turn “distance”: 0 if same, 1 if 90°, 2 if 180°
 int dirToDist(unsigned char dir1, unsigned char dir2) {
   if (dir1 == dir2) return 0;
 
@@ -176,7 +175,7 @@ void applyTiebreaker() {
 
 void traverse() {
   auto fillNeighborCosts = [&](int out[4]) {
-    out[0] = out[1] = out[2] = out[3] = INF + 200;  // sentinel > INF
+    out[0] = out[1] = out[2] = out[3] = INF + 200;
     const unsigned char here = walls[state.y][state.x];
     if (!(here & TOP)) out[0] = dists[state.y + 1][state.x];
     if (!(here & LEFT)) out[1] = dists[state.y][state.x - 1];
@@ -277,7 +276,7 @@ void traverse() {
   API::setColor(state.x, state.y, 'B');
 }
 
-int main(int /*argc*/, char* /*argv*/[]) {
+int main() {
   explored[0][0] = true;
   for (int i = 0; i < CENTER_GOALS.count; ++i) {
     const int gx = CENTER_GOALS.cells[i][1];
