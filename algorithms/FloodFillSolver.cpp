@@ -125,14 +125,6 @@ void floodFill() {
       queue.push({c.x, c.y + 1});
     }
   }
-  turningPenalty();
-  for (int x = 0; x < 16; x++) {
-    for (int y = 0; y < 16; y++) {
-      if (!explored[y][x]) {
-        dists[y][x] -= state.currentGoals.explorationWeight;
-      }
-    }
-  }
 }
 
 void updateWalls() {
@@ -175,26 +167,70 @@ void updateWalls() {
   }
 }
 
+void applyTiebreaker() {
+  std::cerr << "tiebreak applied..." << std::endl;
+  turningPenalty();
+  for (int x = 0; x < 16; x++) {
+    for (int y = 0; y < 16; y++) {
+      if (!explored[y][x]) {
+        dists[y][x] -= state.currentGoals.explorationWeight;
+      }
+    }
+  }
+}
+
 void traverse() {
   int currentDist = dists[state.y][state.x];
+  int bestDirArray[4] = {500, 500, 500, 500};
+  if (!(walls[state.y][state.x] & TOP)) {
+    bestDirArray[0] = dists[state.y + 1][state.x];
+  }
+  if (!(walls[state.y][state.x] & LEFT)) {
+    bestDirArray[1] = dists[state.y][state.x - 1];
+  }
+  if (!(walls[state.y][state.x] & DOWN)) {
+    bestDirArray[2] = dists[state.y - 1][state.x];
+  }
+  if (!(walls[state.y][state.x] & RIGHT)) {
+    bestDirArray[3] = dists[state.y][state.x + 1];
+  }
+
   int best = 300;
-  unsigned char bestDir = TOP;
-  if (!(walls[state.y][state.x] & TOP) && dists[state.y + 1][state.x] < best) {
-    best = dists[state.y + 1][state.x];
-    bestDir = TOP;
+  bool tie = false;
+  int bestDirID = -1;
+  for (int i = 0; i < 4; i++) {
+    if (bestDirArray[i] == best) {
+      tie = true;
+    }
+    if (bestDirArray[i] < best) {
+      bestDirID = i;
+      tie = false;
+      best = bestDirArray[i];
+    }
   }
-  if (!(walls[state.y][state.x] & LEFT) && dists[state.y][state.x - 1] < best) {
-    best = dists[state.y][state.x - 1];
-    bestDir = LEFT;
+  if (tie) {
+    applyTiebreaker();
+    for (int i = 0; i < 4; i++) {
+      if (bestDirArray[i] < best) {
+        bestDirID = i;
+        best = bestDirArray[i];
+      }
+    }
   }
-  if (!(walls[state.y][state.x] & DOWN) && dists[state.y - 1][state.x] < best) {
-    best = dists[state.y - 1][state.x];
-    bestDir = DOWN;
-  }
-  if (!(walls[state.y][state.x] & RIGHT) &&
-      dists[state.y][state.x + 1] < best) {
-    best = dists[state.y][state.x + 1];
-    bestDir = RIGHT;
+  unsigned char bestDir = 0;
+  switch (bestDirID) {
+    case 0:
+      bestDir = TOP;
+      break;
+    case 1:
+      bestDir = LEFT;
+      break;
+    case 2:
+      bestDir = DOWN;
+      break;
+    case 3:
+      bestDir = RIGHT;
+      break;
   }
 
   unsigned char localBestDir = bestDir;
@@ -268,7 +304,7 @@ int main(int argc, char* argv[]) {
   API::setText(0, 0, "start");
   int totalRuns = 0;
   while (true) {
-    if (totalRuns >= 2){
+    if (totalRuns >= 2) {
       break;
     }
     updateWalls();
