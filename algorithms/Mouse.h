@@ -1,10 +1,4 @@
-#define RCIRC4(x) (((x) & 1) ? (0b1000 | (x) >> 1) : (x) >> 1)
-#define LCIRC4(x) (((x) & 0b1000) ? (0b0001 | ((x) & ~0b1000) << 1) : (x) << 1)
-
-constexpr unsigned char TOP{0b1000};
-constexpr unsigned char RIGHT{0b0100};
-constexpr unsigned char DOWN{0b0010};
-constexpr unsigned char LEFT{0b0001};
+#include "Helpers.h"
 constexpr int centerGoals[][2] = {{7, 7}, {7, 8}, {8, 7}, {8, 8}};
 constexpr int startGoal[][2] = {{0, 0}};
 
@@ -18,8 +12,10 @@ struct Goals {
 };
 
 constexpr Goals CENTER_GOALS{centerGoals, 4, 0, 1};
-constexpr Goals START_GOALS{startGoal, 1, 1, 0};
+constexpr Goals START_GOALS{startGoal, 1, 3, 0};
 
+constexpr int N = 16;
+constexpr int INF = 300;
 struct Coord {
   int x = 0;
   int y = 0;
@@ -30,6 +26,10 @@ struct MouseState {
   unsigned char dir = TOP;  // 1000: top, 0100: right, 0010: down, 0001: left
   Goals currentGoals = CENTER_GOALS;
   GoalType type = GoalType::Center;
+
+  int dists[N][N];
+  bool explored[N][N];
+  unsigned char walls[N][N];  // 1000: top, 0100: right, 0010: down, 0001: left
   void setGoalType(GoalType t) {
     currentGoals = (t == GoalType::Center) ? CENTER_GOALS : START_GOALS;
   }
@@ -39,3 +39,11 @@ struct MouseState {
     setGoalType(type);
   }
 };
+
+bool atGoal(MouseState& state) {
+  for (int i = 0; i < state.currentGoals.count; ++i) {
+    const int* g = state.currentGoals.cells[i];
+    if (g[0] == state.y && g[1] == state.x) return true;
+  }
+  return false;
+}
