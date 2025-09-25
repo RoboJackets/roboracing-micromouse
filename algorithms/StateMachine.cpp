@@ -3,11 +3,27 @@
 
 #include "FloodFillSolver.cpp"
 MouseState mouseState{};
-enum State { GOAL_SEARCH, FAST_PATH, NONE };
+enum State { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
 State currentState = GOAL_SEARCH;
 Solver* solver{};
+const Goals* goal = &CENTER_GOALS;
 
-void changeState() { currentState = NONE; }
+void updateState() {
+  switch (currentState) {
+    case GOAL_SEARCH:
+      if (solver->end(mouseState, goal)) {
+        currentState = RETURN;
+      }
+      break;
+    case RETURN:
+      if (solver->end(mouseState, goal)) {
+        currentState = NONE;
+      }
+      break;
+    default:
+      break;
+  }
+}
 void init() {
   mouseState.explored[0][0] = true;
   for (int i = 0; i < CENTER_GOALS.count; ++i) {
@@ -40,14 +56,16 @@ int main(int argc, char const* argv[]) {
     switch (currentState) {
       case GOAL_SEARCH:
         solver = &floodFillSolver;
+        goal = &CENTER_GOALS;
+        break;
+      case RETURN:
+        goal = &START_GOALS;
         break;
       default:
         solver = &noop;
         break;
     }
-    solver->run(mouseState);
-    if (solver->end()) {
-      changeState();
-    }
+    solver->run(mouseState, goal);
+    updateState();
   }
 }

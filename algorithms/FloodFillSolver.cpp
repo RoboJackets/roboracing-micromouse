@@ -5,8 +5,6 @@
 #include "Solver.cpp"
 
 class FloodFillSolver : public Solver {
-  int totalRuns = 0;
-
   void logCells(MouseState& state) {
     for (int x = 0; x < N; ++x) {
       for (int y = 0; y < N; ++y) {
@@ -15,26 +13,26 @@ class FloodFillSolver : public Solver {
     }
   }
 
-  void turningPenalty(MouseState& state) {
+  void turningPenalty(MouseState& state, const Goals* goal) {
     if (!(state.walls[state.y][state.x] & TOP)) {
       state.dists[state.y + 1][state.x] +=
-          state.currentGoals.turnPenalty * dirToDist(state.dir, TOP);
+          goal->turnPenalty * dirToDist(state.dir, TOP);
     }
     if (!(state.walls[state.y][state.x] & LEFT)) {
       state.dists[state.y][state.x - 1] +=
-          state.currentGoals.turnPenalty * dirToDist(state.dir, LEFT);
+          goal->turnPenalty * dirToDist(state.dir, LEFT);
     }
     if (!(state.walls[state.y][state.x] & DOWN)) {
       state.dists[state.y - 1][state.x] +=
-          state.currentGoals.turnPenalty * dirToDist(state.dir, DOWN);
+          goal->turnPenalty * dirToDist(state.dir, DOWN);
     }
     if (!(state.walls[state.y][state.x] & RIGHT)) {
       state.dists[state.y][state.x + 1] +=
-          state.currentGoals.turnPenalty * dirToDist(state.dir, RIGHT);
+          goal->turnPenalty * dirToDist(state.dir, RIGHT);
     }
   }
 
-  void floodFill(MouseState& state) {
+  void floodFill(MouseState& state, const Goals* goal) {
     for (int x = 0; x < N; ++x) {
       for (int y = 0; y < N; ++y) {
         state.dists[y][x] = INF;
@@ -42,8 +40,8 @@ class FloodFillSolver : public Solver {
     }
 
     std::queue<Coord> queue{};
-    for (int i = 0; i < state.currentGoals.count; ++i) {
-      const int* g = state.currentGoals.cells[i];
+    for (int i = 0; i < goal->count; ++i) {
+      const int* g = goal->cells[i];
       state.dists[g[0]][g[1]] = 0;
       queue.push({g[1], g[0]});
     }
@@ -108,19 +106,19 @@ class FloodFillSolver : public Solver {
     }
   }
 
-  void applyTiebreaker(MouseState& state) {
+  void applyTiebreaker(MouseState& state, const Goals* goal) {
     log("tiebreak");
-    turningPenalty(state);
+    turningPenalty(state, goal);
     for (int x = 0; x < N; ++x) {
       for (int y = 0; y < N; ++y) {
         if (!state.explored[y][x]) {
-          state.dists[y][x] -= state.currentGoals.explorationWeight;
+          state.dists[y][x] -= goal->explorationWeight;
         }
       }
     }
   }
 
-  void traverse(MouseState& state) {
+  void traverse(MouseState& state, const Goals* goal) {
     auto fillNeighborCosts = [&](int out[4]) {
       out[0] = out[1] = out[2] = out[3] = INF + 200;
       const unsigned char here = state.walls[state.y][state.x];
@@ -147,7 +145,7 @@ class FloodFillSolver : public Solver {
     }
 
     if (tie) {
-      applyTiebreaker(state);
+      applyTiebreaker(state, goal);
       logCells(state);
       fillNeighborCosts(bestDirArray);
       best = INF + 100;
@@ -224,16 +222,14 @@ class FloodFillSolver : public Solver {
   }
 
  public:
-  void run(MouseState& state) override {
+  void run(MouseState& state, const Goals* goal) override {
     updateWalls(state);
-    floodFill(state);
+    floodFill(state, goal);
     logCells(state);
-    traverse(state);
-    if (atGoal(state)) {
-      state.toggleGoalType();
-      totalRuns++;
-    }
+    traverse(state, goal);
   }
-  bool end() override { return totalRuns >= 2; }
+  bool end(MouseState& state, const Goals* goal) override {
+    return atGoal(state, goal);
+  }
   void logType() override { log("floodFill"); }
 };
