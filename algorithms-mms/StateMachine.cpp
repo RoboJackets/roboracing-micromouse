@@ -1,29 +1,30 @@
-#include <queue>
 #include <string>
 
-#include "FloodFillSolver.cpp"
+#include "../mms-cpp/API.h"
+#include "include/FastPastSolver.h"
+#include "include/FloodFillSolver.h"
+
+namespace {
+enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
+GoalState currentState = GoalState::GOAL_SEARCH;
+
 MouseState mouseState{};
-enum GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
-GoalState currentState = GOAL_SEARCH;
-Solver* solver{};
+Solver* solver = nullptr;
 const Goals* goal = &CENTER_GOALS;
 
 void updateState() {
   switch (currentState) {
-    case GOAL_SEARCH:
-      if (solver->end(mouseState, goal)) {
-        currentState = RETURN;
-      }
+    case GoalState::GOAL_SEARCH:
+      if (solver->end(mouseState, goal)) currentState = GoalState::RETURN;
       break;
-    case RETURN:
-      if (solver->end(mouseState, goal)) {
-        currentState = NONE;
-      }
+    case GoalState::RETURN:
+      if (solver->end(mouseState, goal)) currentState = GoalState::NONE;
       break;
     default:
       break;
   }
 }
+
 void init() {
   mouseState.explored[0][0] = true;
   for (int i = 0; i < CENTER_GOALS.count; ++i) {
@@ -31,7 +32,6 @@ void init() {
     const int gy = CENTER_GOALS.cells[i][0];
     mouseState.explored[gy][gx] = true;
   }
-
   for (int i = 0; i < N; ++i) {
     mouseState.walls[i][0] |= LEFT;
     mouseState.walls[0][i] |= DOWN;
@@ -43,26 +43,34 @@ void init() {
     API::setWall(N - 1, i, 'e');
     API::setWall(i, N - 1, 'n');
   }
-
   log("Running...");
   API::setColor(0, 0, 'G');
   API::setText(0, 0, "start");
 }
-int main(int argc, char const* argv[]) {
+}  // namespace
+
+int main() {
   init();
-  FloodFillSolver floodFillSolver{};
-  Solver noop{};
+  FloodFillSolver floodFill{};
+  FastPathSolver fastPath{};
+  Solver noop = Solver{};
+
   while (true) {
     switch (currentState) {
-      case GOAL_SEARCH:
-        solver = &floodFillSolver;
+      case GoalState::GOAL_SEARCH:
+        solver = &floodFill;
         goal = &CENTER_GOALS;
         break;
-      case RETURN:
+      case GoalState::RETURN:
+        solver = &floodFill;
         goal = &START_GOALS;
         break;
+      case GoalState::FAST_PATH:
+        solver = &fastPath;
+        goal = &CENTER_GOALS;
+        break;
       default:
-        solver = &noop;
+        solver = &floodFill;
         break;
     }
     solver->run(mouseState, goal);
