@@ -107,7 +107,6 @@ class FloodFillSolver : public Solver {
   }
 
   void applyTiebreaker(MouseState& state, const Goals* goal) {
-    log("tiebreak");
     turningPenalty(state, goal);
     for (int x = 0; x < N; ++x) {
       for (int y = 0; y < N; ++y) {

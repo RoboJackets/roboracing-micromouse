@@ -3,8 +3,8 @@
 
 #include "FloodFillSolver.cpp"
 MouseState mouseState{};
-enum State { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
-State currentState = GOAL_SEARCH;
+enum GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
+GoalState currentState = GOAL_SEARCH;
 Solver* solver{};
 const Goals* goal = &CENTER_GOALS;
 
