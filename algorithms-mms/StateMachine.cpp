@@ -1,7 +1,7 @@
 #include <string>
 
 #include "../mms-cpp/API.h"
-#include "include/FastPastSolver.h"
+#include "include/FastPathSolver.h"
 #include "include/FloodFillSolver.h"
 
 namespace {
@@ -70,7 +70,7 @@ int main() {
         goal = &CENTER_GOALS;
         break;
       default:
-        solver = &floodFill;
+        solver = &noop;
         break;
     }
     solver->run(mouseState, goal);

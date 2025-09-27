@@ -1,4 +1,4 @@
-#include "include\FastPastSolver.h"
+#include "include\FastPathSolver.h"
 
 void FastPathSolver::run(MouseState&, const Goals*) {}
 

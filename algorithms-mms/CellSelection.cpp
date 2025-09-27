@@ -1,6 +1,6 @@
 #include <queue>
 
-#include "Mouse.h"
+#include "include\Mouse.h"
 static void floodFill(MouseState& state, Goals* goal, int (&dists)[N][N]) {
   for (int x = 0; x < N; ++x) {
     for (int y = 0; y < N; ++y) {
@@ -54,6 +54,7 @@ static std::vector<Path> selectAllPaths(MouseState& state, Goals* goal) {
   floodFill(state, goal, dists);
   std::queue<Path> pathQueue{};
   pathQueue.push(Path{{Coord{}}});
+  std::vector<Path> paths;
   while (!pathQueue.empty()) {
     Path currentPath = pathQueue.front();
     pathQueue.pop();
@@ -121,5 +122,7 @@ static std::vector<Path> selectAllPaths(MouseState& state, Goals* goal) {
         }
       }
     }
+    paths.push_back(currentPath);
   }
+  return paths;
 }

@@ -1,8 +1,8 @@
 #pragma once
 #include "Helpers.h"
 
-constexpr int centerGoals[][2] = {{7,7},{7,8},{8,7},{8,8}};
-constexpr int startGoal[][2]   = {{0,0}};
+constexpr int centerGoals[][2] = {{7, 7}, {7, 8}, {8, 7}, {8, 8}};
+constexpr int startGoal[][2] = {{0, 0}};
 
 struct Goals {
   const int (*cells)[2];
@@ -12,7 +12,7 @@ struct Goals {
 };
 
 constexpr Goals CENTER_GOALS{centerGoals, 4, 0, 1};
-constexpr Goals START_GOALS {startGoal,   1, 3, 0};
+constexpr Goals START_GOALS{startGoal, 1, 3, 0};
 
 struct MouseState {
   int x = 0;
@@ -20,7 +20,7 @@ struct MouseState {
   unsigned char dir = TOP;
   int dists[N][N]{};
   bool explored[N][N]{};
-  unsigned char walls[N][N]{}; // bitmask
+  unsigned char walls[N][N]{};  // bitmask
 };
 
 inline bool atGoal(const MouseState& state, const Goals* goal) {
