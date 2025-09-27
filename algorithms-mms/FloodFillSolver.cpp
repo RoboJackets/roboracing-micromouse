@@ -229,6 +229,6 @@ void FloodFillSolver::run(MouseState& state, const Goals* goal) {
   traverse(state, goal);
 }
 
-bool FloodFillSolver::end(const MouseState& state, const Goals* goal) {
+bool FloodFillSolver::end(MouseState& state, const Goals* goal) {
   return atGoal(state, goal);
 }

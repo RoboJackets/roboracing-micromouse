@@ -18,7 +18,9 @@ void updateState() {
       if (solver->end(mouseState, goal)) currentState = GoalState::RETURN;
       break;
     case GoalState::RETURN:
-      if (solver->end(mouseState, goal)) currentState = GoalState::NONE;
+      if (solver->end(mouseState, goal)) {
+        currentState = GoalState::FAST_PATH;
+      }
       break;
     default:
       break;

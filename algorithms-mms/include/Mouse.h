@@ -23,7 +23,7 @@ struct MouseState {
   unsigned char walls[N][N]{};  // bitmask
 };
 
-inline bool atGoal(const MouseState& state, const Goals* goal) {
+inline bool atGoal(MouseState& state, const Goals* goal) {
   for (int i = 0; i < goal->count; ++i) {
     const int* g = goal->cells[i];
     if (g[0] == state.y && g[1] == state.x) return true;

@@ -1,7 +1,14 @@
 #include "include\FastPathSolver.h"
 
-void FastPathSolver::run(MouseState&, const Goals*) {}
+#include "include\CellSelection.h"
+bool ran = false;
+void FastPathSolver::run(MouseState& state, const Goals* goal) {
+  if (!ran) {
+    log(std::to_string(CellSelection::selectAllPaths(state, goal).size()));
+    ran = true;
+  }
+}
 
-bool FastPathSolver::end(const MouseState& state, const Goals* goal) {
+bool FastPathSolver::end(MouseState& state, const Goals* goal) {
   return atGoal(state, goal);
 }
