@@ -1,6 +1,7 @@
 #pragma once
 #include "Helpers.h"
-#include "IO.h"
+#include "Types.h"
+
 constexpr int centerGoals[][2] = {{7, 7}, {7, 8}, {8, 7}, {8, 8}};
 constexpr int startGoal[][2] = {{0, 0}};
 
@@ -19,18 +20,16 @@ struct MouseState {
   int dists[N][N]{};
   bool explored[N][N]{};
   unsigned char walls[N][N]{};  // bitmask
-  IO* io = nullptr;
-  void setIO(IO newio) { io = &newio; }
 
-  int y() { return io->getGridCoord().y; }
-  int x() { return io->getGridCoord().x; }
-  unsigned char dir() { return io->getGridDir(); }
+  int y = 0;
+  int x = 0;
+  unsigned char dir = TOP;
 };
 
 inline bool atGoal(MouseState& state, const Goals* goal) {
   for (int i = 0; i < goal->count; ++i) {
     const int* g = goal->cells[i];
-    if (g[0] == state.y() && g[1] == state.x()) return true;
+    if (g[0] == state.y && g[1] == state.x) return true;
   }
   return false;
 }

@@ -84,13 +84,20 @@ void init() {
 }  // namespace
 
 int main() {
+  log("0");
   init();
-
+  log("0.1");
   while (true) {
+    log("0.2");
     updateState();
+    log("1");
     io->update(mouseState);
+    log("2");
     Action a = solver->run(mouseState, goal);
+    log("3");
     IdealState s = a.getIdealState();
+    log("4");
     a.run(mouseState, *io);
+    log("5");
   }
 }

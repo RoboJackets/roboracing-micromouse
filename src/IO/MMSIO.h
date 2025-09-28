@@ -13,7 +13,12 @@ struct MMSIO : IO {
 
   void drive(double left, double right) override {}
   void getSensorState() override {}
-  void update(MouseState& mouseState) override { updateWalls(mouseState); }
+  void update(MouseState& mouseState) override {
+    updateWalls(mouseState);
+    mouseState.x = x;
+    mouseState.y = y;
+    mouseState.dir = dir;
+  }
   void stateToAPI(IdealState state) {
     GridCoord vector = GridCoord{state.pos.x - x, state.pos.y - y};
     unsigned char newDir = vectorToDir(vector);
@@ -55,27 +60,27 @@ struct MMSIO : IO {
     if (API::wallRight()) localWalls |= RIGHT;
     if (API::wallFront()) localWalls |= TOP;
 
-    if (state.dir() == LEFT) localWalls = LCIRC4(localWalls);
-    if (state.dir() == RIGHT) localWalls = RCIRC4(localWalls);
-    if (state.dir() == DOWN) localWalls = LCIRC4(LCIRC4(localWalls));
+    if (state.dir == LEFT) localWalls = LCIRC4(localWalls);
+    if (state.dir == RIGHT) localWalls = RCIRC4(localWalls);
+    if (state.dir == DOWN) localWalls = LCIRC4(LCIRC4(localWalls));
 
-    state.walls[state.y()][state.x()] |= localWalls;
+    state.walls[state.y][state.x] |= localWalls;
 
-    if (state.x() > 0 && (localWalls & LEFT)) {
-      API::setWall(state.x(), state.y(), 'w');
-      state.walls[state.y()][state.x() - 1] |= RIGHT;
+    if (state.x > 0 && (localWalls & LEFT)) {
+      API::setWall(state.x, state.y, 'w');
+      state.walls[state.y][state.x - 1] |= RIGHT;
     }
-    if (state.x() < N - 1 && (localWalls & RIGHT)) {
-      API::setWall(state.x(), state.y(), 'e');
-      state.walls[state.y()][state.x() + 1] |= LEFT;
+    if (state.x < N - 1 && (localWalls & RIGHT)) {
+      API::setWall(state.x, state.y, 'e');
+      state.walls[state.y][state.x + 1] |= LEFT;
     }
-    if (state.y() > 0 && (localWalls & DOWN)) {
-      API::setWall(state.x(), state.y(), 's');
-      state.walls[state.y() - 1][state.x()] |= TOP;
+    if (state.y > 0 && (localWalls & DOWN)) {
+      API::setWall(state.x, state.y, 's');
+      state.walls[state.y - 1][state.x] |= TOP;
     }
-    if (state.y() < N - 1 && (localWalls & TOP)) {
-      API::setWall(state.x(), state.y(), 'n');
-      state.walls[state.y() + 1][state.x()] |= DOWN;
+    if (state.y < N - 1 && (localWalls & TOP)) {
+      API::setWall(state.x, state.y, 'n');
+      state.walls[state.y + 1][state.x] |= DOWN;
     }
   }
   void logData(IdealState state, MouseState& mouseState) override {}

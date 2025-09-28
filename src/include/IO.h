@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 #include "IdealState.h"
 #include "Mouse.h"
 struct IO {

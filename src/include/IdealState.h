@@ -1,5 +1,6 @@
 #pragma once
-#include "Helpers.h"
+#include "Types.h"
+
 struct IdealState {
-    GridCoord pos{};
+  GridCoord pos{};
 };

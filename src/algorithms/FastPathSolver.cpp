@@ -2,12 +2,12 @@
 
 #include "../include/CellSelection.h"
 bool ran = false;
-Path & path;
+Path path = Path{};
 int steps = 0;
 Action FastPathSolver::run(MouseState& state, const Goals* goal) {
   if (steps < path.steps.size()) {
-    
   }
+  return Action{};
 }
 
 bool FastPathSolver::end(MouseState& state, const Goals* goal) {

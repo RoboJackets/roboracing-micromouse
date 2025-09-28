@@ -16,21 +16,21 @@ void logCells(MouseState& state) {
 }
 
 void turningPenalty(MouseState& state, const Goals* goal) {
-  if (!(state.walls[state.y()][state.x()] & TOP)) {
-    state.dists[state.y() + 1][state.x()] +=
-        goal->turnPenalty * dirToDist(state.dir(), TOP);
+  if (!(state.walls[state.y][state.x] & TOP)) {
+    state.dists[state.y + 1][state.x] +=
+        goal->turnPenalty * dirToDist(state.dir, TOP);
   }
-  if (!(state.walls[state.y()][state.x()] & LEFT)) {
-    state.dists[state.y()][state.x() - 1] +=
-        goal->turnPenalty * dirToDist(state.dir(), LEFT);
+  if (!(state.walls[state.y][state.x] & LEFT)) {
+    state.dists[state.y][state.x - 1] +=
+        goal->turnPenalty * dirToDist(state.dir, LEFT);
   }
-  if (!(state.walls[state.y()][state.x()] & DOWN)) {
-    state.dists[state.y() - 1][state.x()] +=
-        goal->turnPenalty * dirToDist(state.dir(), DOWN);
+  if (!(state.walls[state.y][state.x] & DOWN)) {
+    state.dists[state.y - 1][state.x] +=
+        goal->turnPenalty * dirToDist(state.dir, DOWN);
   }
-  if (!(state.walls[state.y()][state.x()] & RIGHT)) {
-    state.dists[state.y()][state.x() + 1] +=
-        goal->turnPenalty * dirToDist(state.dir(), RIGHT);
+  if (!(state.walls[state.y][state.x] & RIGHT)) {
+    state.dists[state.y][state.x + 1] +=
+        goal->turnPenalty * dirToDist(state.dir, RIGHT);
   }
 }
 
@@ -92,11 +92,11 @@ void applyTiebreaker(MouseState& state, const Goals* goal) {
 unsigned char traverse(MouseState& state, const Goals* goal) {
   auto fillNeighborCosts = [&](int out[4]) {
     out[0] = out[1] = out[2] = out[3] = INF + 200;
-    const unsigned char here = state.walls[state.y()][state.x()];
-    if (!(here & TOP)) out[0] = state.dists[state.y() + 1][state.x()];
-    if (!(here & LEFT)) out[1] = state.dists[state.y()][state.x() - 1];
-    if (!(here & DOWN)) out[2] = state.dists[state.y() - 1][state.x()];
-    if (!(here & RIGHT)) out[3] = state.dists[state.y()][state.x() + 1];
+    const unsigned char here = state.walls[state.y][state.x];
+    if (!(here & TOP)) out[0] = state.dists[state.y + 1][state.x];
+    if (!(here & LEFT)) out[1] = state.dists[state.y][state.x - 1];
+    if (!(here & DOWN)) out[2] = state.dists[state.y - 1][state.x];
+    if (!(here & RIGHT)) out[3] = state.dists[state.y][state.x + 1];
   };
 
   int bestDirArray[4];
@@ -144,7 +144,7 @@ unsigned char traverse(MouseState& state, const Goals* goal) {
       bestDir = RIGHT;
       break;
     default:
-      bestDir = state.dir();
+      bestDir = state.dir;
       break;
   }
   return bestDir;
@@ -156,10 +156,11 @@ Action FloodFillSolver::run(MouseState& state, const Goals* goal) {
   logCells(state);
   unsigned char dir = traverse(state, goal);
   GridCoord v = dirToVector(dir);
-  IdealState idealState = IdealState{state.x() + v.x, state.y() + v.y};
+  IdealState idealState = IdealState{state.x + v.x, state.y + v.y};
   return MoveAction(idealState);
 }
 
 bool FloodFillSolver::end(MouseState& state, const Goals* goal) {
+  log("wow!");
   return atGoal(state, goal);
 }
