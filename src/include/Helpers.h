@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
 #define RCIRC4(x) (((x) & 1) ? (0b1000 | (x) >> 1) : (x) >> 1)
 #define LCIRC4(x) (((x) & 0b1000) ? (0b0001 | ((x) & ~0b1000) << 1) : (x) << 1)
 
@@ -15,14 +14,18 @@ inline void log(const std::string& text) { std::cerr << text << '\n'; }
 
 constexpr int N = 16;
 constexpr int INF = 300;
-
-struct Coord {
+struct GridCoord {
   int x = 0;
   int y = 0;
 };
 
+struct WorldCoord {
+  double x = 0;
+  double y = 0;
+};
+
 struct Path {
-  std::vector<Coord> steps;
+  std::vector<GridCoord> steps;
 };
 
 inline int dirToDist(unsigned char dir1, unsigned char dir2) {
@@ -58,7 +61,7 @@ inline char convertDir(unsigned char dir) {
   }
 }
 
-inline Coord dirToVector(int dir) {
+inline GridCoord dirToVector(int dir) {
   switch (dir) {
     case 0:
       return {-1, 0};
@@ -72,8 +75,15 @@ inline Coord dirToVector(int dir) {
       return {0, 0};
   }
 }
+inline unsigned char vectorToDir(const GridCoord& vec) {
+  if (vec.x == -1 && vec.y == 0) return LEFT;
+  if (vec.x == 1 && vec.y == 0) return RIGHT;
+  if (vec.x == 0 && vec.y == -1) return DOWN;
+  if (vec.x == 0 && vec.y == 1) return TOP;
+  return 0;
+}
 
-inline Coord dirToVector(unsigned char dir) {
+inline GridCoord dirToVector(unsigned char dir) {
   switch (dir) {
     case LEFT:
       return {-1, 0};

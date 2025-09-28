@@ -1,9 +1,9 @@
-#include "include\CellSelection.h"
+#include "include/CellSelection.h"
 
 #include <queue>
 
-#include "..\mms-cpp\API.h"
-#include "include\Mouse.h"
+#include "../mms-cpp/API.h"
+#include "include/Mouse.h"
 void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
   for (int x = 0; x < N; ++x) {
     for (int y = 0; y < N; ++y) {
@@ -11,7 +11,7 @@ void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
     }
   }
 
-  std::queue<Coord> queue{};
+  std::queue<GridCoord> queue{};
   for (int i = 0; i < goal->count; ++i) {
     const int* g = goal->cells[i];
     dists[g[0]][g[1]] = 0;
@@ -19,7 +19,7 @@ void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
   }
 
   while (!queue.empty()) {
-    const Coord c = queue.front();
+    const GridCoord c = queue.front();
     queue.pop();
 
     const unsigned char wall = state.walls[c.y][c.x];
@@ -66,9 +66,9 @@ namespace CellSelection {
 Path selectPath(MouseState& state, const Goals* goal) {
   int dists[N][N];
   floodFill(state, goal, dists);
-  Path finalPath{{Coord{}}};
+  Path finalPath{{GridCoord{}}};
   while (true) {
-    Coord current = finalPath.steps.at(finalPath.steps.size() - 1);
+    GridCoord current = finalPath.steps.at(finalPath.steps.size() - 1);
     int best = INF;
     unsigned char bestDir = TOP;
     unsigned char wall = state.walls[current.y][current.x];
@@ -93,9 +93,9 @@ Path selectPath(MouseState& state, const Goals* goal) {
       best = state.dists[current.y][current.x + 1];
       bestDir = RIGHT;
     }
-    Coord nextDirection = dirToVector(bestDir);
-    Coord nextCur =
-        Coord{current.x + nextDirection.x, current.y + nextDirection.y};
+    GridCoord nextDirection = dirToVector(bestDir);
+    GridCoord nextCur =
+        GridCoord{current.x + nextDirection.x, current.y + nextDirection.y};
     finalPath.steps.push_back(nextCur);
     if (state.dists[nextCur.y][nextCur.x] == 0){
       break;

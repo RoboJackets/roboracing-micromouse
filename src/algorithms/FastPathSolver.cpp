@@ -1,10 +1,10 @@
-#include "include\FastPathSolver.h"
+#include "../include/FastPathSolver.h"
 
-#include "include\CellSelection.h"
+#include "../include/CellSelection.h"
 bool ran = false;
 Path & path;
 int steps = 0;
-void FastPathSolver::run(MouseState& state, const Goals* goal) {
+Action FastPathSolver::run(MouseState& state, const Goals* goal) {
   if (steps < path.steps.size()) {
     
   }

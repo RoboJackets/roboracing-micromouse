@@ -1,9 +1,9 @@
 #include <string>
 
 #include "../mms-cpp/API.h"
+#include "IO/MMSIO.h"
 #include "include/FastPathSolver.h"
 #include "include/FloodFillSolver.h"
-
 namespace {
 enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
 GoalState currentState = GoalState::GOAL_SEARCH;
@@ -16,6 +16,7 @@ const Goals* goal = &CENTER_GOALS;
 FloodFillSolver floodFill{};
 FastPathSolver fastPath{};
 Solver noop = Solver{};
+IO* io = nullptr;
 
 void switchState(GoalState state) {
   if (currentState == state) {
@@ -77,6 +78,8 @@ void init() {
   log("Running...");
   API::setColor(0, 0, 'G');
   API::setText(0, 0, "start");
+  MMSIO s = MMSIO{};
+  io = &s;
 }
 }  // namespace
 
@@ -85,6 +88,9 @@ int main() {
 
   while (true) {
     updateState();
-    solver->run(mouseState, goal);
+    io->update(mouseState);
+    Action a = solver->run(mouseState, goal);
+    IdealState s = a.getIdealState();
+    a.run(mouseState, *io);
   }
 }
