@@ -72,3 +72,18 @@ inline Coord dirToVector(int dir) {
       return {0, 0};
   }
 }
+
+inline Coord dirToVector(unsigned char dir) {
+  switch (dir) {
+    case LEFT:
+      return {-1, 0};
+    case RIGHT:
+      return {1, 0};
+    case DOWN:
+      return {0, -1};
+    case TOP:
+      return {0, 1};
+    default:
+      return {0, 0};
+  }
+}

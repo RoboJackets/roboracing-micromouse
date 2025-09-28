@@ -9,9 +9,38 @@ enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
 GoalState currentState = GoalState::GOAL_SEARCH;
 
 MouseState mouseState{};
+
 Solver* solver = nullptr;
 const Goals* goal = &CENTER_GOALS;
 
+FloodFillSolver floodFill{};
+FastPathSolver fastPath{};
+Solver noop = Solver{};
+
+void switchState(GoalState state) {
+  if (currentState == state) {
+    return;
+  }
+  solver->onFinished(mouseState, goal);
+  switch (currentState) {
+    case GoalState::GOAL_SEARCH:
+      solver = &floodFill;
+      goal = &CENTER_GOALS;
+      break;
+    case GoalState::RETURN:
+      solver = &floodFill;
+      goal = &START_GOALS;
+      break;
+    case GoalState::FAST_PATH:
+      solver = &fastPath;
+      goal = &CENTER_GOALS;
+      break;
+    default:
+      solver = &noop;
+      break;
+  }
+  solver->init(mouseState, goal);
+}
 void updateState() {
   switch (currentState) {
     case GoalState::GOAL_SEARCH:
@@ -53,29 +82,9 @@ void init() {
 
 int main() {
   init();
-  FloodFillSolver floodFill{};
-  FastPathSolver fastPath{};
-  Solver noop = Solver{};
 
   while (true) {
-    switch (currentState) {
-      case GoalState::GOAL_SEARCH:
-        solver = &floodFill;
-        goal = &CENTER_GOALS;
-        break;
-      case GoalState::RETURN:
-        solver = &floodFill;
-        goal = &START_GOALS;
-        break;
-      case GoalState::FAST_PATH:
-        solver = &fastPath;
-        goal = &CENTER_GOALS;
-        break;
-      default:
-        solver = &noop;
-        break;
-    }
-    solver->run(mouseState, goal);
     updateState();
+    solver->run(mouseState, goal);
   }
 }

@@ -63,91 +63,44 @@ void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
   }
 }
 namespace CellSelection {
-std::vector<Path> selectAllPaths(MouseState& state, const Goals* goal) {
+Path selectPath(MouseState& state, const Goals* goal) {
   int dists[N][N];
   floodFill(state, goal, dists);
-  std::queue<Path> pathQueue{};
-  pathQueue.push(Path{{Coord{}}});
-  std::vector<Path> paths;
-  while (!pathQueue.empty()) {
-    Path currentPath = pathQueue.front();
-    pathQueue.pop();
-    std::queue<Coord> currentCells{};
-    currentCells.push(currentPath.steps[currentPath.steps.size() - 1]);
-    while (!currentCells.empty()) {
-      Coord currentPosition = currentCells.front();
-      currentCells.pop();
-      const unsigned char wall =
-          state.walls[currentPosition.y][currentPosition.x];
-      const int dist = dists[currentPosition.y][currentPosition.x];
-
-      int adjDists[4] = {INF + 100, INF + 100, INF + 100, INF + 100};
-      // left
-      if (!(wall & LEFT) &&
-          state.explored[currentPosition.y][currentPosition.x - 1] &&
-          dists[currentPosition.y][currentPosition.x - 1] <
-              dists[currentPosition.y][currentPosition.x]) {
-        adjDists[0] = dists[currentPosition.y][currentPosition.x - 1];
-      }
-      // right
-      if (!(wall & RIGHT) &&
-          state.explored[currentPosition.y][currentPosition.x + 1] &&
-          dists[currentPosition.y][currentPosition.x + 1] <
-              dists[currentPosition.y][currentPosition.x]) {
-        adjDists[1] = dists[currentPosition.y][currentPosition.x + 1];
-      }
-      // down
-      if (!(wall & DOWN) &&
-          state.explored[currentPosition.y - 1][currentPosition.x] &&
-          dists[currentPosition.y - 1][currentPosition.x] <
-              dists[currentPosition.y][currentPosition.x]) {
-        adjDists[2] = dists[currentPosition.y - 1][currentPosition.x];
-      }
-      // up
-      if (!(wall & TOP) &&
-          state.explored[currentPosition.y + 1][currentPosition.x] &&
-          dists[currentPosition.y + 1][currentPosition.x] <
-              dists[currentPosition.y][currentPosition.x]) {
-        adjDists[3] = dists[currentPosition.y + 1][currentPosition.x];
-      }
-      int best = 300;
-      bool ties[4] = {false, false, false, false};
-
-      for (int i = 0; i < 4; i++) {
-        if (adjDists[i] == best) {
-          ties[i] = true;
-        }
-        if (adjDists[i] < best) {
-          for (int j = 0; j < 4; j++) ties[j] = false;
-          best = adjDists[i];
-          ties[i] = true;
-        }
-      }
-
-      Path basePath = currentPath;  // snapshot before mutating
-
-      bool element = false;
-      for (int i = 0; i < 4; i++) {
-        if (ties[i]) {
-          Coord c = dirToVector(i);
-          if (!element) {
-            currentCells.push(
-                {currentPosition.x + c.x, currentPosition.y + c.y});
-            currentPath.steps.push_back(
-                {currentPosition.x + c.x, currentPosition.y + c.y});
-          } else {
-            Path p =
-                basePath;  // fork from snapshot, not the already-extended path
-            p.steps.push_back(
-                {currentPosition.x + c.x, currentPosition.y + c.y});
-            pathQueue.push(p);
-          }
-          element = true;
-        }
-      }
+  Path finalPath{{Coord{}}};
+  while (true) {
+    Coord current = finalPath.steps.at(finalPath.steps.size() - 1);
+    int best = INF;
+    unsigned char bestDir = TOP;
+    unsigned char wall = state.walls[current.y][current.x];
+    int dist = state.dists[current.y][current.x];
+    if (!(wall & TOP) && state.explored[current.y + 1][current.x] &&
+        state.dists[current.y + 1][current.x] < best) {
+      best = state.dists[current.y + 1][current.x];
+      bestDir = TOP;
     }
-    paths.push_back(currentPath);
+    if (!(wall & LEFT) && state.explored[current.y][current.x - 1] &&
+        state.dists[current.y][current.x - 1] < best) {
+      best = state.dists[current.y][current.x - 1];
+      bestDir = LEFT;
+    }
+    if (!(wall & DOWN) && state.explored[current.y - 1][current.x] &&
+        state.dists[current.y - 1][current.x] < best) {
+      best = state.dists[current.y - 1][current.x];
+      bestDir = DOWN;
+    }
+    if (!(wall & RIGHT) && state.explored[current.y][current.x + 1] &&
+        state.dists[current.y][current.x + 1] < best) {
+      best = state.dists[current.y][current.x + 1];
+      bestDir = RIGHT;
+    }
+    Coord nextDirection = dirToVector(bestDir);
+    Coord nextCur =
+        Coord{current.x + nextDirection.x, current.y + nextDirection.y};
+    finalPath.steps.push_back(nextCur);
+    if (state.dists[nextCur.y][nextCur.x] == 0){
+      break;
+    }
   }
-  return paths;
+  return finalPath;
 }
 }  // namespace CellSelection
