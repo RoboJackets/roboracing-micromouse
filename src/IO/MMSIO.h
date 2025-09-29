@@ -14,14 +14,25 @@ struct MMSIO : IO {
   void drive(double left, double right) override {}
   void getSensorState() override {}
   void update(MouseState& mouseState) override {
-    updateWalls(mouseState);
     mouseState.x = x;
     mouseState.y = y;
     mouseState.dir = dir;
+    updateWalls(mouseState);
+    logCells(mouseState);
+    API::setColor(x,y,'B');
+  }
+  void logCells(MouseState& state) {
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < N; ++y) {
+        API::setText(x, y, std::to_string(state.dists[y][x]));
+      }
+    }
   }
   void stateToAPI(IdealState state) {
     GridCoord vector = GridCoord{state.pos.x - x, state.pos.y - y};
     unsigned char newDir = vectorToDir(vector);
+    x = state.pos.x;
+    y = state.pos.y;
     if (dir == newDir) {
       API::moveForward();
       return;
@@ -47,7 +58,6 @@ struct MMSIO : IO {
         break;
     }
     API::moveForward();
-
     dir = newDir;
   }
   void setState(IdealState state) override {
@@ -83,5 +93,15 @@ struct MMSIO : IO {
       state.walls[state.y + 1][state.x] |= DOWN;
     }
   }
-  void logData(IdealState state, MouseState& mouseState) override {}
+  void init() override {
+    log("Running...");
+    API::setColor(0, 0, 'G');
+    API::setText(0, 0, "start");
+    for (int i = 0; i < N; ++i) {
+      API::setWall(0, i, 'w');
+      API::setWall(i, 0, 's');
+      API::setWall(N - 1, i, 'e');
+      API::setWall(i, N - 1, 'n');
+    }
+  }
 };

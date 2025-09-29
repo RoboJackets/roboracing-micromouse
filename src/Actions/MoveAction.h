@@ -2,8 +2,9 @@
 #include "../include/Action.h"
 struct MoveAction : Action {
   IdealState state;
-  MoveAction(IdealState s) : state(s) {}
+  MoveAction() {}
   IdealState getIdealState() override { return state; }
+  void setIdealState(IdealState newState) { state = newState; }
   void run(MouseState& state, IO& io) override {
     state.explored[state.y][state.x] = true;
     io.setState(getIdealState());

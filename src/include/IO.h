@@ -1,7 +1,7 @@
 #pragma once
-#include "Types.h"
 #include "IdealState.h"
 #include "Mouse.h"
+#include "Types.h"
 struct IO {
   virtual GridCoord getGridCoord() = 0;
   virtual unsigned char getGridDir() = 0;
@@ -13,5 +13,6 @@ struct IO {
   virtual void getSensorState() = 0;
 
   virtual void update(MouseState& mouseState) = 0;
-  virtual void logData(IdealState state, MouseState& mouseState) = 0;
+
+  virtual void init() = 0;
 };

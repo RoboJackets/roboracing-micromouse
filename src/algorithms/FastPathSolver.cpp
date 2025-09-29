@@ -4,10 +4,11 @@
 bool ran = false;
 Path path = Path{};
 int steps = 0;
-Action FastPathSolver::run(MouseState& state, const Goals* goal) {
+Action a = Action{};
+Action* FastPathSolver::run(MouseState& state, const Goals* goal) {
   if (steps < path.steps.size()) {
   }
-  return Action{};
+  return &a;
 }
 
 bool FastPathSolver::end(MouseState& state, const Goals* goal) {

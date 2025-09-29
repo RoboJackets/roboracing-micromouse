@@ -51,16 +51,16 @@ void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
     }
   }
 
-  for (int x = 0; x < N; ++x) {
-    for (int y = 0; y < N; ++y) {
-      API::setText(x, y, std::to_string(dists[y][x]));
-      if (state.explored[y][x]) {
-        API::setColor(x, y, 'G');
-      } else {
-        API::setColor(x, y, 'R');
-      }
-    }
-  }
+  // for (int x = 0; x < N; ++x) {
+  //   for (int y = 0; y < N; ++y) {
+  //     API::setText(x, y, std::to_string(dists[y][x]));
+  //     if (state.explored[y][x]) {
+  //       API::setColor(x, y, 'G');
+  //     } else {
+  //       API::setColor(x, y, 'R');
+  //     }
+  //   }
+  // }
 }
 namespace CellSelection {
 Path selectPath(MouseState& state, const Goals* goal) {

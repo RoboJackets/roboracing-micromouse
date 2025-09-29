@@ -18,12 +18,13 @@ FastPathSolver fastPath{};
 Solver noop = Solver{};
 IO* io = nullptr;
 
+MMSIO s = MMSIO{};
 void switchState(GoalState state) {
   if (currentState == state) {
     return;
   }
   solver->onFinished(mouseState, goal);
-  switch (currentState) {
+  switch (state) {
     case GoalState::GOAL_SEARCH:
       solver = &floodFill;
       goal = &CENTER_GOALS;
@@ -40,23 +41,23 @@ void switchState(GoalState state) {
       solver = &noop;
       break;
   }
+  currentState = state;
   solver->init(mouseState, goal);
 }
 void updateState() {
   switch (currentState) {
     case GoalState::GOAL_SEARCH:
-      if (solver->end(mouseState, goal)) currentState = GoalState::RETURN;
+      if (solver->end(mouseState, goal)) switchState(GoalState::RETURN);
       break;
     case GoalState::RETURN:
       if (solver->end(mouseState, goal)) {
-        currentState = GoalState::FAST_PATH;
+        switchState(GoalState::FAST_PATH);
       }
       break;
     default:
       break;
   }
 }
-
 void init() {
   mouseState.explored[0][0] = true;
   for (int i = 0; i < CENTER_GOALS.count; ++i) {
@@ -69,35 +70,21 @@ void init() {
     mouseState.walls[0][i] |= DOWN;
     mouseState.walls[i][N - 1] |= RIGHT;
     mouseState.walls[N - 1][i] |= TOP;
-
-    API::setWall(0, i, 'w');
-    API::setWall(i, 0, 's');
-    API::setWall(N - 1, i, 'e');
-    API::setWall(i, N - 1, 'n');
   }
-  log("Running...");
-  API::setColor(0, 0, 'G');
-  API::setText(0, 0, "start");
-  MMSIO s = MMSIO{};
   io = &s;
+  solver = &floodFill;
+  goal = &CENTER_GOALS;
+  currentState = GoalState::GOAL_SEARCH;
+  io->init();
 }
 }  // namespace
 
 int main() {
-  log("0");
   init();
-  log("0.1");
   while (true) {
-    log("0.2");
-    updateState();
-    log("1");
     io->update(mouseState);
-    log("2");
-    Action a = solver->run(mouseState, goal);
-    log("3");
-    IdealState s = a.getIdealState();
-    log("4");
-    a.run(mouseState, *io);
-    log("5");
+    updateState();
+    Action* a = solver->run(mouseState, goal);
+    a->run(mouseState, *io);
   }
 }

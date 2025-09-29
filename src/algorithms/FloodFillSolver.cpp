@@ -7,13 +7,7 @@
 #include "../Actions/MoveAction.h"
 
 namespace {
-void logCells(MouseState& state) {
-  for (int x = 0; x < N; ++x) {
-    for (int y = 0; y < N; ++y) {
-      API::setText(x, y, std::to_string(state.dists[y][x]));
-    }
-  }
-}
+MoveAction m = MoveAction();
 
 void turningPenalty(MouseState& state, const Goals* goal) {
   if (!(state.walls[state.y][state.x] & TOP)) {
@@ -117,7 +111,6 @@ unsigned char traverse(MouseState& state, const Goals* goal) {
 
   if (tie) {
     applyTiebreaker(state, goal);
-    logCells(state);
     fillNeighborCosts(bestDirArray);
     best = INF + 100;
     bestDirID = -1;
@@ -151,16 +144,15 @@ unsigned char traverse(MouseState& state, const Goals* goal) {
 }
 }  // namespace
 
-Action FloodFillSolver::run(MouseState& state, const Goals* goal) {
+Action* FloodFillSolver::run(MouseState& state, const Goals* goal) {
   floodFill(state, goal);
-  logCells(state);
   unsigned char dir = traverse(state, goal);
   GridCoord v = dirToVector(dir);
   IdealState idealState = IdealState{state.x + v.x, state.y + v.y};
-  return MoveAction(idealState);
+  m.setIdealState(idealState);
+  return &m;
 }
 
 bool FloodFillSolver::end(MouseState& state, const Goals* goal) {
-  log("wow!");
   return atGoal(state, goal);
 }
