@@ -72,32 +72,36 @@ Path selectPath(MouseState& state, const Goals* goal) {
     int best = INF;
     unsigned char bestDir = TOP;
     unsigned char wall = state.walls[current.y][current.x];
-    int dist = state.dists[current.y][current.x];
+    int dist = dists[current.y][current.x];
     if (!(wall & TOP) && state.explored[current.y + 1][current.x] &&
-        state.dists[current.y + 1][current.x] < best) {
-      best = state.dists[current.y + 1][current.x];
+        dists[current.y + 1][current.x] < best &&
+        dists[current.y + 1][current.x] < dist) {
+      best = dists[current.y + 1][current.x];
       bestDir = TOP;
     }
     if (!(wall & LEFT) && state.explored[current.y][current.x - 1] &&
-        state.dists[current.y][current.x - 1] < best) {
-      best = state.dists[current.y][current.x - 1];
+        dists[current.y][current.x - 1] < best &&
+        dists[current.y][current.x - 1] < dist) {
+      best = dists[current.y][current.x - 1];
       bestDir = LEFT;
     }
     if (!(wall & DOWN) && state.explored[current.y - 1][current.x] &&
-        state.dists[current.y - 1][current.x] < best) {
-      best = state.dists[current.y - 1][current.x];
+        dists[current.y - 1][current.x] < best &&
+        dists[current.y - 1][current.x] < dist) {
+      best = dists[current.y - 1][current.x];
       bestDir = DOWN;
     }
     if (!(wall & RIGHT) && state.explored[current.y][current.x + 1] &&
-        state.dists[current.y][current.x + 1] < best) {
-      best = state.dists[current.y][current.x + 1];
+        dists[current.y][current.x + 1] < best &&
+        dists[current.y][current.x + 1] < dist) {
+      best = dists[current.y][current.x + 1];
       bestDir = RIGHT;
     }
     GridCoord nextDirection = dirToVector(bestDir);
     GridCoord nextCur =
         GridCoord{current.x + nextDirection.x, current.y + nextDirection.y};
     finalPath.steps.push_back(nextCur);
-    if (state.dists[nextCur.y][nextCur.x] == 0){
+    if (dists[nextCur.y][nextCur.x] == 0) {
       break;
     }
   }

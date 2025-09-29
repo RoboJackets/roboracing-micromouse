@@ -54,6 +54,9 @@ void updateState() {
         switchState(GoalState::FAST_PATH);
       }
       break;
+    case GoalState::FAST_PATH:
+      if (solver->end(mouseState, goal)) switchState(GoalState::RETURN);
+      break;
     default:
       break;
   }
