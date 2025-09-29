@@ -92,17 +92,17 @@ void applyTiebreaker(MouseState& state, const Goals* goal,
 }
 
 unsigned char traverse(MouseState& state, const Goals* goal) {
-  auto fillNeighborCosts = [&](int out[4]) {
+  auto fillNeighborCosts = [&](int out[4], int destination[N][N]) {
     out[0] = out[1] = out[2] = out[3] = INF + 200;
     const unsigned char here = state.walls[state.y][state.x];
-    if (!(here & TOP)) out[0] = state.dists[state.y + 1][state.x];
-    if (!(here & LEFT)) out[1] = state.dists[state.y][state.x - 1];
-    if (!(here & DOWN)) out[2] = state.dists[state.y - 1][state.x];
-    if (!(here & RIGHT)) out[3] = state.dists[state.y][state.x + 1];
+    if (!(here & TOP)) out[0] = destination[state.y + 1][state.x];
+    if (!(here & LEFT)) out[1] = destination[state.y][state.x - 1];
+    if (!(here & DOWN)) out[2] = destination[state.y - 1][state.x];
+    if (!(here & RIGHT)) out[3] = destination[state.y][state.x + 1];
   };
 
   int bestDirArray[4];
-  fillNeighborCosts(bestDirArray);
+  fillNeighborCosts(bestDirArray, state.dists);
 
   int best = INF + 100;
   bool tie = false;
@@ -119,8 +119,8 @@ unsigned char traverse(MouseState& state, const Goals* goal) {
 
   if (tie) {
     int destinationArray[N][N];
-    applyTiebreaker(state, goal,destinationArray);
-    fillNeighborCosts(bestDirArray);
+    applyTiebreaker(state, goal, destinationArray);
+    fillNeighborCosts(bestDirArray, destinationArray);
     best = INF + 100;
     bestDirID = -1;
     for (int i = 0; i < 4; ++i) {
