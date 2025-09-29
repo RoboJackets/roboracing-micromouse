@@ -4,6 +4,6 @@
 #include "Mouse.h"
 
 namespace CellSelection {
-Path selectPath(MouseState& state, const Goals* goal);
-
+Path pathBFS(MouseState& state, const Goals* goal);
+Path weightedAStar(MouseState& state, const Goals* goal);
 }  // namespace

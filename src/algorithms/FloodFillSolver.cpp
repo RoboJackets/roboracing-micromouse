@@ -9,21 +9,28 @@
 namespace {
 MoveAction m = MoveAction();
 
-void turningPenalty(MouseState& state, const Goals* goal) {
+void turningPenalty(MouseState& state, const Goals* goal,
+                    int destinationArray[N][N]) {
+  for (int y = 0; y < N; ++y) {
+    for (int x = 0; x < N; ++x) {
+      destinationArray[y][x] = state.dists[y][x];
+    }
+  }
+
   if (!(state.walls[state.y][state.x] & TOP)) {
-    state.dists[state.y + 1][state.x] +=
+    destinationArray[state.y + 1][state.x] +=
         goal->turnPenalty * dirToDist(state.dir, TOP);
   }
   if (!(state.walls[state.y][state.x] & LEFT)) {
-    state.dists[state.y][state.x - 1] +=
+    destinationArray[state.y][state.x - 1] +=
         goal->turnPenalty * dirToDist(state.dir, LEFT);
   }
   if (!(state.walls[state.y][state.x] & DOWN)) {
-    state.dists[state.y - 1][state.x] +=
+    destinationArray[state.y - 1][state.x] +=
         goal->turnPenalty * dirToDist(state.dir, DOWN);
   }
   if (!(state.walls[state.y][state.x] & RIGHT)) {
-    state.dists[state.y][state.x + 1] +=
+    destinationArray[state.y][state.x + 1] +=
         goal->turnPenalty * dirToDist(state.dir, RIGHT);
   }
 }
@@ -72,12 +79,13 @@ void floodFill(MouseState& state, const Goals* goal) {
   }
 }
 
-void applyTiebreaker(MouseState& state, const Goals* goal) {
-  turningPenalty(state, goal);
+void applyTiebreaker(MouseState& state, const Goals* goal,
+                     int destinationArray[N][N]) {
+  turningPenalty(state, goal, destinationArray);
   for (int x = 0; x < N; ++x) {
     for (int y = 0; y < N; ++y) {
       if (!state.explored[y][x]) {
-        state.dists[y][x] -= goal->explorationWeight;
+        destinationArray[y][x] -= goal->explorationWeight;
       }
     }
   }
@@ -110,7 +118,8 @@ unsigned char traverse(MouseState& state, const Goals* goal) {
   }
 
   if (tie) {
-    applyTiebreaker(state, goal);
+    int destinationArray[N][N];
+    applyTiebreaker(state, goal,destinationArray);
     fillNeighborCosts(bestDirArray);
     best = INF + 100;
     bestDirID = -1;

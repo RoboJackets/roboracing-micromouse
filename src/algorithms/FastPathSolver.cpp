@@ -22,7 +22,7 @@ bool FastPathSolver::end(MouseState& state, const Goals* goal) {
 
 void FastPathSolver::init(MouseState& state, const Goals* goal) {
   i = 1;
-  path = CellSelection::selectPath(state, goal);
+  path = CellSelection::pathBFS(state, goal);
 }
 
 void FastPathSolver::onFinished(MouseState& state, const Goals* goal) {}

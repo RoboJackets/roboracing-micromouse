@@ -63,7 +63,7 @@ void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
   // }
 }
 namespace CellSelection {
-Path selectPath(MouseState& state, const Goals* goal) {
+Path pathBFS(MouseState& state, const Goals* goal) {
   int dists[N][N];
   floodFill(state, goal, dists);
   Path finalPath{{GridCoord{}}};
@@ -106,5 +106,12 @@ Path selectPath(MouseState& state, const Goals* goal) {
     }
   }
   return finalPath;
+}
+Path weightedAStar(MouseState& state, const Goals* goal) {
+  // TODO: somehow store a graph connecting nodes together, with the weights on
+  // edges being somehow related to the time it takes to get between nodes, not
+  // the distance between them. diagonals should also be connected, should
+  // accelerate on straightaways and have some max force of friction to figure
+  // out turning times? maybe that last thing is overkill.
 }
 }  // namespace CellSelection
