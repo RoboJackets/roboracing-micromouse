@@ -51,16 +51,16 @@ void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
     }
   }
 
-  // for (int x = 0; x < N; ++x) {
-  //   for (int y = 0; y < N; ++y) {
-  //     API::setText(x, y, std::to_string(dists[y][x]));
-  //     if (state.explored[y][x]) {
-  //       API::setColor(x, y, 'G');
-  //     } else {
-  //       API::setColor(x, y, 'R');
-  //     }
-  //   }
-  // }
+  for (int x = 0; x < N; ++x) {
+    for (int y = 0; y < N; ++y) {
+      API::setText(x, y, std::to_string(dists[y][x]));
+      if (state.explored[y][x]) {
+        API::setColor(x, y, 'G');
+      } else {
+        API::setColor(x, y, 'R');
+      }
+    }
+  }
 }
 namespace CellSelection {
 Path pathBFS(MouseState& state, const Goals* goal) {
@@ -105,13 +105,23 @@ Path pathBFS(MouseState& state, const Goals* goal) {
       break;
     }
   }
+  for (int i = 0; i < finalPath.steps.size(); i++) {
+    GridCoord step = finalPath.steps[i];
+    API::setColor(step.x, step.y, 'B');
+  }
   return finalPath;
 }
+
+
 Path weightedAStar(MouseState& state, const Goals* goal) {
+
   // TODO: somehow store a graph connecting nodes together, with the weights on
   // edges being somehow related to the time it takes to get between nodes, not
   // the distance between them. diagonals should also be connected, should
   // accelerate on straightaways and have some max force of friction to figure
-  // out turning times? maybe that last thing is overkill.
+  // out turning radius/velocity and therefore turning times? maybe that last
+  // thing is overkill.
+
+  
 }
 }  // namespace CellSelection
