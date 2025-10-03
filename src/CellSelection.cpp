@@ -115,13 +115,12 @@ Path pathBFS(MouseState& state, const Goals* goal) {
 
 Path weightedAStar(MouseState& state, const Goals* goal) {
 
+  
   // TODO: somehow store a graph connecting nodes together, with the weights on
   // edges being somehow related to the time it takes to get between nodes, not
   // the distance between them. diagonals should also be connected, should
   // accelerate on straightaways and have some max force of friction to figure
   // out turning radius/velocity and therefore turning times? maybe that last
   // thing is overkill.
-
-  
 }
 }  // namespace CellSelection
