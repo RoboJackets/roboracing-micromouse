@@ -4,6 +4,8 @@
 #include "IO/MMSIO.h"
 #include "include/FastPathSolver.h"
 #include "include/FloodFillSolver.h"
+#include "include/CellSelection.h"
+
 namespace {
 enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
 GoalState currentState = GoalState::GOAL_SEARCH;
@@ -51,6 +53,7 @@ void updateState() {
       break;
     case GoalState::RETURN:
       if (solver->end(mouseState, goal)) {
+        CellSelection::search_all(mouseState);
         switchState(GoalState::FAST_PATH);
       }
       break;
