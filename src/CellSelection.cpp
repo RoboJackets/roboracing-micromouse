@@ -1,10 +1,10 @@
 #include "include/CellSelection.h"
 
 #include <queue>
-#include <stack>
-#include <unordered_set>
 #include <sstream>
+#include <stack>
 #include <string>
+#include <unordered_set>
 
 #include "../mms-cpp/API.h"
 #include "include/Mouse.h"
@@ -117,52 +117,54 @@ Path pathBFS(MouseState& state, const Goals* goal) {
 }
 
 struct pair_hash {
-  inline std::size_t operator()(const std::pair<int,int>& v) const {
-    return v.first*(N) + v.second;
+  inline std::size_t operator()(const std::pair<int, int>& v) const {
+    return v.first * (N) + v.second;
   }
 };
 
 using IntPair = std::pair<int, int>;
 
 inline bool blocked(const MouseState& s, int x, int y, int nx, int ny) {
-  if (nx == x && ny == y+1) return s.walls[y][x] & TOP;
-  if (nx == x && ny == y-1) return s.walls[y][x] & DOWN;
-  if (nx == x+1 && ny == y) return s.walls[y][x] & RIGHT;
-  if (nx == x-1 && ny == y) return s.walls[y][x] & LEFT;
+  if (nx == x && ny == y + 1) return s.walls[y][x] & TOP;
+  if (nx == x && ny == y - 1) return s.walls[y][x] & DOWN;
+  if (nx == x + 1 && ny == y) return s.walls[y][x] & RIGHT;
+  if (nx == x - 1 && ny == y) return s.walls[y][x] & LEFT;
   return true;
 }
 
 inline bool at_goal(IntPair pos) {
   return (pos.first == centerGoals[0][0] && pos.second == centerGoals[0][1]) ||
-    (pos.first == centerGoals[1][0] && pos.second == centerGoals[1][1]) ||
-    (pos.first == centerGoals[2][0] && pos.second == centerGoals[2][1]) ||
-    (pos.first == centerGoals[3][0] && pos.second == centerGoals[3][1]);
+         (pos.first == centerGoals[1][0] && pos.second == centerGoals[1][1]) ||
+         (pos.first == centerGoals[2][0] && pos.second == centerGoals[2][1]) ||
+         (pos.first == centerGoals[3][0] && pos.second == centerGoals[3][1]);
 }
 
 int dirs[][2] = {
-  {0, 1},
-  {1, 0},
-  {0, -1},
-  {-1, 0},
+    {0, 1},
+    {1, 0},
+    {0, -1},
+    {-1, 0},
 };
 
-void dfs(const MouseState& state, IntPair curr, std::vector<IntPair>& current, std::unordered_set<IntPair, pair_hash>& visited, std::vector<std::vector<IntPair>>& solutions) {
-  if(at_goal(curr)) {
+void dfs(const MouseState& state, IntPair curr, std::vector<IntPair>& current,
+         std::unordered_set<IntPair, pair_hash>& visited,
+         std::vector<std::vector<IntPair>>& solutions) {
+  if (at_goal(curr)) {
     solutions.push_back(current);
     return;
   }
-  
+
   visited.insert(curr);
 
-  for(auto& dir : dirs) {
+  for (auto& dir : dirs) {
     int adj_x = curr.first + dir[0];
     int adj_y = curr.second + dir[1];
 
-    if(adj_x < 0 || adj_x >= N || adj_y < 0 || adj_y >= N) continue;
+    if (adj_x < 0 || adj_x >= N || adj_y < 0 || adj_y >= N) continue;
     IntPair adj(adj_x, adj_y);
-    if(visited.count(adj)) continue;
-    if(!state.explored[adj_y][adj_x]) continue;
-    if(blocked(state, curr.first, curr.second, adj_x, adj_y)) continue;
+    if (visited.count(adj)) continue;
+    if (!state.explored[adj_y][adj_x]) continue;
+    if (blocked(state, curr.first, curr.second, adj_x, adj_y)) continue;
 
     current.push_back(adj);
     dfs(state, adj, current, visited, solutions);
@@ -178,18 +180,18 @@ std::string path_to_instruct(const std::vector<IntPair>& path) {
 
   std::stringstream ss;
 
-  for(int i{ 1 }; i < path.size(); ++i) {
+  for (int i{1}; i < path.size(); ++i) {
     auto prev = path[i - 1];
     auto curr = path[i];
 
     int dx = curr.first - prev.first;
-    int dy = curr.second - prev.second; 
+    int dy = curr.second - prev.second;
 
-    if(dx == curr_dx && dy == curr_dy) { // straight ahead
+    if (dx == curr_dx && dy == curr_dy) {  // straight ahead
       ss << 'F';
-    } else if(dx == curr_dy && dy == -curr_dx) { // right turn 
+    } else if (dx == curr_dy && dy == -curr_dx) {  // right turn
       ss << 'R';
-    } else if(dx == -curr_dy && dy == curr_dx) { // left turn
+    } else if (dx == -curr_dy && dy == curr_dx) {  // left turn
       ss << 'L';
     }
 
@@ -211,19 +213,10 @@ void search_all(const MouseState& state) {
   temp.push_back(start);
   dfs(state, start, temp, visited, solutions);
 
-  for(const auto& vec : solutions) {
+  for (const auto& vec : solutions) {
     std::cerr << path_to_instruct(vec) << '\n';
   }
 }
 
-Path weightedAStar(MouseState& state, const Goals* goal) {
-
-  
-  // TODO: somehow store a graph connecting nodes together, with the weights on
-  // edges being somehow related to the time it takes to get between nodes, not
-  // the distance between them. diagonals should also be connected, should
-  // accelerate on straightaways and have some max force of friction to figure
-  // out turning radius/velocity and therefore turning times? maybe that last
-  // thing is overkill.
-}
+Path weightedAStar(MouseState& state, const Goals* goal) {}
 }  // namespace CellSelection
