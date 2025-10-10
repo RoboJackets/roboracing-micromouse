@@ -53,7 +53,6 @@ void updateState() {
       break;
     case GoalState::RETURN:
       if (solver->end(mouseState, goal)) {
-        CellSelection::search_all(mouseState);
         switchState(GoalState::FAST_PATH);
       }
       break;
@@ -88,9 +87,9 @@ void init() {
 int main() {
   init();
   while (true) {
-    io->update(mouseState);
-    updateState();
-    Action* a = solver->run(mouseState, goal);
-    a->run(mouseState, *io);
+    io->update(mouseState); // update input states
+    updateState(); // determine overall goal
+    Action* a = solver->run(mouseState, goal); // determine drive command
+    a->run(mouseState, *io); // run drive command
   }
 }
