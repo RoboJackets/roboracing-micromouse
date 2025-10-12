@@ -1,10 +1,10 @@
-#include "../include/FloodFillSolver.h"
+#include "FloodFillSolver.h"
 
 #include <queue>
 #include <string>
 
 #include "../../mms-cpp/API.h"
-#include "../Actions/MoveAction.h"
+#include "MoveAction.h"
 
 namespace {
 MoveAction m = MoveAction();
@@ -151,7 +151,7 @@ unsigned char traverse(MouseState& state, const Goals* goal) {
   }
   return bestDir;
 }
-}  // namespace
+};  // namespace
 
 Action* FloodFillSolver::run(MouseState& state, const Goals* goal) {
   floodFill(state, goal);

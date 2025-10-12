@@ -1,10 +1,10 @@
 #include <string>
 
 #include "../mms-cpp/API.h"
-#include "IO/MMSIO.h"
-#include "include/FastPathSolver.h"
-#include "include/FloodFillSolver.h"
-#include "include/CellSelection.h"
+#include "MMSIO.h"
+#include "FastPathSolver.h"
+#include "FloodFillSolver.h"
+#include "CellSelection.h"
 
 namespace {
 enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };

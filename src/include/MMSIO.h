@@ -1,7 +1,7 @@
 #pragma once
 #include "../../mms-cpp/API.h"
-#include "../include/IO.h"
-#include "../include/IdealState.h"
+#include "IO.h"
+#include "IdealState.h"
 struct MMSIO : IO {
   int x = 0;
   int y = 0;

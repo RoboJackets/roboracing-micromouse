@@ -1,4 +1,4 @@
-#include "include/CellSelection.h"
+#include "CellSelection.h"
 
 #include <queue>
 #include <sstream>
@@ -7,7 +7,8 @@
 #include <unordered_set>
 
 #include "../mms-cpp/API.h"
-#include "include/Mouse.h"
+#include "CommandGenerator.h"
+#include "Mouse.h"
 void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
   for (int x = 0; x < N; ++x) {
     for (int y = 0; y < N; ++y) {
@@ -179,7 +180,7 @@ std::string path_to_instruct(const std::vector<IntPair>& path) {
   int curr_dy = 1;
 
   std::stringstream ss;
-
+  ss << 'X';
   for (int i{1}; i < path.size(); ++i) {
     auto prev = path[i - 1];
     auto curr = path[i];
@@ -214,9 +215,9 @@ void search_all(const MouseState& state) {
   dfs(state, start, temp, visited, solutions);
 
   for (const auto& vec : solutions) {
-    std::cerr << path_to_instruct(vec) << '\n';
+    std::string s = path_to_instruct(vec);
+    std::cerr << s << std::endl;
+    parse(s);
   }
 }
-
-Path weightedAStar(MouseState& state, const Goals* goal) {}
 }  // namespace CellSelection

@@ -1,7 +1,7 @@
-#include "../include/FastPathSolver.h"
+#include "FastPathSolver.h"
 
-#include "../Actions/MoveAction.h"
-#include "../include/CellSelection.h"
+#include "MoveAction.h"
+#include "CellSelection.h"
 bool ran = false;
 Path path = Path{};
 MoveAction action = MoveAction();
@@ -24,6 +24,7 @@ void FastPathSolver::init(MouseState& state, const Goals* goal) {
   i = 1;
   path = CellSelection::pathBFS(state, goal);
   CellSelection::search_all(state);
+
 }
 
 void FastPathSolver::onFinished(MouseState& state, const Goals* goal) {}

@@ -1,5 +1,5 @@
 #pragma once
-#include "../include/Action.h"
+#include "Action.h"
 struct MoveAction : Action {
   IdealState state;
   MoveAction() {}
