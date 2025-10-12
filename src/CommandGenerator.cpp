@@ -69,7 +69,7 @@ State transition(State currentState, char c,
         commands.push_back(ST45R);
         return {ORTHO_F, 1, 0};
       } else if (c == 'L') {
-        return {E_DIAG_LR};
+        return {E_DIAG_LR, 0, y};
       } else if (c == 'R') {
         commands.push_back(DFWD0 + y);
         commands.push_back(ST45R);
@@ -86,7 +86,7 @@ State transition(State currentState, char c,
         commands.push_back(ST45L);
         return {ORTHO_L, 0, 0};
       } else if (c == 'R') {
-        return {E_DIAG_RL};
+        return {E_DIAG_RL, 0, y};
       }
       break;
     }
