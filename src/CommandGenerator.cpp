@@ -187,7 +187,7 @@ std::string commandString(const std::vector<unsigned char>& commands) {
 
 std::vector<unsigned char> parse(
     std::string s) {  // assumes no motion on 45 degree turns (diagonals) but on
-                      // a left turn assumes one cell of motion as well.
+                      // a 90/135 degree turn assumes one cell of motion as well.
   State current{};
   std::vector<unsigned char> commands{};
   for (int i = 0; i < s.length(); i++) {
