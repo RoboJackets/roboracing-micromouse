@@ -2,7 +2,7 @@
 #include "IdealState.h"
 #include "Mouse.h"
 #include "Types.h"
-struct IO {
+struct MouseIO {
   virtual GridCoord getGridCoord() = 0;
   virtual unsigned char getGridDir() = 0;
   virtual WorldCoord getWorldCoord() = 0;

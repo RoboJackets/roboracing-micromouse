@@ -5,7 +5,7 @@ struct MoveAction : Action {
   MoveAction() {}
   IdealState getIdealState() override { return state; }
   void setIdealState(IdealState newState) { state = newState; }
-  void run(MouseState& state, IO& io) override {
+  void run(MouseState& state, MouseIO& io) override {
     state.explored[state.y][state.x] = true;
     io.setState(getIdealState());
   }

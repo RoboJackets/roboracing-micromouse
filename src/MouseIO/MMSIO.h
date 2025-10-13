@@ -2,7 +2,7 @@
 #include "../../mms-cpp/API.h"
 #include "IO.h"
 #include "IdealState.h"
-struct MMSIO : IO {
+struct MMSIO : MouseIO {
   int x = 0;
   int y = 0;
   unsigned char dir = TOP;

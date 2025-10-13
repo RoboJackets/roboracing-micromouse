@@ -1,10 +1,10 @@
 #include <string>
 
 #include "../mms-cpp/API.h"
-#include "MMSIO.h"
+#include "CellSelection.h"
 #include "FastPathSolver.h"
 #include "FloodFillSolver.h"
-#include "CellSelection.h"
+#include "MMSIO.h"
 
 namespace {
 enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
@@ -18,7 +18,7 @@ const Goals* goal = &CENTER_GOALS;
 FloodFillSolver floodFill{};
 FastPathSolver fastPath{};
 Solver noop = Solver{};
-IO* io = nullptr;
+MouseIO* io = nullptr;
 
 MMSIO s = MMSIO{};
 void switchState(GoalState state) {
@@ -87,9 +87,9 @@ void init() {
 int main() {
   init();
   while (true) {
-    io->update(mouseState); // update input states
-    updateState(); // determine overall goal
-    Action* a = solver->run(mouseState, goal); // determine drive command
-    a->run(mouseState, *io); // run drive command
+    io->update(mouseState);                     // update input states
+    updateState();                              // determine overall goal
+    Action* a = solver->run(mouseState, goal);  // determine drive command
+    a->run(mouseState, *io);                    // run drive command
   }
 }
