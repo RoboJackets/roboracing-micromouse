@@ -13,10 +13,10 @@ State transition(State currentState, char c,
   unsigned char y = currentState.y;
 
   if (c == 'S') {
-    if (x > 0){
+    if (x > 0) {
       commands.push_back(FWD0 + x);
     }
-    if (y > 0){
+    if (y > 0) {
       commands.push_back(DFWD0 + y);
     }
     commands.push_back(STOP);
@@ -40,10 +40,9 @@ State transition(State currentState, char c,
     case ORTHO_L:
       if (c == 'F') {
         commands.push_back(ST90L);
-        return {ORTHO_F, 2, 0};
+        return {ORTHO_F, 1, 0};
       } else if (c == 'L') {
         commands.push_back(ST90L);
-        commands.push_back(FWD0 + 1);
         return {ORTHO_L};
       } else if (c == 'R') {
         commands.push_back(ST45L);
@@ -53,13 +52,12 @@ State transition(State currentState, char c,
     case ORTHO_R:
       if (c == 'F') {
         commands.push_back(ST90R);
-        return {ORTHO_F, 2, 0};
+        return {ORTHO_F, 1, 0};
       } else if (c == 'L') {
         commands.push_back(ST45R);
         return {DIAG_RL, 0, 1};
       } else if (c == 'R') {
         commands.push_back(ST90R);
-        commands.push_back(FWD0 + 1);
         return {ORTHO_R};
       }
       break;
@@ -94,7 +92,7 @@ State transition(State currentState, char c,
       if (c == 'F') {
         commands.push_back(DFWD0 + y);
         commands.push_back(ST45L);
-        return {ORTHO_F, 1, 0};
+        return {ORTHO_F, 2, 0};
       } else if (c == 'L') {
         commands.push_back(DFWD0 + y);
         commands.push_back(ST45L);
@@ -108,7 +106,7 @@ State transition(State currentState, char c,
       if (c == 'F') {
         commands.push_back(DFWD0 + y);
         commands.push_back(ST45R);
-        return {ORTHO_F, 1, 0};
+        return {ORTHO_F, 2, 0};
       } else if (c == 'L') {
         return {DIAG_RL, 0, y + 1};
       } else if (c == 'R') {
@@ -187,7 +185,9 @@ std::string commandString(const std::vector<unsigned char>& commands) {
   return oss.str();
 }
 
-std::vector<unsigned char> parse(std::string s) {
+std::vector<unsigned char> parse(
+    std::string s) {  // assumes no motion on 45 degree turns (diagonals) but on
+                      // a left turn assumes one cell of motion as well.
   State current{};
   std::vector<unsigned char> commands{};
   for (int i = 0; i < s.length(); i++) {
