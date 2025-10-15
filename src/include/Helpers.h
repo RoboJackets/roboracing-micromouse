@@ -63,6 +63,20 @@ inline GridCoord dirToVector(int dir) {
       return {0, 0};
   }
 }
+inline unsigned char dirToChar(int dir) {
+  switch (dir) {
+    case 0:
+      return LEFT;
+    case 1:
+      return RIGHT;
+    case 2:
+      return DOWN;
+    case 3:
+      return TOP;
+    default:
+      return TOP;
+  }
+}
 inline unsigned char vectorToDir(const GridCoord& vec) {
   if (vec.x == -1 && vec.y == 0) return LEFT;
   if (vec.x == 1 && vec.y == 0) return RIGHT;

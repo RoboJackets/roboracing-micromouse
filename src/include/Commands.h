@@ -9,6 +9,7 @@ constexpr unsigned char ST135L =    0b00100100;
 constexpr unsigned char ST45R =     0b00110001;
 constexpr unsigned char ST90R =     0b00110010;
 constexpr unsigned char ST135R =    0b00110100;
+constexpr unsigned char ST180 =     0b00111000;
  
 constexpr unsigned char IPT0 =      0b10100000;
 constexpr unsigned char IPT45L =    0b10100001;

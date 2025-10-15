@@ -4,10 +4,12 @@
 #include <string>
 
 #include "../../mms-cpp/API.h"
+#include "CommandAction.h"
+#include "CommandGenerator.h"
 #include "MoveAction.h"
 
 namespace {
-MoveAction m = MoveAction();
+CommandAction cmd;
 
 void turningPenalty(MouseState& state, const Goals* goal,
                     int destinationArray[N][N]) {
@@ -152,16 +154,35 @@ unsigned char traverse(MouseState& state, const Goals* goal) {
   return bestDir;
 }
 };  // namespace
+static unsigned char stepInstr(unsigned char cur, unsigned char tgt) {
+  unsigned char localTgt = tgt;
+  if (cur == LEFT) localTgt = RCIRC4(tgt);
+  if (cur == RIGHT) localTgt = LCIRC4(tgt);
+  if (cur == DOWN) localTgt = LCIRC4(LCIRC4(tgt));
+  switch (localTgt) {
+    case TOP:
+      return FWD0 + 1;
+    case LEFT:
+      return ST90L;
+    case RIGHT:
+      return ST90R;
+    case DOWN:
+      return ST180;
+    default:
+      return FWD0;
+  }
+}
 
 Action* FloodFillSolver::run(MouseState& state, const Goals* goal) {
   floodFill(state, goal);
   unsigned char dir = traverse(state, goal);
-  GridCoord v = dirToVector(dir);
-  IdealState idealState = IdealState{state.x + v.x, state.y + v.y};
-  m.setIdealState(idealState);
-  return &m;
+  unsigned char c = stepInstr(state.dir, dir);
+  std::cerr << "yay" << std::endl;
+  cmd.load({c});
+  return &cmd;
 }
 
 bool FloodFillSolver::end(MouseState& state, const Goals* goal) {
+  // std::cerr << std::to_string() << std::endl;
   return atGoal(state, goal);
 }

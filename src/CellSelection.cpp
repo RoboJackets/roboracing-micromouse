@@ -194,6 +194,8 @@ std::string path_to_instruct(const std::vector<IntPair>& path) {
       ss << 'R';
     } else if (dx == -curr_dy && dy == curr_dx) {  // left turn
       ss << 'L';
+    } else if (dx == -curr_dx && dy == -curr_dy) {  // 180 degree turn
+      ss << 'B';
     }
 
     curr_dx = dx;
@@ -204,7 +206,7 @@ std::string path_to_instruct(const std::vector<IntPair>& path) {
 
   return ss.str();
 }
-
+std::vector<unsigned char> cmds;
 void search_all(const MouseState& state) {
   std::vector<IntPair> temp{};
   std::unordered_set<IntPair, pair_hash> visited{};
@@ -217,7 +219,8 @@ void search_all(const MouseState& state) {
   for (const auto& vec : solutions) {
     std::string s = path_to_instruct(vec);
     std::cerr << s << std::endl;
-    parse(s);
+    cmds = std::move(parse(s));
   }
 }
+std::vector<unsigned char> getCmds() { return cmds; }
 }  // namespace CellSelection

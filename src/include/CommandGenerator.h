@@ -1,6 +1,6 @@
 #pragma once
-#include <vector>
 #include <string>
+#include <vector>
 enum ActionState {
   START,
   ORTHO_F,
@@ -20,3 +20,4 @@ struct State {
 };
 
 std::vector<unsigned char> parse(std::string s);
+std::string commandString(const std::vector<unsigned char>& commands);

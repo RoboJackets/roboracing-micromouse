@@ -2,6 +2,7 @@
 
 #include "../mms-cpp/API.h"
 #include "CellSelection.h"
+#include "EmptyAction.h"
 #include "FastPathSolver.h"
 #include "FloodFillSolver.h"
 #include "MMSIO.h"
@@ -19,6 +20,8 @@ FloodFillSolver floodFill{};
 FastPathSolver fastPath{};
 Solver noop = Solver{};
 MouseIO* io = nullptr;
+EmptyAction empty = EmptyAction{};
+Action* a = &empty;
 
 MMSIO s = MMSIO{};
 void switchState(GoalState state) {
@@ -44,6 +47,8 @@ void switchState(GoalState state) {
       break;
   }
   currentState = state;
+  if (a && !a->completed()) a->cancel();
+  a = &empty;
   solver->init(mouseState, goal);
 }
 void updateState() {
@@ -87,9 +92,11 @@ void init() {
 int main() {
   init();
   while (true) {
-    io->update(mouseState);                     // update input states
-    updateState();                              // determine overall goal
-    Action* a = solver->run(mouseState, goal);  // determine drive command
-    a->run(mouseState, *io);                    // run drive command
+    io->update(mouseState);  // update input states
+    updateState();           // determine overall goal
+    if (a->completed()) {
+      a = solver->run(mouseState, goal);  // determine drive command
+    }
+    a->run(mouseState, *io);  // run drive command
   }
 }

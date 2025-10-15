@@ -23,6 +23,12 @@ State transition(State currentState, char c,
     return {END, 0, 0};
   }
 
+  if (c == 'B') {
+    commands.push_back(FWD0 + x);
+    commands.push_back(ST180);
+    return {ORTHO_F};
+  }
+
   switch (currentState.action) {
     case START:
       return {ORTHO_F};
@@ -186,13 +192,14 @@ std::string commandString(const std::vector<unsigned char>& commands) {
 }
 
 std::vector<unsigned char> parse(
-    std::string s) {  // assumes no motion on 45 degree turns (diagonals) but on
-                      // a 90/135 degree turn assumes one cell of motion as well.
+    std::string
+        s) {  // assumes no motion on 45 degree turns (diagonals) but on
+              // a 90/135 degree turn assumes one cell of motion as well.
   State current{};
   std::vector<unsigned char> commands{};
   for (int i = 0; i < s.length(); i++) {
     current = transition(current, s[i], commands);
   }
-  std::cerr << commandString(commands) << std::endl;
-  return commands;
+  std::vector<unsigned char> newCommands = commands;
+  return newCommands;
 }

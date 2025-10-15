@@ -6,4 +6,6 @@
 struct Action {
   virtual void run(MouseState& state, MouseIO& io) {};
   virtual IdealState getIdealState() { return IdealState{}; }
+  virtual void cancel() {};
+  virtual bool completed() const { return true; };
 };
