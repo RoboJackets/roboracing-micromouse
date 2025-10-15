@@ -21,6 +21,7 @@ struct CommandAction : Action {
     runMMS(s, io);
   }
   void runMMS(MouseState& s, MouseIO& io) {
+    io.update(s);
     unsigned char c = buf[pc++];
 
     unsigned char cls = c & 0b11100000;

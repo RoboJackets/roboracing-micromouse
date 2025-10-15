@@ -17,6 +17,7 @@ struct MMSIO : MouseIO {
     mouseState.x = x;
     mouseState.y = y;
     mouseState.dir = dir;
+    mouseState.explored[y][x] = true;
     updateWalls(mouseState);
     logCells(mouseState);
     API::setColor(x,y,'B');

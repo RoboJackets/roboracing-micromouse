@@ -218,7 +218,7 @@ void search_all(const MouseState& state) {
 
   for (const auto& vec : solutions) {
     std::string s = path_to_instruct(vec);
-    std::cerr << s << std::endl;
+    // std::cerr << s << std::endl;
     cmds = std::move(parse(s));
   }
 }
