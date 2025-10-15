@@ -57,8 +57,8 @@ void updateState() {
       if (solver->end(mouseState, goal)) switchState(GoalState::RETURN);
       break;
     case GoalState::RETURN:
-      std::cerr << std::to_string(mouseState.explored[mouseState.y][mouseState.x])
-                << std::endl;
+      // std::cerr << std::to_string(mouseState.explored[mouseState.y][mouseState.x])
+      //           << std::endl;
       if (solver->end(mouseState, goal)) {
         switchState(GoalState::FAST_PATH);
       }
