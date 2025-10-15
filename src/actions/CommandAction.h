@@ -32,7 +32,7 @@ struct CommandAction : Action {
       return;
     }
 
-    if (cls == FWD0) {
+    if (cls == EX_FWD0) {
       int runs = arg;
       for (int i = 0; i < arg; ++i) {
         GridCoord v = dirToVector(s.dir);
@@ -41,19 +41,19 @@ struct CommandAction : Action {
       }
       return;
     }
-    if (c == ST90L) {
+    if (c == EX_ST90L) {
       GridCoord v = dirToVector((unsigned char)LCIRC4(s.dir));
       IdealState next{GridCoord{s.x + v.x, s.y + v.y}};
       io.setState(next);
       return;
     }
-    if (c == ST180) {
+    if (c == IPT180) {
       GridCoord v = dirToVector((unsigned char)LCIRC4(LCIRC4(s.dir)));
       IdealState next{GridCoord{s.x + v.x, s.y + v.y}};
       io.setState(next);
       return;
     }
-    if (c == ST90R) {
+    if (c == EX_ST90R) {
       GridCoord v = dirToVector((unsigned char)RCIRC4(s.dir));
       IdealState next{GridCoord{s.x + v.x, s.y + v.y}};
       io.setState(next);

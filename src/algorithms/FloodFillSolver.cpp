@@ -161,15 +161,15 @@ static unsigned char stepInstr(unsigned char cur, unsigned char tgt) {
   if (cur == DOWN) localTgt = LCIRC4(LCIRC4(tgt));
   switch (localTgt) {
     case TOP:
-      return FWD0 + 1;
+      return EX_FWD0 + 1;
     case LEFT:
-      return ST90L;
+      return EX_ST90L;
     case RIGHT:
-      return ST90R;
+      return EX_ST90R;
     case DOWN:
-      return ST180;
+      return IPT180;
     default:
-      return FWD0;
+      return EX_FWD0;
   }
 }
 

@@ -25,7 +25,7 @@ State transition(State currentState, char c,
 
   if (c == 'B') {
     commands.push_back(FWD0 + x);
-    commands.push_back(ST180);
+    commands.push_back(IPT180);
     return {ORTHO_F};
   }
 
