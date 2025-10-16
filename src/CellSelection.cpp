@@ -1,9 +1,14 @@
-#include "include/CellSelection.h"
+#include "CellSelection.h"
 
 #include <queue>
+#include <sstream>
+#include <stack>
+#include <string>
+#include <unordered_set>
 
 #include "../mms-cpp/API.h"
-#include "include/Mouse.h"
+#include "CommandGenerator.h"
+#include "Mouse.h"
 void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
   for (int x = 0; x < N; ++x) {
     for (int y = 0; y < N; ++y) {
@@ -112,5 +117,110 @@ Path pathBFS(MouseState& state, const Goals* goal) {
   return finalPath;
 }
 
-Path weightedAStar(MouseState& state, const Goals* goal) {}
+struct pair_hash {
+  inline std::size_t operator()(const std::pair<int, int>& v) const {
+    return v.first * (N) + v.second;
+  }
+};
+
+using IntPair = std::pair<int, int>;
+
+inline bool blocked(const MouseState& s, int x, int y, int nx, int ny) {
+  if (nx == x && ny == y + 1) return s.walls[y][x] & TOP;
+  if (nx == x && ny == y - 1) return s.walls[y][x] & DOWN;
+  if (nx == x + 1 && ny == y) return s.walls[y][x] & RIGHT;
+  if (nx == x - 1 && ny == y) return s.walls[y][x] & LEFT;
+  return true;
+}
+
+inline bool at_goal(IntPair pos) {
+  return (pos.first == centerGoals[0][0] && pos.second == centerGoals[0][1]) ||
+         (pos.first == centerGoals[1][0] && pos.second == centerGoals[1][1]) ||
+         (pos.first == centerGoals[2][0] && pos.second == centerGoals[2][1]) ||
+         (pos.first == centerGoals[3][0] && pos.second == centerGoals[3][1]);
+}
+
+int dirs[][2] = {
+    {0, 1},
+    {1, 0},
+    {0, -1},
+    {-1, 0},
+};
+
+void dfs(const MouseState& state, IntPair curr, std::vector<IntPair>& current,
+         std::unordered_set<IntPair, pair_hash>& visited,
+         std::vector<std::vector<IntPair>>& solutions) {
+  if (at_goal(curr)) {
+    solutions.push_back(current);
+    return;
+  }
+
+  visited.insert(curr);
+
+  for (auto& dir : dirs) {
+    int adj_x = curr.first + dir[0];
+    int adj_y = curr.second + dir[1];
+
+    if (adj_x < 0 || adj_x >= N || adj_y < 0 || adj_y >= N) continue;
+    IntPair adj(adj_x, adj_y);
+    if (visited.count(adj)) continue;
+    if (!state.explored[adj_y][adj_x]) continue;
+    if (blocked(state, curr.first, curr.second, adj_x, adj_y)) continue;
+
+    current.push_back(adj);
+    dfs(state, adj, current, visited, solutions);
+    current.pop_back();
+  }
+
+  visited.erase(curr);
+}
+
+std::string path_to_instruct(const std::vector<IntPair>& path) {
+  int curr_dx = 0;
+  int curr_dy = 1;
+
+  std::stringstream ss;
+  ss << 'X';
+  for (int i{1}; i < path.size(); ++i) {
+    auto prev = path[i - 1];
+    auto curr = path[i];
+
+    int dx = curr.first - prev.first;
+    int dy = curr.second - prev.second;
+
+    if (dx == curr_dx && dy == curr_dy) {  // straight ahead
+      ss << 'F';
+    } else if (dx == curr_dy && dy == -curr_dx) {  // right turn
+      ss << 'R';
+    } else if (dx == -curr_dy && dy == curr_dx) {  // left turn
+      ss << 'L';
+    } else if (dx == -curr_dx && dy == -curr_dy) {  // 180 degree turn
+      ss << 'B';
+    }
+
+    curr_dx = dx;
+    curr_dy = dy;
+  }
+
+  ss << 'S';
+
+  return ss.str();
+}
+std::vector<unsigned char> cmds;
+void search_all(const MouseState& state) {
+  std::vector<IntPair> temp{};
+  std::unordered_set<IntPair, pair_hash> visited{};
+  std::vector<std::vector<IntPair>> solutions{};
+
+  IntPair start{0, 0};
+  temp.push_back(start);
+  dfs(state, start, temp, visited, solutions);
+
+  for (const auto& vec : solutions) {
+    std::string s = path_to_instruct(vec);
+    // std::cerr << s << std::endl;
+    cmds = std::move(parse(s));
+  }
+}
+std::vector<unsigned char> getCmds() { return cmds; }
 }  // namespace CellSelection

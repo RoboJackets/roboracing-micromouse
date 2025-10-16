@@ -1,9 +1,12 @@
 #include <string>
 
 #include "../mms-cpp/API.h"
-#include "IO/MMSIO.h"
-#include "include/FastPathSolver.h"
-#include "include/FloodFillSolver.h"
+#include "CellSelection.h"
+#include "EmptyAction.h"
+#include "FastPathSolver.h"
+#include "FloodFillSolver.h"
+#include "MMSIO.h"
+
 namespace {
 enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
 GoalState currentState = GoalState::GOAL_SEARCH;
@@ -16,7 +19,9 @@ const Goals* goal = &CENTER_GOALS;
 FloodFillSolver floodFill{};
 FastPathSolver fastPath{};
 Solver noop = Solver{};
-IO* io = nullptr;
+MouseIO* io = nullptr;
+EmptyAction empty = EmptyAction{};
+Action* a = &empty;
 
 MMSIO s = MMSIO{};
 void switchState(GoalState state) {
@@ -42,6 +47,8 @@ void switchState(GoalState state) {
       break;
   }
   currentState = state;
+  if (a && !a->completed()) a->cancel();
+  a = &empty;
   solver->init(mouseState, goal);
 }
 void updateState() {
@@ -50,6 +57,9 @@ void updateState() {
       if (solver->end(mouseState, goal)) switchState(GoalState::RETURN);
       break;
     case GoalState::RETURN:
+      // std::cerr <<
+      // std::to_string(mouseState.explored[mouseState.y][mouseState.x])
+      //           << std::endl;
       if (solver->end(mouseState, goal)) {
         switchState(GoalState::FAST_PATH);
       }
@@ -85,9 +95,11 @@ void init() {
 int main() {
   init();
   while (true) {
-    io->update(mouseState);
-    updateState();
-    Action* a = solver->run(mouseState, goal);
-    a->run(mouseState, *io);
+    io->update(mouseState);  // update input states
+    updateState();           // determine overall goal
+    if (a->completed()) {
+      a = solver->run(mouseState, goal);  // determine drive command
+    }
+    a->run(mouseState, *io);  // run drive command
   }
 }

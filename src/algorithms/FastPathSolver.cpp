@@ -1,28 +1,17 @@
-#include "../include/FastPathSolver.h"
+#include "FastPathSolver.h"
 
-#include "../Actions/MoveAction.h"
-#include "../include/CellSelection.h"
-bool ran = false;
-Path path = Path{};
-MoveAction action = MoveAction();
-int i = 1;
-Action* FastPathSolver::run(MouseState& state, const Goals* goal) {
-  if (i < path.steps.size()) {
-    action.setIdealState(IdealState{path.steps[i]});
-    // std::cerr << "x: " << std::to_string(path.steps[i].x)
-    //           << "y: " << std::to_string(path.steps[i].y) << std::endl;
-    i++;
-  }
-  return &action;
-}
-
-bool FastPathSolver::end(MouseState& state, const Goals* goal) {
-  return atGoal(state, goal);
-}
+#include "CellSelection.h"
+#include "CommandAction.h"
+#include "CommandGenerator.h"
+CommandAction g_cmd{};
 
 void FastPathSolver::init(MouseState& state, const Goals* goal) {
-  i = 1;
-  path = CellSelection::pathBFS(state, goal);
+  CellSelection::search_all(state);
+  g_cmd.load(std::move(CellSelection::getCmds()));
 }
 
-void FastPathSolver::onFinished(MouseState& state, const Goals* goal) {}
+Action* FastPathSolver::run(MouseState&, const Goals*) { return &g_cmd; }
+bool FastPathSolver::end(MouseState&, const Goals*) {
+  return g_cmd.completed();
+}
+void FastPathSolver::onFinished(MouseState&, const Goals*) { g_cmd.cancel(); }

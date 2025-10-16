@@ -1,8 +1,8 @@
 #pragma once
 #include "../../mms-cpp/API.h"
-#include "../include/IO.h"
-#include "../include/IdealState.h"
-struct MMSIO : IO {
+#include "IO.h"
+#include "IdealState.h"
+struct MMSIO : MouseIO {
   int x = 0;
   int y = 0;
   unsigned char dir = TOP;
@@ -17,6 +17,7 @@ struct MMSIO : IO {
     mouseState.x = x;
     mouseState.y = y;
     mouseState.dir = dir;
+    mouseState.explored[y][x] = true;
     updateWalls(mouseState);
     logCells(mouseState);
     API::setColor(x,y,'B');
