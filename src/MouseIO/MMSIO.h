@@ -1,6 +1,6 @@
 #pragma once
 #include "../../mms-cpp/API.h"
-#include "IO.h"
+#include "MouseIO.h"
 #include "IdealState.h"
 struct MMSIO : MouseIO {
   int x = 0;
