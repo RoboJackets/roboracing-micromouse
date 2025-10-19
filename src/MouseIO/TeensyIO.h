@@ -20,6 +20,7 @@ struct TeensyIO : MouseIO {
   void updateWorldCoord() override {}
   unsigned char getGridDir() override { return dir; }
   std::vector<IRSensor> sensors{};
+  std::vector<WorldCoord> readings{};
 
   // void drive(double left, double right) override = 0;
 
@@ -31,7 +32,10 @@ struct TeensyIO : MouseIO {
   // double getGyroYaw() override = 0;
 
   std::vector<WorldCoord> getSensorState() override {
-    std::vector<WorldCoord> readings{};
+    return readings;
+  };
+
+  void updateSensorState() {
     for (int i = 0; i < sensors.size(); i++) {
       double reading = 0;
       IRSensor sensor = sensors.at(i);
@@ -42,9 +46,10 @@ struct TeensyIO : MouseIO {
       double dist = 0.647426 / pow(max(post, 1), 0.516999);
       readings.push_back(sensor.getReading(dist));
     }
-  };
+  }
 
   void update(MouseState& mouseState) override {
+    updateSensorState();
     uint32_t deltaMicros = micros() - lastMicros;
     dt = deltaMicros * 1e-6;
     updateWorldCoord();
