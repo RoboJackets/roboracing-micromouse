@@ -19,7 +19,7 @@ struct CommandAction : Action {
 
   void run(MouseState& s, MouseIO& io) override {
     if (completed()) return;
-    if (auto* m = dynamic_cast<MMSIO*>(&io)) {
+    if (io.isMMS()) {
       runMMS(s, io);
       return;
     }

@@ -3,6 +3,7 @@
 #include "IdealState.h"
 #include "MouseIO.h"
 struct MMSIO : MouseIO {
+  bool isMMS() const override { return true; }
   int x = 0;
   int y = 0;
   unsigned char dir = TOP;

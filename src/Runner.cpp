@@ -1,10 +1,11 @@
-#include "MMSIO.h"
 #include "MouseIO.h"
 #include "StateMachine.h"
-
 MouseIO* io = nullptr;
-MMSIO mms = MMSIO{};
+
 #ifdef MMS_SIM
+#include "MMSIO.h"
+#include "../mms-cpp/API.cpp"
+MMSIO mms = MMSIO{};
 int main() {
   io = &mms;
   StateMachine::init(io);
@@ -16,9 +17,9 @@ int main() {
 #include <Arduino.h>
 
 #include "TeensyIO.h"
-TeensyIO teensy = TeensyIO{};
+TeensyIO teensyIO = TeensyIO{};
 void setup() {
-  io = &teensy;
+  io = &teensyIO;
   StateMachine::init(io);
 }
 void loop() { StateMachine::tick(io); }

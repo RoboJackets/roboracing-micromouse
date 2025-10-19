@@ -54,6 +54,7 @@
         "cinttypes": "cpp",
         "unordered_set": "cpp",
         "sstream": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "cstdarg": "cpp"
     }
 }

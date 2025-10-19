@@ -5,6 +5,7 @@
 #include "Mouse.h"
 #include "Types.h"
 struct MouseIO {
+  virtual bool isMMS() const { return false; }
   virtual GridCoord getGridCoord() {};
   virtual unsigned char getGridDir() {};
   virtual WorldCoord getWorldCoord() {};
