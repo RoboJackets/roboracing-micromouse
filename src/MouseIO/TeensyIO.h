@@ -1,9 +1,11 @@
 #pragma once
 #include <Arduino.h>
 
+#include "Constants.h"
 #include "IdealState.h"
 #include "Mouse.h"
 #include "MouseIO.h"
+#include "Pins.h"
 #include "Types.h"
 struct TeensyIO : MouseIO {
   int x = 0;
@@ -28,5 +30,19 @@ struct TeensyIO : MouseIO {
 
   void update(MouseState& mouseState) override = 0;
 
-  void init() override = 0;
+  void init() override {
+    pinMode(LED_BUILTIN, OUTPUT);
+
+    pinMode(EMIT_1, OUTPUT);
+    pinMode(EMIT_2, OUTPUT);
+    pinMode(EMIT_3, OUTPUT);
+    pinMode(EMIT_4, OUTPUT);
+
+    pinMode(RECV_1, INPUT);
+    pinMode(RECV_2, INPUT);
+    pinMode(RECV_3, INPUT);
+    pinMode(RECV_4, INPUT);
+
+    Serial.begin(9600);
+  };
 };
