@@ -7,6 +7,7 @@ struct GridCoord {
 struct WorldCoord {
   double x = 0;
   double y = 0;
+  double theta = 0;
 };
 constexpr unsigned char TOP{0b1000};
 constexpr unsigned char RIGHT{0b0100};
