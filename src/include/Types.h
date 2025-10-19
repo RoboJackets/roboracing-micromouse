@@ -3,7 +3,7 @@ struct GridCoord {
   int x = 0;
   int y = 0;
 };
-
+// theta = 0 is to the right, rotates counterclockwise. in radians.
 struct WorldCoord {
   double x = 0;
   double y = 0;

@@ -2,6 +2,7 @@
 #include <Arduino.h>
 
 #include "Constants.h"
+#include "IRSensor.h"
 #include "IdealState.h"
 #include "Mouse.h"
 #include "MouseIO.h"
@@ -11,11 +12,14 @@ struct TeensyIO : MouseIO {
   int x = 0;
   int y = 0;
   unsigned char dir = TOP;
+  uint32_t lastMicros = 0;
+  double dt = 0;
   WorldCoord w = WorldCoord{0.0, 0.0, 0.0};
   GridCoord getGridCoord() override { return GridCoord{x, y}; }
   WorldCoord getWorldCoord() override { return w; }
   void updateWorldCoord() override {}
   unsigned char getGridDir() override { return dir; }
+  std::vector<IRSensor> sensors{};
 
   // void drive(double left, double right) override = 0;
 
@@ -26,13 +30,29 @@ struct TeensyIO : MouseIO {
   // double getDrivePosRight() override = 0;
   // double getGyroYaw() override = 0;
 
-  // std::vector<WorldCoord> getSensorState() override = 0;
+  std::vector<WorldCoord> getSensorState() override {
+    std::vector<WorldCoord> readings{};
+    for (int i = 0; i < sensors.size(); i++) {
+      double reading = 0;
+      IRSensor sensor = sensors.at(i);
+      digitalWrite(sensor.EMIT, HIGH);
+      delayMicroseconds(EMIT_RECV_DELAY_US);
+      int post = analogRead(sensor.RECV);
+      digitalWrite(sensor.EMIT, LOW);
+      double dist = 0.647426 / pow(max(post, 1), 0.516999);
+      readings.push_back(sensor.getReading(dist));
+    }
+  };
 
-  void update(MouseState& mouseState) override { updateWorldCoord(); }
+  void update(MouseState& mouseState) override {
+    uint32_t deltaMicros = micros() - lastMicros;
+    dt = deltaMicros * 1e-6;
+    updateWorldCoord();
+  }
 
   void init() override {
+    lastMicros = micros();
     pinMode(LED_BUILTIN, OUTPUT);
-
     pinMode(EMIT_1, OUTPUT);
     pinMode(EMIT_2, OUTPUT);
     pinMode(EMIT_3, OUTPUT);

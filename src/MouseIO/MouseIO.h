@@ -6,9 +6,9 @@
 #include "Types.h"
 struct MouseIO {
   virtual bool isMMS() const { return false; }
-  virtual GridCoord getGridCoord() {};
-  virtual unsigned char getGridDir() {};
-  virtual WorldCoord getWorldCoord() {};
+  virtual GridCoord getGridCoord() { return GridCoord{}; };
+  virtual unsigned char getGridDir() { return 0; };
+  virtual WorldCoord getWorldCoord() { return WorldCoord{}; };
   virtual void updateWorldCoord() {};
 
   virtual void drive(double left, double right) {};
