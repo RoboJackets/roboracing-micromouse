@@ -3,6 +3,7 @@
 #include "Action.h"
 #include "CommandGenerator.h"
 #include "Commands.h"
+#include "MMSIO.h"
 struct CommandAction : Action {
   std::vector<unsigned char> buf;
   size_t pc = 0;
@@ -18,7 +19,9 @@ struct CommandAction : Action {
 
   void run(MouseState& s, MouseIO& io) override {
     if (completed()) return;
-    runMMS(s, io);
+    if (auto* m = dynamic_cast<MMSIO*>(&io)) {
+      runMMS(s, io);
+    }
   }
   void runMMS(MouseState& s, MouseIO& io) {
     io.update(s);
