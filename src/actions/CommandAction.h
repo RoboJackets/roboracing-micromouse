@@ -21,6 +21,7 @@ struct CommandAction : Action {
     if (completed()) return;
     if (auto* m = dynamic_cast<MMSIO*>(&io)) {
       runMMS(s, io);
+      return;
     }
   }
   void runMMS(MouseState& s, MouseIO& io) {
