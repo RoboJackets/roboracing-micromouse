@@ -15,18 +15,18 @@ struct TeensyIO : MouseIO {
   void updateWorldCoord() override {}
   unsigned char getGridDir() override { return dir; }
 
-  // void drive(double left, double right) override = 0;
+  void drive(double left, double right) override = 0;
 
-  // double getDriveSpeedLeft() override = 0;
-  // double getDriveSpeedRight() override = 0;
+  double getDriveSpeedLeft() override = 0;
+  double getDriveSpeedRight() override = 0;
 
-  // double getDrivePosLeft() override = 0;
-  // double getDrivePosRight() override = 0;
-  // double getGyroYaw() override = 0;
+  double getDrivePosLeft() override = 0;
+  double getDrivePosRight() override = 0;
+  double getGyroYaw() override = 0;
 
-  // std::vector<WorldCoord> getSensorState() override = 0;
+  std::vector<WorldCoord> getSensorState() override = 0;
 
-  // void update(MouseState& mouseState) override = 0;
+  void update(MouseState& mouseState) override = 0;
 
-  // void init() override = 0;
+  void init() override = 0;
 };
