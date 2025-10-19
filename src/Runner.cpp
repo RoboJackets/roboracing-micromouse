@@ -17,6 +17,9 @@ int main() {
 
 #include "TeensyIO.h"
 TeensyIO teensy = TeensyIO{};
-void setup() { StateMachine::init(io); }
+void setup() {
+  io = &teensy;
+  StateMachine::init(io);
+}
 void loop() { StateMachine::tick(io); }
 #endif
