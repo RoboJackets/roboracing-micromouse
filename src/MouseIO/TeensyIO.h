@@ -1,6 +1,8 @@
 #pragma once
 #include <Arduino.h>
 
+#include <cmath>
+
 #include "Constants.h"
 #include "IRSensor.h"
 #include "IdealState.h"
@@ -9,8 +11,6 @@
 #include "Pins.h"
 #include "Types.h"
 struct TeensyIO : MouseIO {
-  int x = 0;
-  int y = 0;
   unsigned char dir = TOP;
   uint32_t lastMicros = 0;
   double dt = 0;
@@ -23,12 +23,18 @@ struct TeensyIO : MouseIO {
   std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
   std::vector<WorldCoord> readings{};
 
-  GridCoord getGridCoord() override { return GridCoord{x, y}; }
+  GridCoord getGridCoord() override {
+    int gx = (int)(w.x / CELL_SIZE_METERS + 0.5);
+    int gy = (int)(w.y / CELL_SIZE_METERS + 0.5);
+    return GridCoord{gx, gy};
+  }
+  
   WorldCoord getWorldCoord() override { return w; }
   void updateWorldCoord() override {
     double deltaLeft = getDrivePosLeft() - lastLeftPosition;
     double deltaRight = getDrivePosRight() - lastRightPosition;
-    double wheelDelta = WHEEL_RADIUS_M * ((deltaLeft + deltaRight) / 2);
+    double wheelDelta = 2 * M_PI * WHEEL_RADIUS_M / COUNTS_PER_REVOLUTION *
+                        ((deltaLeft + deltaRight) / 2);
 
     double deltaX = wheelDelta * std::cos(getGyroYaw());
     double deltaY = wheelDelta * std::sin(getGyroYaw());
