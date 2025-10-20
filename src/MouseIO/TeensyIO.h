@@ -43,8 +43,12 @@ struct TeensyIO : MouseIO {
 
   // void drive(double left, double right) override = 0;
 
-  // double getDriveSpeedLeft() override = 0;
-  // double getDriveSpeedRight() override = 0;
+  double getDriveSpeedLeft() override {
+    return (getDrivePosLeft() - lastLeftPosition) / dt;
+  };
+  double getDriveSpeedRight() override {
+    return (getDrivePosRight() - lastRightPosition) / dt;
+  };
 
   // double getDrivePosLeft() override = 0;
   // double getDrivePosRight() override = 0;
