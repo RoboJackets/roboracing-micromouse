@@ -19,7 +19,7 @@ struct TeensyIO : MouseIO {
   WorldCoord getWorldCoord() override { return w; }
   void updateWorldCoord() override {}
   unsigned char getGridDir() override { return dir; }
-  std::vector<IRSensor> sensors{};
+  std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
   std::vector<WorldCoord> readings{};
 
   // void drive(double left, double right) override = 0;
@@ -31,9 +31,7 @@ struct TeensyIO : MouseIO {
   // double getDrivePosRight() override = 0;
   // double getGyroYaw() override = 0;
 
-  std::vector<WorldCoord> getSensorState() override {
-    return readings;
-  };
+  std::vector<WorldCoord> getSensorState() override { return readings; };
 
   void updateSensorState() {
     readings.clear();
