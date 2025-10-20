@@ -14,13 +14,32 @@ struct TeensyIO : MouseIO {
   unsigned char dir = TOP;
   uint32_t lastMicros = 0;
   double dt = 0;
-  WorldCoord w = WorldCoord{0.0, 0.0, 0.0};
-  GridCoord getGridCoord() override { return GridCoord{x, y}; }
-  WorldCoord getWorldCoord() override { return w; }
-  void updateWorldCoord() override {}
-  unsigned char getGridDir() override { return dir; }
+  WorldCoord w = WorldCoord{};
+  double lastLeftPosition = 0;
+  double lastRightPosition = 0;
+  double leftPosition = 0;
+  double rightPosition = 0;
+  double gyroYaw = 0;
   std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
   std::vector<WorldCoord> readings{};
+
+  GridCoord getGridCoord() override { return GridCoord{x, y}; }
+  WorldCoord getWorldCoord() override { return w; }
+  void updateWorldCoord() override {
+    double deltaLeft = getDrivePosLeft() - lastLeftPosition;
+    double deltaRight = getDrivePosRight() - lastRightPosition;
+
+    double deltaX = WHEEL_RADIUS_M * ((deltaLeft + deltaRight) / 2) *
+                    std::cos(getGyroYaw());
+    double deltaY = WHEEL_RADIUS_M * ((deltaLeft + deltaRight) / 2) *
+                    std::sin(getGyroYaw());
+
+    w = WorldCoord{w.x + deltaX, w.y + deltaY, getGyroYaw()};
+  }
+  void updateEncoders() {
+    // set leftpos and right pos
+  }
+  unsigned char getGridDir() override { return dir; }
 
   // void drive(double left, double right) override = 0;
 
