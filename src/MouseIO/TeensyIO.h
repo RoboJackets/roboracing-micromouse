@@ -28,16 +28,15 @@ struct TeensyIO : MouseIO {
   void updateWorldCoord() override {
     double deltaLeft = getDrivePosLeft() - lastLeftPosition;
     double deltaRight = getDrivePosRight() - lastRightPosition;
+    double wheelDelta = WHEEL_RADIUS_M * ((deltaLeft + deltaRight) / 2);
 
-    double deltaX = WHEEL_RADIUS_M * ((deltaLeft + deltaRight) / 2) *
-                    std::cos(getGyroYaw());
-    double deltaY = WHEEL_RADIUS_M * ((deltaLeft + deltaRight) / 2) *
-                    std::sin(getGyroYaw());
+    double deltaX = wheelDelta * std::cos(getGyroYaw());
+    double deltaY = wheelDelta * std::sin(getGyroYaw());
 
     w = WorldCoord{w.x + deltaX, w.y + deltaY, getGyroYaw()};
   }
   void updateEncoders() {
-    // set leftpos and right pos
+    // set leftpos and right pos and gyro
   }
   unsigned char getGridDir() override { return dir; }
 
@@ -50,9 +49,9 @@ struct TeensyIO : MouseIO {
     return (getDrivePosRight() - lastRightPosition) / dt;
   };
 
-  // double getDrivePosLeft() override = 0;
-  // double getDrivePosRight() override = 0;
-  // double getGyroYaw() override = 0;
+  double getDrivePosLeft() override { return leftPosition; };
+  double getDrivePosRight() override { return rightPosition; };
+  double getGyroYaw() override { return gyroYaw; };
 
   std::vector<WorldCoord> getSensorState() override { return readings; };
 
@@ -72,6 +71,7 @@ struct TeensyIO : MouseIO {
 
   void update(MouseState& mouseState) override {
     updateSensorState();
+    updateEncoders();
     uint32_t deltaMicros = micros() - lastMicros;
     dt = deltaMicros * 1e-6;
     updateWorldCoord();
