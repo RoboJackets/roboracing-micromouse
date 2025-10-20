@@ -36,6 +36,7 @@ struct TeensyIO : MouseIO {
   };
 
   void updateSensorState() {
+    readings.clear();
     for (int i = 0; i < sensors.size(); i++) {
       double reading = 0;
       IRSensor sensor = sensors.at(i);
