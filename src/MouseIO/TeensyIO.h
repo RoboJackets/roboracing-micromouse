@@ -28,7 +28,7 @@ struct TeensyIO : MouseIO {
     int gy = (int)(w.y / CELL_SIZE_METERS + 0.5);
     return GridCoord{gx, gy};
   }
-  
+
   WorldCoord getWorldCoord() override { return w; }
   void updateWorldCoord() override {
     double deltaLeft = getDrivePosLeft() - lastLeftPosition;
@@ -64,7 +64,6 @@ struct TeensyIO : MouseIO {
   void updateSensorState() {
     readings.clear();
     for (int i = 0; i < sensors.size(); i++) {
-      double reading = 0;
       IRSensor sensor = sensors.at(i);
       digitalWrite(sensor.EMIT, HIGH);
       delayMicroseconds(EMIT_RECV_DELAY_US);
@@ -72,6 +71,10 @@ struct TeensyIO : MouseIO {
       digitalWrite(sensor.EMIT, LOW);
       double dist = 0.647426 / pow(max(post, 1), 0.516999);
       readings.push_back(sensor.getReading(dist));
+      std::cout << "V: " << std::to_string(post)
+                << "x: " << std::to_string(sensor.getReading(dist).x)
+                << " y: " << std::to_string(sensor.getReading(dist).y)
+                << std::endl;
     }
   }
 

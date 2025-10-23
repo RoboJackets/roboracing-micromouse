@@ -3,8 +3,8 @@
 MouseIO* io = nullptr;
 
 #ifdef MMS_SIM
-#include "MMSIO.h"
 #include "../mms-cpp/API.cpp"
+#include "MMSIO.h"
 MMSIO mms = MMSIO{};
 int main() {
   io = &mms;
@@ -22,5 +22,7 @@ void setup() {
   io = &teensyIO;
   StateMachine::init(io);
 }
-void loop() { StateMachine::tick(io); }
+void loop() {
+  StateMachine::tick(io);
+}
 #endif
