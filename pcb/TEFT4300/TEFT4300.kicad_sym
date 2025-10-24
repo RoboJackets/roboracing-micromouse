@@ -1,0 +1,134 @@
+
+(kicad_symbol_lib (version 20211014) (generator kicad_symbol_editor)
+  (symbol "TEFT4300" (pin_names (offset 1.016)) (in_bom yes) (on_board yes)
+    (property "Reference" "Q" (id 0) (at -10.1556 5.0822 0)
+      (effects (font (size 1.27 1.27)) (justify bottom left))
+    )
+    (property "Value" "TEFT4300" (id 1) (at -10.1508 -7.62 0)
+      (effects (font (size 1.27 1.27)) (justify bottom left))
+    )
+    (property "Footprint" "TEFT4300:XDCR_TEFT4300" (id 2) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "MF" "Vishay Semiconductor" (id 4) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "MAXIMUM_PACKAGE_HEIGHT" "6.10mm" (id 5) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "PACKAGE" "Radial Vishay" (id 6) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "Price" "None" (id 7) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "Package" "None" (id 8) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "Check_prices" "https://www.snapeda.com/parts/TEFT4300/Vishay/view-part/?ref=eda" (id 9) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "SnapEDA_Link" "https://www.snapeda.com/parts/TEFT4300/Vishay/view-part/?ref=snap" (id 10) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "MP" "TEFT4300" (id 11) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "Availability" "In Stock" (id 12) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (property "Description" "\n                        \n                            Phototransistors 925nm Top View Radial, 3mm Dia (T-1)\n                        \n" (id 13) (at 0 0 0)
+      (effects (font (size 1.27 1.27)) (justify bottom) hide)
+    )
+    (symbol "TEFT4300_0_0"
+      (polyline
+        (pts (xy -4.953 2.54) (xy -3.175 0.762)) (stroke (width 0.1524))
+      )
+      (polyline
+        (pts (xy -3.175 0.762) (xy -4.318 1.143)) (stroke (width 0.1524))
+      )
+      (polyline
+        (pts (xy -4.318 1.143) (xy -3.556 1.905)) (stroke (width 0.1524))
+      )
+      (polyline
+        (pts (xy -3.556 1.905) (xy -3.175 0.762)) (stroke (width 0.1524))
+      )
+      (polyline
+        (pts (xy 2.286 -2.286) (xy 2.54 -2.54)) (stroke (width 0.1524))
+      )
+      (polyline
+        (pts
+          (xy -4.318 1.143)
+          (xy -3.175 0.762)
+          (xy -3.556 1.905)
+          (xy -4.318 1.143)
+        )
+        (stroke (width 0.1524)) (fill (type outline))
+      )
+      (circle (center 1.27 0.0) (radius 3.175)
+        (stroke (width 0.254)) (fill (type none))
+      )
+      (polyline
+        (pts (xy 0.0 1.905) (xy 0.0 0.635)) (stroke (width 0.254))
+      )
+      (polyline
+        (pts (xy 0.0 0.635) (xy 0.0 -0.635)) (stroke (width 0.254))
+      )
+      (polyline
+        (pts (xy 0.0 -0.635) (xy 0.0 -1.905)) (stroke (width 0.254))
+      )
+      (polyline
+        (pts (xy 0.0 -0.635) (xy 2.54 -2.54)) (stroke (width 0.254))
+      )
+      (polyline
+        (pts (xy 0.0 0.635) (xy 2.54 2.54)) (stroke (width 0.254))
+      )
+      (polyline
+        (pts
+          (xy 2.54 -2.54)
+          (xy 2.286 -1.524)
+          (xy 1.524 -2.54)
+          (xy 2.54 -2.54)
+        )
+        (stroke (width 0.254)) (fill (type outline))
+      )
+      (polyline
+        (pts (xy -4.953 0.635) (xy -3.175 -1.143)) (stroke (width 0.1524))
+      )
+      (polyline
+        (pts (xy -3.175 -1.143) (xy -4.318 -0.762)) (stroke (width 0.1524))
+      )
+      (polyline
+        (pts (xy -4.318 -0.762) (xy -3.556 0.0)) (stroke (width 0.1524))
+      )
+      (polyline
+        (pts (xy -3.556 0.0) (xy -3.175 -1.143)) (stroke (width 0.1524))
+      )
+      (polyline
+        (pts
+          (xy -4.318 -0.762)
+          (xy -3.175 -1.143)
+          (xy -3.556 0.0)
+          (xy -4.318 -0.762)
+        )
+        (stroke (width 0.1524)) (fill (type outline))
+      )
+      (pin passive line (at 2.54 -5.08 90.0) (length 2.54)
+        (name "~"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "E"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+      (pin passive line (at 2.54 5.08 270.0) (length 2.54)
+        (name "~"
+          (effects (font (size 1.016 1.016)))
+        )
+        (number "C"
+          (effects (font (size 1.016 1.016)))
+        )
+      )
+    )
+  )
+)
