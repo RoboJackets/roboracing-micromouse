@@ -1,0 +1,24 @@
+# KiCad backup and autosave files
+*.bak
+*.bck
+*.kicad_prl
+*.tmp
+*.lck
+*autosave*
+fp-info-cache
+
+# Backup folders
+backups/
+__pycache__/
+
+# KiCad-generated cache
+*-cache.lib
+*-rescue.lib
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# KiCad temporary project files
+*.net
+*.xml
