@@ -1,4 +1,4 @@
 (sym_lib_table
   (version 7)
-  (lib (name "Micromouse_pcb")(type "KiCad")(uri "${KIPRJMOD}/Micromouse_pcb.kicad_sym")(options "")(descr ""))
+  (lib (name "micromouse-symbols")(type "KiCad")(uri "${KIPRJMOD}/micromouse-symbols.kicad_sym")(options "")(descr ""))
 )
