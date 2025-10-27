@@ -8223,7 +8223,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "42879eea-3255-48f8-80ac-8fb9170c2d74")
-		(property "Reference" "J?"
+		(property "Reference" "J1"
 			(at 148.59 223.5199 0)
 			(effects
 				(font
@@ -8289,7 +8289,7 @@
 		(instances
 			(project ""
 				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
-					(reference "J?")
+					(reference "J1")
 					(unit 1)
 				)
 			)
@@ -10652,7 +10652,7 @@
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x08")
-		(at 163.83 267.97 0)
+		(at 168.91 254 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -10660,8 +10660,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "cbdbf432-c0ef-4771-b6d2-47d4a03d2535")
-		(property "Reference" "J?"
-			(at 166.37 267.9699 0)
+		(property "Reference" "J3"
+			(at 171.45 253.9999 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10670,7 +10670,7 @@
 			)
 		)
 		(property "Value" "Conn_01x08"
-			(at 166.37 270.5099 0)
+			(at 171.45 256.5399 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10679,7 +10679,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 163.83 267.97 0)
+			(at 168.91 254 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10688,7 +10688,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 163.83 267.97 0)
+			(at 168.91 254 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10697,7 +10697,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 163.83 267.97 0)
+			(at 168.91 254 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10732,7 +10732,7 @@
 		(instances
 			(project ""
 				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
-					(reference "J?")
+					(reference "J3")
 					(unit 1)
 				)
 			)
@@ -11970,7 +11970,7 @@
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x08")
-		(at 142.24 267.97 0)
+		(at 142.24 254 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -11978,8 +11978,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "fc8bc7da-00d8-4215-a410-8dcff1b92f30")
-		(property "Reference" "J?"
-			(at 144.78 267.9699 0)
+		(property "Reference" "J2"
+			(at 144.78 253.9999 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11988,7 +11988,7 @@
 			)
 		)
 		(property "Value" "Conn_01x08"
-			(at 144.78 270.5099 0)
+			(at 144.78 256.5399 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11997,7 +11997,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 142.24 267.97 0)
+			(at 142.24 254 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12006,7 +12006,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 142.24 267.97 0)
+			(at 142.24 254 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12015,7 +12015,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 142.24 267.97 0)
+			(at 142.24 254 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12050,7 +12050,7 @@
 		(instances
 			(project "micromouse-pcb"
 				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
-					(reference "J?")
+					(reference "J2")
 					(unit 1)
 				)
 			)
