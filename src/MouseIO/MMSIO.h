@@ -1,8 +1,9 @@
 #pragma once
 #include "../../mms-cpp/API.h"
-#include "IO.h"
 #include "IdealState.h"
+#include "MouseIO.h"
 struct MMSIO : MouseIO {
+  bool isMMS() const override { return true; }
   int x = 0;
   int y = 0;
   unsigned char dir = TOP;
@@ -12,7 +13,7 @@ struct MMSIO : MouseIO {
   unsigned char getGridDir() override { return dir; }
 
   void drive(double left, double right) override {}
-  void getSensorState() override {}
+  std::vector<WorldCoord> getSensorState() override {}
   void update(MouseState& mouseState) override {
     mouseState.x = x;
     mouseState.y = y;
@@ -20,7 +21,7 @@ struct MMSIO : MouseIO {
     mouseState.explored[y][x] = true;
     updateWalls(mouseState);
     logCells(mouseState);
-    API::setColor(x,y,'B');
+    API::setColor(x, y, 'B');
   }
   void logCells(MouseState& state) {
     for (int x = 0; x < N; ++x) {

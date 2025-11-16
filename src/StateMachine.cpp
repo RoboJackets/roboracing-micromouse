@@ -1,14 +1,7 @@
+#include "StateMachine.h"
+
 #include <string>
-
-#include "../mms-cpp/API.h"
-#include "CellSelection.h"
-#include "EmptyAction.h"
-#include "FastPathSolver.h"
-#include "FloodFillSolver.h"
-#include "MMSIO.h"
-
-namespace {
-enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
+namespace StateMachine {
 GoalState currentState = GoalState::GOAL_SEARCH;
 
 MouseState mouseState{};
@@ -19,11 +12,8 @@ const Goals* goal = &CENTER_GOALS;
 FloodFillSolver floodFill{};
 FastPathSolver fastPath{};
 Solver noop = Solver{};
-MouseIO* io = nullptr;
 EmptyAction empty = EmptyAction{};
 Action* a = &empty;
-
-MMSIO s = MMSIO{};
 void switchState(GoalState state) {
   if (currentState == state) {
     return;
@@ -71,7 +61,7 @@ void updateState() {
       break;
   }
 }
-void init() {
+void init(MouseIO* io) {
   mouseState.explored[0][0] = true;
   for (int i = 0; i < CENTER_GOALS.count; ++i) {
     const int gx = CENTER_GOALS.cells[i][1];
@@ -84,22 +74,17 @@ void init() {
     mouseState.walls[i][N - 1] |= RIGHT;
     mouseState.walls[N - 1][i] |= TOP;
   }
-  io = &s;
   solver = &floodFill;
   goal = &CENTER_GOALS;
   currentState = GoalState::GOAL_SEARCH;
   io->init();
 }
-}  // namespace
-
-int main() {
-  init();
-  while (true) {
-    io->update(mouseState);  // update input states
-    updateState();           // determine overall goal
-    if (a->completed()) {
-      a = solver->run(mouseState, goal);  // determine drive command
-    }
-    a->run(mouseState, *io);  // run drive command
+void tick(MouseIO* io) {
+  io->update(mouseState);  // update input states
+  updateState();           // determine overall goal
+  if (a->completed()) {
+    a = solver->run(mouseState, goal);  // determine drive command
   }
+  a->run(mouseState, *io);  // run drive command
 }
+}  // namespace

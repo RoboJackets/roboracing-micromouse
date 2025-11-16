@@ -5,8 +5,6 @@
 #include <stack>
 #include <string>
 #include <unordered_set>
-
-#include "../mms-cpp/API.h"
 #include "CommandGenerator.h"
 #include "Mouse.h"
 void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
@@ -55,17 +53,6 @@ void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
       queue.push({c.x, c.y + 1});
     }
   }
-
-  for (int x = 0; x < N; ++x) {
-    for (int y = 0; y < N; ++y) {
-      API::setText(x, y, std::to_string(dists[y][x]));
-      if (state.explored[y][x]) {
-        API::setColor(x, y, 'G');
-      } else {
-        API::setColor(x, y, 'R');
-      }
-    }
-  }
 }
 namespace CellSelection {
 Path pathBFS(MouseState& state, const Goals* goal) {
@@ -112,7 +99,6 @@ Path pathBFS(MouseState& state, const Goals* goal) {
   }
   for (int i = 0; i < finalPath.steps.size(); i++) {
     GridCoord step = finalPath.steps[i];
-    API::setColor(step.x, step.y, 'B');
   }
   return finalPath;
 }

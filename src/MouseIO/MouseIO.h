@@ -1,18 +1,26 @@
 #pragma once
+#include <vector>
+
 #include "IdealState.h"
 #include "Mouse.h"
 #include "Types.h"
 struct MouseIO {
-  virtual GridCoord getGridCoord() = 0;
-  virtual unsigned char getGridDir() = 0;
-  virtual WorldCoord getWorldCoord() = 0;
-  virtual void updateWorldCoord() = 0;
+  virtual bool isMMS() const { return false; }
+  virtual GridCoord getGridCoord() { return GridCoord{}; };
+  virtual unsigned char getGridDir() { return 0; };
+  virtual WorldCoord getWorldCoord() { return WorldCoord{}; };
+  virtual void updateWorldCoord() {};
 
-  virtual void drive(double left, double right) = 0;
-  virtual void setState(IdealState state) = 0;
-  virtual void getSensorState() = 0;
+  virtual void drive(double left, double right) {};
+  virtual double getDriveSpeedLeft() { return 0; };
+  virtual double getDriveSpeedRight() { return 0; };
+  virtual double getDrivePosLeft() { return 0; };
+  virtual double getDrivePosRight() { return 0; };
+  virtual double getGyroYaw() { return 0; };
+  virtual void setState(IdealState state) {};
+  virtual std::vector<WorldCoord> getSensorState() { return {}; };
 
-  virtual void update(MouseState& mouseState) = 0;
+  virtual void update(MouseState& mouseState) {};
 
-  virtual void init() = 0;
+  virtual void init() {};
 };

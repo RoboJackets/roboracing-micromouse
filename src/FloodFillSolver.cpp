@@ -2,8 +2,6 @@
 
 #include <queue>
 #include <string>
-
-#include "../../mms-cpp/API.h"
 #include "CommandAction.h"
 #include "CommandGenerator.h"
 #include "MoveAction.h"
