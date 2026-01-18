@@ -7391,7 +7391,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 378.46 46.99 90)
+		(at 378.46 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7400,7 +7400,7 @@
 		(fields_autoplaced yes)
 		(uuid "0eda14dd-8e69-4ce7-80e5-4f99e327c5f9")
 		(property "Reference" "#PWR03"
-			(at 384.81 46.99 0)
+			(at 378.46 53.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7409,12 +7409,12 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 382.27 46.9899 90)
+			(at 381 48.2599 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 			)
 		)
 		(property "Footprint" ""
@@ -10577,7 +10577,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 314.96 46.99 270)
+		(at 314.96 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -10586,7 +10586,7 @@
 		(fields_autoplaced yes)
 		(uuid "9c345744-a38c-408b-9f07-42d08c0cdf31")
 		(property "Reference" "#PWR02"
-			(at 308.61 46.99 0)
+			(at 314.96 53.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10595,12 +10595,12 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 311.15 46.9901 90)
+			(at 317.5 48.2599 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 			)
 		)
 		(property "Footprint" ""
@@ -12268,7 +12268,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 311.15 77.47 270)
+		(at 311.15 77.47 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -12277,7 +12277,7 @@
 		(fields_autoplaced yes)
 		(uuid "d9a6bc6a-4c22-413b-b8a5-c05255e239c2")
 		(property "Reference" "#PWR06"
-			(at 304.8 77.47 0)
+			(at 311.15 83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12286,11 +12286,12 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 309.88 73.66 90)
+			(at 313.69 78.7399 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 		(property "Footprint" ""
@@ -13128,7 +13129,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 384.81 135.89 90)
+		(at 384.81 135.89 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -13137,7 +13138,7 @@
 		(fields_autoplaced yes)
 		(uuid "f95ee145-702d-4fb5-83f6-e3686830f7f0")
 		(property "Reference" "#PWR08"
-			(at 391.16 135.89 0)
+			(at 384.81 142.24 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13146,12 +13147,12 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 388.62 135.8899 90)
+			(at 387.35 137.1599 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 			)
 		)
 		(property "Footprint" ""
