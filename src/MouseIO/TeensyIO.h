@@ -10,6 +10,7 @@
 #include "MouseIO.h"
 #include "Pins.h"
 #include "Types.h"
+#include <SparkFun_TB6612.cpp>
 struct TeensyIO : MouseIO
 {
   unsigned char dir = TOP;
@@ -23,6 +24,9 @@ struct TeensyIO : MouseIO
   double gyroYaw = 0;
   std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
   std::vector<WorldCoord> readings{};
+
+  Motor mA = Motor(AIN1, AIN2, PWMA, 1, STBY);
+  Motor mB = Motor(BIN1, BIN2, PWMB, 1, STBY);
 
   GridCoord getGridCoord() override
   {
@@ -50,7 +54,13 @@ struct TeensyIO : MouseIO
   }
   unsigned char getGridDir() override { return dir; }
 
-  // void drive(double left, double right) override = 0;
+  void drive(double left, double right) override
+  {
+    double l = std::clamp(left, -1.0, 1.0);
+    double r = std::clamp(right, -1.0, 1.0);
+    mA.drive(l * 255);
+    mB.drive(r * 255);
+  }
 
   double getDriveSpeedLeft() override
   {
@@ -67,6 +77,11 @@ struct TeensyIO : MouseIO
 
   std::vector<WorldCoord> getSensorState() override { return readings; };
 
+  double getDt() override
+  {
+    return dt;
+  }
+
   void updateSensorState()
   {
     readings.clear();
@@ -79,10 +94,10 @@ struct TeensyIO : MouseIO
       digitalWrite(sensor.EMIT, LOW);
       double dist = post < 4 ? std::numeric_limits<double>::infinity() : 0.647426 / pow(max(post, 1), 0.516999);
       readings.push_back(sensor.getReading(dist));
-      std::cout << "V: " << std::to_string(post)
-                << "x: " << std::to_string(sensor.getReading(dist).x)
-                << " y: " << std::to_string(sensor.getReading(dist).y)
-                << std::endl;
+      // std::cout << "V: " << std::to_string(post)
+      //           << "x: " << std::to_string(sensor.getReading(dist).x)
+      //           << " y: " << std::to_string(sensor.getReading(dist).y)
+      //           << std::endl;
     }
   }
 
@@ -93,6 +108,7 @@ struct TeensyIO : MouseIO
     uint32_t deltaMicros = micros() - lastMicros;
     dt = deltaMicros * 1e-6;
     updateWorldCoord();
+    std::cout << "running..." << std::endl;
   }
 
   void init() override

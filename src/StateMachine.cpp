@@ -1,25 +1,29 @@
 #include "StateMachine.h"
 
 #include <string>
-namespace StateMachine {
-GoalState currentState = GoalState::GOAL_SEARCH;
+namespace StateMachine
+{
+  GoalState currentState = GoalState::GOAL_SEARCH;
 
-MouseState mouseState{};
+  MouseState mouseState{};
 
-Solver* solver = nullptr;
-const Goals* goal = &CENTER_GOALS;
+  Solver *solver = nullptr;
+  const Goals *goal = &CENTER_GOALS;
 
-FloodFillSolver floodFill{};
-FastPathSolver fastPath{};
-Solver noop = Solver{};
-EmptyAction empty = EmptyAction{};
-Action* a = &empty;
-void switchState(GoalState state) {
-  if (currentState == state) {
-    return;
-  }
-  solver->onFinished(mouseState, goal);
-  switch (state) {
+  FloodFillSolver floodFill{};
+  FastPathSolver fastPath{};
+  Solver noop = Solver{};
+  EmptyAction empty = EmptyAction{};
+  Action *a = &empty;
+  void switchState(GoalState state)
+  {
+    if (currentState == state)
+    {
+      return;
+    }
+    solver->onFinished(mouseState, goal);
+    switch (state)
+    {
     case GoalState::GOAL_SEARCH:
       solver = &floodFill;
       goal = &CENTER_GOALS;
@@ -35,56 +39,68 @@ void switchState(GoalState state) {
     default:
       solver = &noop;
       break;
+    }
+    currentState = state;
+    if (a && !a->completed())
+      a->cancel();
+    a = &empty;
+    solver->init(mouseState, goal);
   }
-  currentState = state;
-  if (a && !a->completed()) a->cancel();
-  a = &empty;
-  solver->init(mouseState, goal);
-}
-void updateState() {
-  switch (currentState) {
+  void updateState()
+  {
+    switch (currentState)
+    {
     case GoalState::GOAL_SEARCH:
-      if (solver->end(mouseState, goal)) switchState(GoalState::RETURN);
+      if (solver->end(mouseState, goal))
+        switchState(GoalState::RETURN);
       break;
     case GoalState::RETURN:
       // std::cerr <<
       // std::to_string(mouseState.explored[mouseState.y][mouseState.x])
       //           << std::endl;
-      if (solver->end(mouseState, goal)) {
+      if (solver->end(mouseState, goal))
+      {
         switchState(GoalState::FAST_PATH);
       }
       break;
     case GoalState::FAST_PATH:
-      if (solver->end(mouseState, goal)) switchState(GoalState::RETURN);
+      if (solver->end(mouseState, goal))
+        switchState(GoalState::RETURN);
       break;
     default:
       break;
+    }
   }
-}
-void init(MouseIO* io) {
-  mouseState.explored[0][0] = true;
-  for (int i = 0; i < CENTER_GOALS.count; ++i) {
-    const int gx = CENTER_GOALS.cells[i][1];
-    const int gy = CENTER_GOALS.cells[i][0];
-    mouseState.explored[gy][gx] = true;
+  void init(MouseIO *io)
+  {
+    mouseState.explored[0][0] = true;
+    for (int i = 0; i < CENTER_GOALS.count; ++i)
+    {
+      const int gx = CENTER_GOALS.cells[i][1];
+      const int gy = CENTER_GOALS.cells[i][0];
+      mouseState.explored[gy][gx] = true;
+    }
+    for (int i = 0; i < N; ++i)
+    {
+      mouseState.walls[i][0] |= LEFT;
+      mouseState.walls[0][i] |= DOWN;
+      mouseState.walls[i][N - 1] |= RIGHT;
+      mouseState.walls[N - 1][i] |= TOP;
+    }
+    solver = &floodFill;
+    goal = &CENTER_GOALS;
+    currentState = GoalState::GOAL_SEARCH;
+    io->init();
   }
-  for (int i = 0; i < N; ++i) {
-    mouseState.walls[i][0] |= LEFT;
-    mouseState.walls[0][i] |= DOWN;
-    mouseState.walls[i][N - 1] |= RIGHT;
-    mouseState.walls[N - 1][i] |= TOP;
+  void tick(MouseIO *io)
+  {
+    io->update(mouseState); // update input states
+    updateState();          // determine overall goal (solver)
+    if (a->completed())
+    {
+      a->end(mouseState, *io);
+      a = solver->run(mouseState, goal); // determine action
+    }
+    a->run(mouseState, *io); // run action
   }
-  solver = &floodFill;
-  goal = &CENTER_GOALS;
-  currentState = GoalState::GOAL_SEARCH;
-  io->init();
-}
-void tick(MouseIO* io) {
-  io->update(mouseState);  // update input states
-  updateState();           // determine overall goal
-  if (a->completed()) {
-    a = solver->run(mouseState, goal);  // determine drive command
-  }
-  a->run(mouseState, *io);  // run drive command
-}
-}  // namespace
+} // namespace
