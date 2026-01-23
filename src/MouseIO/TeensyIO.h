@@ -11,6 +11,7 @@
 #include "Pins.h"
 #include "Types.h"
 #include <SparkFun_TB6612.cpp>
+#include "MPU6050.cpp"
 struct TeensyIO : MouseIO
 {
   unsigned char dir = TOP;
@@ -24,6 +25,8 @@ struct TeensyIO : MouseIO
   double gyroYaw = 0;
   std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
   std::vector<WorldCoord> readings{};
+
+  MPU6050 gyro{};
 
   Motor mA = Motor(AIN1, AIN2, PWMA, 1, STBY);
   Motor mB = Motor(BIN1, BIN2, PWMB, 1, STBY);
@@ -99,16 +102,20 @@ struct TeensyIO : MouseIO
       //           << " y: " << std::to_string(sensor.getReading(dist).y)
       //           << std::endl;
     }
+    gyro.update(dt);
+    gyroYaw = gyro.yaw;
+    Serial.println(gyroYaw);
   }
 
   void update(MouseState &mouseState) override
   {
+    uint32_t now = micros();
+    uint32_t deltaMicros = now - lastMicros;
+    lastMicros = now;
+    dt = deltaMicros * 1e-6;
     updateSensorState();
     updateEncoders();
-    uint32_t deltaMicros = micros() - lastMicros;
-    dt = deltaMicros * 1e-6;
     updateWorldCoord();
-    std::cout << "running..." << std::endl;
   }
 
   void init() override
@@ -124,6 +131,8 @@ struct TeensyIO : MouseIO
     pinMode(RECV_2, INPUT);
     pinMode(RECV_3, INPUT);
     pinMode(RECV_4, INPUT);
+
+    gyro.init_gyro();
 
     Serial.begin(9600);
   };
