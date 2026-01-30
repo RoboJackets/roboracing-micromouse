@@ -94,7 +94,7 @@ struct TeensyIO : MouseIO {
     }
     gyro.update();
     gyroYaw = gyro.ypr[0] * 180.0 / M_PI;
-    Serial.println(gyroYaw);
+    // Serial.println(gyroYaw);
   }
 
   void update(MouseState &mouseState) override {

@@ -19,6 +19,7 @@ SequentialAction square = SequentialAction(
     {DriveTimeAction(1, 0.5), YawPIDAction(M_PI / 2), DriveTimeAction(1, 0.5),
      YawPIDAction(M_PI), DriveTimeAction(1, 0.5), YawPIDAction(M_PI * 1.5),
      DriveTimeAction(1, 0.5), YawPIDAction(0)});
+DriveTimeAction vroom = DriveTimeAction(1, 0.1);
 Action *a = &empty;
 void switchState(GoalState state) {
   if (currentState == state) {
@@ -93,7 +94,7 @@ void tick(MouseIO *io) {
   updateState();          // determine overall goal (solver)
   if (a->completed()) {
     a->end(mouseState, *io);
-    a = solver->run(mouseState, goal); // determine action
+    a = &vroom; // determine action
   }
   a->run(mouseState, *io); // run action
 }
