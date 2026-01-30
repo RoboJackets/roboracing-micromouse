@@ -7,10 +7,7 @@ struct SequentialAction : Action
     bool canceled = false;
     std::vector<Action> actions{};
     int index = 0;
-    void load(std::vector<Action> a)
-    {
-        actions = std::move(a);
-    }
+    SequentialAction(std::vector<Action> actions) : actions(actions) {}
     void cancel() override { canceled = true; }
     bool completed() const override { return canceled; }
 

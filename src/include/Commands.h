@@ -1,3 +1,4 @@
+#pragma once
 constexpr unsigned char FWD0 =      0b10000000;
 constexpr unsigned char DFWD0 =     0b11000000;
 constexpr unsigned char STOP =      0b11111111;
