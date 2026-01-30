@@ -19,7 +19,7 @@ SequentialAction square = SequentialAction(
     {DriveTimeAction(1, 0.5), YawPIDAction(M_PI / 2), DriveTimeAction(1, 0.5),
      YawPIDAction(M_PI), DriveTimeAction(1, 0.5), YawPIDAction(M_PI * 1.5),
      DriveTimeAction(1, 0.5), YawPIDAction(0)});
-DriveTimeAction vroom = DriveTimeAction(1, 0.1);
+DriveTimeAction vroom = DriveTimeAction(1000, 0.1);
 Action *a = &empty;
 void switchState(GoalState state) {
   if (currentState == state) {
