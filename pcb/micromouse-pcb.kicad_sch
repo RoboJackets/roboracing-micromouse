@@ -8402,7 +8402,7 @@
 				)
 			)
 		)
-		(property "Value" "R_US"
+		(property "Value" "2k"
 			(at 91.44 171.45 90)
 			(effects
 				(font
@@ -8871,7 +8871,7 @@
 				)
 			)
 		)
-		(property "Value" "R_US"
+		(property "Value" "800"
 			(at 86.36 195.58 90)
 			(effects
 				(font
@@ -8939,7 +8939,7 @@
 				)
 			)
 		)
-		(property "Value" "100/75"
+		(property "Value" "40"
 			(at 148.59 162.56 90)
 			(effects
 				(font
@@ -9007,7 +9007,7 @@
 				)
 			)
 		)
-		(property "Value" "R_US"
+		(property "Value" "2k"
 			(at 173.99 228.6 90)
 			(effects
 				(font
@@ -9075,7 +9075,7 @@
 				)
 			)
 		)
-		(property "Value" "R_US"
+		(property "Value" "1.3k"
 			(at 76.2 229.87 90)
 			(effects
 				(font
@@ -9454,7 +9454,7 @@
 				)
 			)
 		)
-		(property "Value" "R_US"
+		(property "Value" "40"
 			(at 67.31 162.56 90)
 			(effects
 				(font
@@ -11037,7 +11037,7 @@
 				)
 			)
 		)
-		(property "Value" "R_US"
+		(property "Value" "1.3k"
 			(at 76.2 171.45 90)
 			(effects
 				(font
@@ -12913,7 +12913,7 @@
 				)
 			)
 		)
-		(property "Value" "R_US"
+		(property "Value" "2k"
 			(at 91.44 229.87 90)
 			(effects
 				(font
@@ -13322,7 +13322,7 @@
 				)
 			)
 		)
-		(property "Value" "R_US"
+		(property "Value" "800"
 			(at 167.64 195.58 90)
 			(effects
 				(font
@@ -14357,7 +14357,7 @@
 				)
 			)
 		)
-		(property "Value" "R_US"
+		(property "Value" "800"
 			(at 86.36 254 90)
 			(effects
 				(font
@@ -14492,7 +14492,7 @@
 				)
 			)
 		)
-		(property "Value" "R_US"
+		(property "Value" "40"
 			(at 67.31 220.98 90)
 			(effects
 				(font
@@ -14560,7 +14560,7 @@
 				)
 			)
 		)
-		(property "Value" "R_US"
+		(property "Value" "1.3k"
 			(at 158.75 228.6 90)
 			(effects
 				(font
@@ -15412,7 +15412,7 @@
 				)
 			)
 		)
-		(property "Value" "R_US"
+		(property "Value" "800"
 			(at 168.91 252.73 90)
 			(effects
 				(font
@@ -15614,7 +15614,7 @@
 				)
 			)
 		)
-		(property "Value" "R_US"
+		(property "Value" "40"
 			(at 149.86 219.71 90)
 			(effects
 				(font
