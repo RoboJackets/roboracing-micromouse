@@ -21,8 +21,7 @@ struct DriveTimeAction : Action {
       canceled = true;
       return;
     }
-    Serial.println("run");
-    io.drive(0.5, 0.5);
+    io.drive(0.2, 0.2);
   }
   void end(MouseState &s, MouseIO &io) override { io.drive(0.0, 0.0); }
 };
@@ -38,6 +37,7 @@ struct YawPIDAction : Action {
   YawPIDAction(double setpoint) : setpoint(setpoint) {}
 
   void run(MouseState &s, MouseIO &io) override {
+    Serial.print(io.getGyroYaw());
     double error = std::fmod((setpoint - io.getGyroYaw()), 180) - 180;
     double c = p.calculate(error, 0, io.getDt());
     io.drive(c, -c);

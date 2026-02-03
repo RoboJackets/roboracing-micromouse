@@ -4,15 +4,15 @@
 
 #include <cstdint>
 
-constexpr uint8_t EMIT_1 = 12;
-constexpr uint8_t EMIT_2 = 11;
-constexpr uint8_t EMIT_3 = 10;
-constexpr uint8_t EMIT_4 = 9;
+// constexpr uint8_t EMIT_1 = 12;
+// constexpr uint8_t EMIT_2 = 11;
+// constexpr uint8_t EMIT_3 = 10;
+// constexpr uint8_t EMIT_4 = 9;
 
-constexpr uint8_t RECV_1 = 27;
-constexpr uint8_t RECV_2 = 26;
-constexpr uint8_t RECV_3 = 25;
-constexpr uint8_t RECV_4 = 24;
+// constexpr uint8_t RECV_1 = 27;
+// constexpr uint8_t RECV_2 = 26;
+// constexpr uint8_t RECV_3 = 25;
+// constexpr uint8_t RECV_4 = 24;
 
 constexpr uint8_t AIN1 = 37;
 constexpr uint8_t AIN2 = 36;
@@ -20,6 +20,6 @@ constexpr uint8_t PWMA = 28;
 
 constexpr uint8_t BIN1 = 12;
 constexpr uint8_t BIN2 = 11;
-constexpr uint8_t PWMB = 0;
+constexpr uint8_t PWMB = 10;
 
 constexpr uint8_t STBY = 38;
