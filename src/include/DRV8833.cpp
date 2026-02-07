@@ -1,0 +1,65 @@
+#include "DRV8833.h"
+
+static inline int clamp255(int v) {
+  if (v > 255) return 255;
+  if (v < -255) return -255;
+  return v;
+}
+
+DRV8833Motor::DRV8833Motor(uint8_t in1Pin, uint8_t in2Pin, int8_t offset, uint8_t stbyPin)
+: _in1(in1Pin), _in2(in2Pin), _stby(stbyPin), _offset(offset >= 0 ? 1 : -1) {
+  begin();
+}
+
+void DRV8833Motor::begin() {
+  pinMode(_in1, OUTPUT);
+  pinMode(_in2, OUTPUT);
+  pinMode(_stby, OUTPUT);
+  setStandbyLow_();
+  digitalWrite(_in1, LOW);
+  digitalWrite(_in2, LOW);
+}
+
+void DRV8833Motor::setOffset(int8_t offset) {
+  _offset = (offset >= 0) ? 1 : -1;
+}
+
+void DRV8833Motor::setStandbyHigh_() { digitalWrite(_stby, HIGH); }
+void DRV8833Motor::setStandbyLow_()  { digitalWrite(_stby, LOW);  }
+
+void DRV8833Motor::wake() { setStandbyHigh_(); }
+void DRV8833Motor::standby() { setStandbyLow_(); }
+
+void DRV8833Motor::drive(int speed) {
+  setStandbyHigh_();
+
+  speed = clamp255(speed * _offset);
+
+  if (speed > 0) {
+    digitalWrite(_in2, LOW);
+    analogWrite(_in1, (uint8_t)speed);
+  } else if (speed < 0) {
+    digitalWrite(_in1, LOW);
+    analogWrite(_in2, (uint8_t)(-speed));
+  } else {
+    digitalWrite(_in1, LOW);
+    digitalWrite(_in2, LOW);
+  }
+}
+
+void DRV8833Motor::drive(int speed, uint32_t durationMs) {
+  drive(speed);
+  delay(durationMs);
+}
+
+void DRV8833Motor::coast() {
+  setStandbyHigh_();
+  digitalWrite(_in1, LOW);
+  digitalWrite(_in2, LOW);
+}
+
+void DRV8833Motor::brake() {
+  setStandbyHigh_();
+  digitalWrite(_in1, HIGH);
+  digitalWrite(_in2, HIGH);
+}

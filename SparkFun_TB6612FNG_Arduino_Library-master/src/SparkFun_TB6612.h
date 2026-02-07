@@ -33,7 +33,7 @@ class Motor
 {
   public:
     // Constructor. Mainly sets up pins.
-    Motor(int In1pin, int In2pin, int PWMpin, int offset, int STBYpin);      
+    Motor(int In2pin, int PWMpin, int offset, int STBYpin);      
 
     // Drive in direction given by sign, at speed given by magnitude of the 
 	//parameter.
@@ -55,7 +55,7 @@ class Motor
 	
   private:
     //variables for the 2 inputs, PWM input, Offset value, and the Standby pin
-	int In1, In2, PWM, Offset,Standby;
+	int In2, PWM, Offset,Standby;
 	
 	//private functions that spin the motor CC and CCW
 	void fwd(int speed);

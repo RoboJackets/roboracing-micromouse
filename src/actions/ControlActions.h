@@ -21,7 +21,7 @@ struct DriveTimeAction : Action {
       canceled = true;
       return;
     }
-    io.drive(0.2, 0.2);
+    io.drive(1, 1);
   }
   void end(MouseState &s, MouseIO &io) override { io.drive(0.0, 0.0); }
 };

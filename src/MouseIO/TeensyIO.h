@@ -10,8 +10,8 @@
 #include "MouseIO.h"
 #include "Pins.h"
 #include "Types.h"
+#include <DRV8833.h>
 #include <Gyro.cpp>
-#include <SparkFun_TB6612.cpp>
 
 struct TeensyIO : MouseIO {
   unsigned char dir = TOP;
@@ -28,8 +28,8 @@ struct TeensyIO : MouseIO {
 
   Gyro gyro{};
 
-  Motor mA = Motor(AIN1, AIN2, PWMA, 1, STBY);
-  Motor mB = Motor(BIN1, BIN2, PWMB, 1, STBY);
+  DRV8833Motor mA = DRV8833Motor(AIN2, AIN1, 1, STBY);
+  DRV8833Motor mB = DRV8833Motor(BIN2, BIN1, -1, STBY);
 
   GridCoord getGridCoord() override {
     int gx = (int)(w.x / CELL_SIZE_METERS + 0.5);
@@ -79,22 +79,22 @@ struct TeensyIO : MouseIO {
   void updateSensorState() {
     readings.clear();
     // for (int i = 0; i < sensors.size(); i++) {
-      // IRSensor sensor = sensors.at(i);
-      // digitalWrite(sensor.EMIT, HIGH);
-      // delayMicroseconds(EMIT_RECV_DELAY_US);
-      // int post = analogRead(sensor.RECV);
-      // digitalWrite(sensor.EMIT, LOW);
-      // double dist = post < 4 ? std::numeric_limits<double>::infinity()
-      //                        : 0.647426 / pow(max(post, 1), 0.516999);
-      // readings.push_back(sensor.getReading(dist));
-      // std::cout << "V: " << std::to_string(post)
-      //           << "x: " << std::to_string(sensor.getReading(dist).x)
-      //           << " y: " << std::to_string(sensor.getReading(dist).y)
-      //           << std::endl;
+    // IRSensor sensor = sensors.at(i);
+    // digitalWrite(sensor.EMIT, HIGH);
+    // delayMicroseconds(EMIT_RECV_DELAY_US);
+    // int post = analogRead(sensor.RECV);
+    // digitalWrite(sensor.EMIT, LOW);
+    // double dist = post < 4 ? std::numeric_limits<double>::infinity()
+    //                        : 0.647426 / pow(max(post, 1), 0.516999);
+    // readings.push_back(sensor.getReading(dist));
+    // std::cout << "V: " << std::to_string(post)
+    //           << "x: " << std::to_string(sensor.getReading(dist).x)
+    //           << " y: " << std::to_string(sensor.getReading(dist).y)
+    //           << std::endl;
     // }
     gyro.update();
     gyroYaw = gyro.ypr[0] * 180.0 / M_PI;
-    // Serial.println(gyroYaw);
+    Serial.println(gyroYaw);
   }
 
   void update(MouseState &mouseState) override {
@@ -109,7 +109,7 @@ struct TeensyIO : MouseIO {
 
   void init() override {
     lastMicros = micros();
-    pinMode(LED_BUILTIN, OUTPUT);
+    // pinMode(LED_BUILTIN, OUTPUT);
     // pinMode(EMIT_1, OUTPUT);
     // pinMode(EMIT_2, OUTPUT);
     // pinMode(EMIT_3, OUTPUT);
