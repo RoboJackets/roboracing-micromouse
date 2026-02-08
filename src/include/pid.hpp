@@ -1,12 +1,10 @@
-struct PIDConstants
-{
+struct PIDConstants {
   double p = 0;
   double i = 0;
   double d = 0;
 };
 
-class PID
-{
+class PID {
   double p = 0;
   double i = 0;
   double d = 0;
@@ -16,11 +14,10 @@ class PID
   double accum = 0;
 
 public:
-  PID(PIDConstants constants) : p(constants.p), i(constants.i), d(constants.d) {}
-  double calculate(double measurement, double setpoint, double dt)
-  {
-    if (inital || lastSetpoint != setpoint)
-    {
+  PID(PIDConstants constants)
+      : p(constants.p), i(constants.i), d(constants.d) {}
+  double calculate(double measurement, double setpoint, double dt) {
+    if (inital || lastSetpoint != setpoint) {
       lastSetpoint = setpoint;
       inital = false;
       lastError = setpoint - measurement;
@@ -33,8 +30,9 @@ public:
     accum += error * dt;
     result += i * accum;
     lastError = error;
+    return result;
   }
   void resetAccum() { accum = 0; }
 };
 
-PIDConstants rot90PID{0.1, 0, 0};
+PIDConstants rot90PID{0.01, 0, 0};

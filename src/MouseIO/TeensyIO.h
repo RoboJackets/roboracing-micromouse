@@ -28,8 +28,8 @@ struct TeensyIO : MouseIO {
 
   Gyro gyro{};
 
-  DRV8833Motor mA = DRV8833Motor(AIN2, AIN1, 1, STBY);
-  DRV8833Motor mB = DRV8833Motor(BIN2, BIN1, -1, STBY);
+  DRV8833Motor mA = DRV8833Motor(AIN1, AIN2, -1, STBY);
+  DRV8833Motor mB = DRV8833Motor(BIN1, BIN2, 1, STBY);
 
   GridCoord getGridCoord() override {
     int gx = (int)(w.x / CELL_SIZE_METERS + 0.5);
@@ -57,8 +57,8 @@ struct TeensyIO : MouseIO {
   void drive(double left, double right) override {
     double l = std::clamp(left, -1.0, 1.0);
     double r = std::clamp(right, -1.0, 1.0);
-    mA.drive(l * 255);
-    mB.drive(r * 255);
+    mA.drive((int)(r * 255));
+    mB.drive((int)(l * 255));
   }
 
   double getDriveSpeedLeft() override {
@@ -94,7 +94,6 @@ struct TeensyIO : MouseIO {
     // }
     gyro.update();
     gyroYaw = gyro.ypr[0] * 180.0 / M_PI;
-    Serial.println(gyroYaw);
   }
 
   void update(MouseState &mouseState) override {
@@ -109,7 +108,7 @@ struct TeensyIO : MouseIO {
 
   void init() override {
     lastMicros = micros();
-    // pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(LED_BUILTIN, OUTPUT);
     // pinMode(EMIT_1, OUTPUT);
     // pinMode(EMIT_2, OUTPUT);
     // pinMode(EMIT_3, OUTPUT);

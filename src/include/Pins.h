@@ -17,7 +17,7 @@
 constexpr uint8_t AIN1 = 37;
 constexpr uint8_t AIN2 = 36;
 
-constexpr uint8_t BIN1 = 12;
-constexpr uint8_t BIN2 = 11;
+constexpr uint8_t BIN1 = 11;
+constexpr uint8_t BIN2 = 12;
 
 constexpr uint8_t STBY = 38;

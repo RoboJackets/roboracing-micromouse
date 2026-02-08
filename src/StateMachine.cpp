@@ -16,11 +16,11 @@ FastPathSolver fastPath{};
 Solver noop = Solver{};
 EmptyAction empty = EmptyAction{};
 SequentialAction square = SequentialAction(
-    {DriveTimeAction(1, 0.5), YawPIDAction(M_PI / 2), DriveTimeAction(1, 0.5),
-     YawPIDAction(M_PI), DriveTimeAction(1, 0.5), YawPIDAction(M_PI * 1.5),
+    {DriveTimeAction(1, 0.5), YawPIDAction(90), DriveTimeAction(1, 0.5),
+     YawPIDAction(180), DriveTimeAction(1, 0.5), YawPIDAction(270),
      DriveTimeAction(1, 0.5), YawPIDAction(0)});
 DriveTimeAction vroom = DriveTimeAction(1000, 0.1);
-YawPIDAction pid = YawPIDAction(M_PI / 2);
+YawPIDAction pid = YawPIDAction(90);
 Action *a = &empty;
 void switchState(GoalState state) {
   if (currentState == state) {
@@ -95,7 +95,7 @@ void tick(MouseIO *io) {
   updateState();          // determine overall goal (solver)
   if (a->completed()) {
     a->end(mouseState, *io);
-    a = &vroom; // determine action
+    a = &pid; // determine action
   }
   a->run(mouseState, *io); // run action
 }

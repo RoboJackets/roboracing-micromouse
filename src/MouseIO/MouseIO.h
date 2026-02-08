@@ -4,8 +4,7 @@
 #include "IdealState.h"
 #include "Mouse.h"
 #include "Types.h"
-struct MouseIO
-{
+struct MouseIO {
   virtual bool isMMS() const { return false; }
   virtual GridCoord getGridCoord() { return GridCoord{}; };
   virtual unsigned char getGridDir() { return 0; };
