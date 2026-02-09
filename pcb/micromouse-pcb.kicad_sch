@@ -2274,6 +2274,156 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Switch:SW_Push"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "SW"
+				(at 1.27 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "SW_Push"
+				(at 0 -1.524 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Push button switch, generic, two pins"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "switch normally-open pushbutton push-button"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "SW_Push_0_1"
+				(circle
+					(center -2.032 0)
+					(radius 0.508)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 1.27) (xy 0 3.048)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 2.032 0)
+					(radius 0.508)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 1.27) (xy -2.54 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 2.54)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 5.08 0 180)
+					(length 2.54)
+					(name "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Switch:SW_SPDT"
 			(pin_names
 				(offset 0)
@@ -5298,6 +5448,12 @@
 		(uuid "9a9beabb-178e-4686-87f8-e3590a22f79b")
 	)
 	(junction
+		(at 210.82 64.77)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a3283c1f-c8c9-4422-89bc-62dc511f64b4")
+	)
+	(junction
 		(at 80.01 233.68)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5326,6 +5482,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "c630ba21-92ce-4eda-bf61-07077e2f81cb")
+	)
+	(junction
+		(at 127 71.12)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "cc98790c-a5ec-41b0-8195-b7947add2258")
 	)
 	(junction
 		(at 80.01 260.35)
@@ -5374,14 +5536,6 @@
 	(no_connect
 		(at 161.29 124.46)
 		(uuid "6c6227ec-7895-4e0d-9da0-4b8126d65696")
-	)
-	(no_connect
-		(at 201.93 73.66)
-		(uuid "6ce9b924-b49c-44f8-9c97-2f69867d6087")
-	)
-	(no_connect
-		(at 161.29 68.58)
-		(uuid "72e74f96-4267-4c98-a67e-be5decb350ab")
 	)
 	(no_connect
 		(at 161.29 101.6)
@@ -5467,6 +5621,16 @@
 	)
 	(wire
 		(pts
+			(xy 127 71.12) (xy 158.75 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "06dbc26e-6fd2-4537-90a2-107d70ccf382")
+	)
+	(wire
+		(pts
 			(xy 59.69 68.58) (xy 59.69 71.12)
 		)
 		(stroke
@@ -5524,6 +5688,26 @@
 			(type default)
 		)
 		(uuid "15142666-ce3b-46ed-81d6-0d4292df0135")
+	)
+	(wire
+		(pts
+			(xy 210.82 77.47) (xy 210.82 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "15e8297d-77af-4f80-bae4-a9c2eeb5ead8")
+	)
+	(wire
+		(pts
+			(xy 127 60.96) (xy 127 62.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1df4109d-6865-4bf8-8200-8f351602bc44")
 	)
 	(wire
 		(pts
@@ -5644,6 +5828,16 @@
 			(type default)
 		)
 		(uuid "2f53df79-f7c3-4cfd-be50-379513c93dbe")
+	)
+	(wire
+		(pts
+			(xy 127 83.82) (xy 127 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "30cc075b-35b8-49bc-a71c-01d04573fcdf")
 	)
 	(wire
 		(pts
@@ -5814,6 +6008,16 @@
 			(type default)
 		)
 		(uuid "58f99ab6-3fe8-424b-ae9a-08ca121a85d9")
+	)
+	(wire
+		(pts
+			(xy 210.82 66.04) (xy 210.82 64.77)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5921dc8d-00ae-420d-88e4-cfc50f542c13")
 	)
 	(wire
 		(pts
@@ -6044,6 +6248,26 @@
 			(type default)
 		)
 		(uuid "855420b0-5ef7-4939-8ada-1700b1e98ab3")
+	)
+	(wire
+		(pts
+			(xy 161.29 68.58) (xy 158.75 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8602106a-0693-499e-be6a-8f6fb8fd5ab9")
+	)
+	(wire
+		(pts
+			(xy 201.93 73.66) (xy 210.82 64.77)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "875ff673-69f5-4f06-9e15-fb0c6133541e")
 	)
 	(wire
 		(pts
@@ -6497,6 +6721,16 @@
 	)
 	(wire
 		(pts
+			(xy 210.82 63.5) (xy 210.82 64.77)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e72aa782-cc87-4175-8460-e362cc764c2e")
+	)
+	(wire
+		(pts
 			(xy 59.69 68.58) (xy 76.2 68.58)
 		)
 		(stroke
@@ -6534,6 +6768,16 @@
 			(type default)
 		)
 		(uuid "ebe63c4c-d700-4887-9e6b-c79cca2bd0c2")
+	)
+	(wire
+		(pts
+			(xy 127 69.85) (xy 127 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ec85d253-a1ce-4a3a-b99c-dd12173ee12b")
 	)
 	(wire
 		(pts
@@ -6584,6 +6828,16 @@
 			(type default)
 		)
 		(uuid "f0790de5-22c3-4a52-a840-b6be3d2f283c")
+	)
+	(wire
+		(pts
+			(xy 210.82 54.61) (xy 210.82 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f194cb11-c0b5-42f0-b83b-0cf0f50f6583")
 	)
 	(wire
 		(pts
@@ -7811,6 +8065,72 @@
 	)
 	(symbol
 		(lib_id "power:GND")
+		(at 127 83.82 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "040a5bb2-f59c-4c24-b238-06a26c9028ec")
+		(property "Reference" "#PWR045"
+			(at 127 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 127 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 127 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 127 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 127 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "0228e9bd-b5c5-4920-b76a-b5eae953450d")
+		)
+		(instances
+			(project ""
+				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
+					(reference "#PWR045")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
 		(at 99.06 49.53 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8569,6 +8889,76 @@
 			(project ""
 				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
 					(reference "C3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Switch:SW_Push")
+		(at 127 76.2 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "18b27b42-f27b-4157-9aff-869bc3e25a40")
+		(property "Reference" "SW1"
+			(at 130.81 74.9299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "SW_Push"
+			(at 130.81 77.4699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Button_Switch_SMD:SW_SPST_B3SL-1002P"
+			(at 132.08 76.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 132.08 76.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Push button switch, generic, two pins"
+			(at 127 76.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "33aad441-a188-4d69-a118-1447bf968064")
+		)
+		(pin "1"
+			(uuid "97a90c6a-7d8e-4bfd-abc0-4d6b63221998")
+		)
+		(instances
+			(project ""
+				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
+					(reference "SW1")
 					(unit 1)
 				)
 			)
@@ -9701,6 +10091,76 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R_US")
+		(at 127 66.04 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "3a72c29e-f0a8-431d-bc4b-0448196bdff3")
+		(property "Reference" "R27"
+			(at 129.54 64.7699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10k"
+			(at 129.54 67.3099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
+			(at 128.016 66.294 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 127 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, US symbol"
+			(at 127 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "c1215424-3452-4e52-825b-44bd29bf7d17")
+		)
+		(pin "2"
+			(uuid "4b93d5bd-251c-4169-9faf-cda2950893f6")
+		)
+		(instances
+			(project ""
+				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
+					(reference "R27")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 281.94 128.27 0)
 		(unit 1)
@@ -9761,6 +10221,76 @@
 			(project ""
 				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
 					(reference "#PWR019")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Switch:SW_Push")
+		(at 210.82 71.12 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "40c4cdaf-1703-4af0-a0f9-6092736a2271")
+		(property "Reference" "SW3"
+			(at 214.63 69.8499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "SW_Push"
+			(at 214.63 72.3899 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Button_Switch_SMD:SW_SPST_B3SL-1002P"
+			(at 215.9 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 215.9 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Push button switch, generic, two pins"
+			(at 210.82 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "060cc4c6-28b6-4591-9588-241c8d228c71")
+		)
+		(pin "1"
+			(uuid "e77d4004-0e08-48c2-89bc-0c869873d539")
+		)
+		(instances
+			(project "micromouse-pcb"
+				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
+					(reference "SW3")
 					(unit 1)
 				)
 			)
@@ -10179,6 +10709,72 @@
 			(project ""
 				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
 					(reference "U2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 127 60.96 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "51481c42-e4e6-4a97-a35d-b83f27435b9d")
+		(property "Reference" "#PWR044"
+			(at 127 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 127 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 127 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 127 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 127 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d8227245-9ba6-41ff-9e92-0c7f23e7c13a")
+		)
+		(instances
+			(project ""
+				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
+					(reference "#PWR044")
 					(unit 1)
 				)
 			)
@@ -11925,6 +12521,76 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R_US")
+		(at 210.82 59.69 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "7efd8459-461c-4dac-9333-178da02c8e8b")
+		(property "Reference" "R28"
+			(at 213.36 58.4199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10k"
+			(at 213.36 60.9599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder"
+			(at 211.836 59.944 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 210.82 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, US symbol"
+			(at 210.82 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "42eb36e4-a282-4a43-b602-237aa4f96339")
+		)
+		(pin "2"
+			(uuid "cfd2403f-baba-4438-a2fe-15e7b7ad7e8b")
+		)
+		(instances
+			(project "micromouse-pcb"
+				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
+					(reference "R28")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "TEFT4300:TEFT4300")
 		(at 71.12 205.74 90)
 		(unit 1)
@@ -12101,7 +12767,6 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "7f2aa09d-6e2f-4df7-aa5e-42eee69d95b7")
 		(property "Reference" "#PWR04"
 			(at 135.89 72.39 0)
@@ -12113,7 +12778,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 135.89 71.12 0)
+			(at 135.89 69.85 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14375,6 +15040,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+3.3V")
+		(at 210.82 54.61 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c9613849-072d-4d96-82f6-bb7757cb0772")
+		(property "Reference" "#PWR046"
+			(at 210.82 58.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 210.82 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 210.82 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 210.82 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 210.82 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "6dfd8890-46a6-4515-ad9c-88202d8ace2c")
+		)
+		(instances
+			(project "micromouse-pcb"
+				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
+					(reference "#PWR046")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Connector_Generic:Conn_01x08")
 		(at 257.81 118.11 0)
 		(unit 1)
@@ -14858,6 +15589,72 @@
 			(project "micromouse-pcb"
 				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
 					(reference "H5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 210.82 77.47 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d5e724ee-4d76-4943-ba56-5b908b33b3e7")
+		(property "Reference" "#PWR047"
+			(at 210.82 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 210.82 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 210.82 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 210.82 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 210.82 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "3b890694-c3a0-4a75-a56f-49ed0ee2071f")
+		)
+		(instances
+			(project "micromouse-pcb"
+				(path "/6bab3514-b9e6-4652-bd2e-edc57bdbde3d"
+					(reference "#PWR047")
 					(unit 1)
 				)
 			)
