@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath>
 struct GridCoord {
   int x = 0;
   int y = 0;
@@ -8,6 +9,7 @@ struct WorldCoord {
   double x = 0;
   double y = 0;
   double theta = 0;
+  double hypot() { return std::sqrt(x * x + y * y); }
 };
 constexpr unsigned char TOP{0b1000};
 constexpr unsigned char RIGHT{0b0100};

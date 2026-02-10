@@ -203,3 +203,24 @@ std::vector<unsigned char> parse(
   std::vector<unsigned char> newCommands = commands;
   return newCommands;
 }
+
+double computeWeight(std::vector<unsigned char> cmds){
+  double weight = 0;
+  for (const auto &vec : cmds){
+    unsigned char cmd = vec & 0b11100000;
+    unsigned char arg = vec & 0b00011111;
+    switch (cmd) {
+      case FWD0:
+        // Handle forward movement
+        break;
+      case DFWD0:
+        // Handle diagonal forward movement
+        break;
+      case ST0:
+        // Handle steering
+        break;
+      default:
+        break;
+    }
+  }
+}

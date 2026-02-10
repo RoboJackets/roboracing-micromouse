@@ -1,13 +1,14 @@
 #include "CellSelection.h"
 
+#include "CommandGenerator.h"
+#include "Mouse.h"
 #include <queue>
 #include <sstream>
 #include <stack>
 #include <string>
 #include <unordered_set>
-#include "CommandGenerator.h"
-#include "Mouse.h"
-void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
+
+void floodFill(MouseState &state, const Goals *goal, int (&dists)[N][N]) {
   for (int x = 0; x < N; ++x) {
     for (int y = 0; y < N; ++y) {
       dists[y][x] = INF;
@@ -16,7 +17,7 @@ void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
 
   std::queue<GridCoord> queue{};
   for (int i = 0; i < goal->count; ++i) {
-    const int* g = goal->cells[i];
+    const int *g = goal->cells[i];
     dists[g[0]][g[1]] = 0;
     queue.push({g[1], g[0]});
   }
@@ -55,7 +56,7 @@ void floodFill(MouseState& state, const Goals* goal, int (&dists)[N][N]) {
   }
 }
 namespace CellSelection {
-Path pathBFS(MouseState& state, const Goals* goal) {
+Path pathBFS(MouseState &state, const Goals *goal) {
   int dists[N][N];
   floodFill(state, goal, dists);
   Path finalPath{{GridCoord{}}};
@@ -104,18 +105,22 @@ Path pathBFS(MouseState& state, const Goals* goal) {
 }
 
 struct pair_hash {
-  inline std::size_t operator()(const std::pair<int, int>& v) const {
+  inline std::size_t operator()(const std::pair<int, int> &v) const {
     return v.first * (N) + v.second;
   }
 };
 
 using IntPair = std::pair<int, int>;
 
-inline bool blocked(const MouseState& s, int x, int y, int nx, int ny) {
-  if (nx == x && ny == y + 1) return s.walls[y][x] & TOP;
-  if (nx == x && ny == y - 1) return s.walls[y][x] & DOWN;
-  if (nx == x + 1 && ny == y) return s.walls[y][x] & RIGHT;
-  if (nx == x - 1 && ny == y) return s.walls[y][x] & LEFT;
+inline bool blocked(const MouseState &s, int x, int y, int nx, int ny) {
+  if (nx == x && ny == y + 1)
+    return s.walls[y][x] & TOP;
+  if (nx == x && ny == y - 1)
+    return s.walls[y][x] & DOWN;
+  if (nx == x + 1 && ny == y)
+    return s.walls[y][x] & RIGHT;
+  if (nx == x - 1 && ny == y)
+    return s.walls[y][x] & LEFT;
   return true;
 }
 
@@ -133,9 +138,9 @@ int dirs[][2] = {
     {-1, 0},
 };
 
-void dfs(const MouseState& state, IntPair curr, std::vector<IntPair>& current,
-         std::unordered_set<IntPair, pair_hash>& visited,
-         std::vector<std::vector<IntPair>>& solutions) {
+void dfs(const MouseState &state, IntPair curr, std::vector<IntPair> &current,
+         std::unordered_set<IntPair, pair_hash> &visited,
+         std::vector<std::vector<IntPair>> &solutions) {
   if (at_goal(curr)) {
     solutions.push_back(current);
     return;
@@ -143,15 +148,19 @@ void dfs(const MouseState& state, IntPair curr, std::vector<IntPair>& current,
 
   visited.insert(curr);
 
-  for (auto& dir : dirs) {
+  for (auto &dir : dirs) {
     int adj_x = curr.first + dir[0];
     int adj_y = curr.second + dir[1];
 
-    if (adj_x < 0 || adj_x >= N || adj_y < 0 || adj_y >= N) continue;
+    if (adj_x < 0 || adj_x >= N || adj_y < 0 || adj_y >= N)
+      continue;
     IntPair adj(adj_x, adj_y);
-    if (visited.count(adj)) continue;
-    if (!state.explored[adj_y][adj_x]) continue;
-    if (blocked(state, curr.first, curr.second, adj_x, adj_y)) continue;
+    if (visited.count(adj))
+      continue;
+    if (!state.explored[adj_y][adj_x])
+      continue;
+    if (blocked(state, curr.first, curr.second, adj_x, adj_y))
+      continue;
 
     current.push_back(adj);
     dfs(state, adj, current, visited, solutions);
@@ -161,7 +170,7 @@ void dfs(const MouseState& state, IntPair curr, std::vector<IntPair>& current,
   visited.erase(curr);
 }
 
-std::string path_to_instruct(const std::vector<IntPair>& path) {
+std::string path_to_instruct(const std::vector<IntPair> &path) {
   int curr_dx = 0;
   int curr_dy = 1;
 
@@ -174,13 +183,13 @@ std::string path_to_instruct(const std::vector<IntPair>& path) {
     int dx = curr.first - prev.first;
     int dy = curr.second - prev.second;
 
-    if (dx == curr_dx && dy == curr_dy) {  // straight ahead
+    if (dx == curr_dx && dy == curr_dy) { // straight ahead
       ss << 'F';
-    } else if (dx == curr_dy && dy == -curr_dx) {  // right turn
+    } else if (dx == curr_dy && dy == -curr_dx) { // right turn
       ss << 'R';
-    } else if (dx == -curr_dy && dy == curr_dx) {  // left turn
+    } else if (dx == -curr_dy && dy == curr_dx) { // left turn
       ss << 'L';
-    } else if (dx == -curr_dx && dy == -curr_dy) {  // 180 degree turn
+    } else if (dx == -curr_dx && dy == -curr_dy) { // 180 degree turn
       ss << 'B';
     }
 
@@ -193,7 +202,7 @@ std::string path_to_instruct(const std::vector<IntPair>& path) {
   return ss.str();
 }
 std::vector<unsigned char> cmds;
-void search_all(const MouseState& state) {
+void search_all(const MouseState &state) {
   std::vector<IntPair> temp{};
   std::unordered_set<IntPair, pair_hash> visited{};
   std::vector<std::vector<IntPair>> solutions{};
@@ -202,11 +211,13 @@ void search_all(const MouseState& state) {
   temp.push_back(start);
   dfs(state, start, temp, visited, solutions);
 
-  for (const auto& vec : solutions) {
+  double bestWeight = 9999999999999.0;
+
+  for (const auto &vec : solutions) {
     std::string s = path_to_instruct(vec);
     // std::cerr << s << std::endl;
-    cmds = std::move(parse(s));
+    std::vector<unsigned char> v = std::move(parse(s));
   }
 }
 std::vector<unsigned char> getCmds() { return cmds; }
-}  // namespace CellSelection
+} // namespace CellSelection
