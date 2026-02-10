@@ -20,7 +20,9 @@ struct MouseIO {
   virtual void setState(IdealState state) {};
   virtual std::vector<WorldCoord> getSensorState() { return {}; };
 
-  virtual void update(MouseState& mouseState) {};
+  virtual void update(MouseState &mouseState) {};
 
   virtual void init() {};
+
+  virtual double getDt() {};
 };

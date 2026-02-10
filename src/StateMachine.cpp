@@ -1,67 +1,78 @@
 #include "StateMachine.h"
-
+#include "ControlActions.h"
+#include "SequentialAction.h"
 #include <string>
+
 namespace StateMachine {
 GoalState currentState = GoalState::GOAL_SEARCH;
 
 MouseState mouseState{};
 
-Solver* solver = nullptr;
-const Goals* goal = &CENTER_GOALS;
+Solver *solver = nullptr;
+const Goals *goal = &CENTER_GOALS;
 
 FloodFillSolver floodFill{};
 FastPathSolver fastPath{};
 Solver noop = Solver{};
 EmptyAction empty = EmptyAction{};
-Action* a = &empty;
+SequentialAction square = SequentialAction(
+    {DriveTimeAction(1, 0.5), YawPIDAction(90), DriveTimeAction(1, 0.5),
+     YawPIDAction(180), DriveTimeAction(1, 0.5), YawPIDAction(270),
+     DriveTimeAction(1, 0.5), YawPIDAction(0)});
+DriveTimeAction vroom = DriveTimeAction(1000, 0.1);
+YawPIDAction pid = YawPIDAction(90);
+Action *a = &empty;
 void switchState(GoalState state) {
   if (currentState == state) {
     return;
   }
   solver->onFinished(mouseState, goal);
   switch (state) {
-    case GoalState::GOAL_SEARCH:
-      solver = &floodFill;
-      goal = &CENTER_GOALS;
-      break;
-    case GoalState::RETURN:
-      solver = &floodFill;
-      goal = &START_GOALS;
-      break;
-    case GoalState::FAST_PATH:
-      solver = &fastPath;
-      goal = &CENTER_GOALS;
-      break;
-    default:
-      solver = &noop;
-      break;
+  case GoalState::GOAL_SEARCH:
+    solver = &floodFill;
+    goal = &CENTER_GOALS;
+    break;
+  case GoalState::RETURN:
+    solver = &floodFill;
+    goal = &START_GOALS;
+    break;
+  case GoalState::FAST_PATH:
+    solver = &fastPath;
+    goal = &CENTER_GOALS;
+    break;
+  default:
+    solver = &noop;
+    break;
   }
   currentState = state;
-  if (a && !a->completed()) a->cancel();
+  if (a && !a->completed())
+    a->cancel();
   a = &empty;
   solver->init(mouseState, goal);
 }
 void updateState() {
   switch (currentState) {
-    case GoalState::GOAL_SEARCH:
-      if (solver->end(mouseState, goal)) switchState(GoalState::RETURN);
-      break;
-    case GoalState::RETURN:
-      // std::cerr <<
-      // std::to_string(mouseState.explored[mouseState.y][mouseState.x])
-      //           << std::endl;
-      if (solver->end(mouseState, goal)) {
-        switchState(GoalState::FAST_PATH);
-      }
-      break;
-    case GoalState::FAST_PATH:
-      if (solver->end(mouseState, goal)) switchState(GoalState::RETURN);
-      break;
-    default:
-      break;
+  case GoalState::GOAL_SEARCH:
+    if (solver->end(mouseState, goal))
+      switchState(GoalState::RETURN);
+    break;
+  case GoalState::RETURN:
+    // std::cerr <<
+    // std::to_string(mouseState.explored[mouseState.y][mouseState.x])
+    //           << std::endl;
+    if (solver->end(mouseState, goal)) {
+      switchState(GoalState::FAST_PATH);
+    }
+    break;
+  case GoalState::FAST_PATH:
+    if (solver->end(mouseState, goal))
+      switchState(GoalState::RETURN);
+    break;
+  default:
+    break;
   }
 }
-void init(MouseIO* io) {
+void init(MouseIO *io) {
   mouseState.explored[0][0] = true;
   for (int i = 0; i < CENTER_GOALS.count; ++i) {
     const int gx = CENTER_GOALS.cells[i][1];
@@ -79,12 +90,13 @@ void init(MouseIO* io) {
   currentState = GoalState::GOAL_SEARCH;
   io->init();
 }
-void tick(MouseIO* io) {
-  io->update(mouseState);  // update input states
-  updateState();           // determine overall goal
+void tick(MouseIO *io) {
+  io->update(mouseState); // update input states
+  updateState();          // determine overall goal (solver)
   if (a->completed()) {
-    a = solver->run(mouseState, goal);  // determine drive command
+    a->end(mouseState, *io);
+    a = &pid; // determine action
   }
-  a->run(mouseState, *io);  // run drive command
+  a->run(mouseState, *io); // run action
 }
-}  // namespace
+} // namespace StateMachine
