@@ -95,7 +95,7 @@ void tick(MouseIO *io) {
   updateState();          // determine overall goal (solver)
   if (a->completed()) {
     a->end(mouseState, *io);
-    a = solver->run(mouseState, goal); // determine action
+    a = &empty; // determine action
   }
   a->run(mouseState, *io); // run action
 }
