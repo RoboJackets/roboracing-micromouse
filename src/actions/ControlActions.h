@@ -21,9 +21,9 @@ struct DriveTimeAction : Action {
       canceled = true;
       return;
     }
-    io.drive(1, 1);
+    io.driveVoltage(1, 1);
   }
-  void end(MouseState &s, MouseIO &io) override { io.drive(0.0, 0.0); }
+  void end(MouseState &s, MouseIO &io) override { io.driveVoltage(0.0, 0.0); }
 };
 
 struct YawPIDAction : Action {
@@ -48,11 +48,11 @@ struct YawPIDAction : Action {
     Serial.print("     ");
     double c = p.calculate(error, 0, io.getDt());
     Serial.println(c);
-    io.drive(c, -c);
+    io.driveVoltage(c, -c);
   }
 
   void end(MouseState &s, MouseIO &io) override {
-    io.drive(0.0, 0.0);
+    io.driveVoltage(0.0, 0.0);
     p.resetAccum();
   }
 };

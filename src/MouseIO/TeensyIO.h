@@ -53,7 +53,7 @@ struct TeensyIO : MouseIO {
   }
   unsigned char getGridDir() override { return dir; }
 
-  void drive(double left, double right) override {
+  void driveVoltage(double left, double right) override {
     double l = std::clamp(left, -1.0, 1.0);
     double r = std::clamp(right, -1.0, 1.0);
     mA.drive((int)(r * 255));

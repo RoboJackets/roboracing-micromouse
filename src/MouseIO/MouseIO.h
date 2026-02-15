@@ -11,7 +11,7 @@ struct MouseIO {
   virtual WorldCoord getWorldCoord() { return WorldCoord{}; };
   virtual void updateWorldCoord() {};
 
-  virtual void drive(double left, double right) {};
+  virtual void driveVoltage(double left, double right) {};
   virtual double getDriveSpeedLeft() { return 0; };
   virtual double getDriveSpeedRight() { return 0; };
   virtual double getDrivePosLeft() { return 0; };
