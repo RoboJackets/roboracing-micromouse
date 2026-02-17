@@ -31,7 +31,7 @@ struct YawPIDAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
 
-  PID p{rot90PID};
+  PID p{rot90PIDConstants};
   double setpoint;
 
   YawPIDAction(double setpoint) : setpoint(setpoint) {}

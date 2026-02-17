@@ -10,8 +10,10 @@
 #include "MouseIO.h"
 #include "Pins.h"
 #include "Types.h"
+#include <ControlAlgorithms.h>
 #include <DRV8833.h>
 #include <Gyro.cpp>
+#include <pid.hpp>
 
 struct TeensyIO : MouseIO {
   unsigned char dir = TOP;
@@ -26,6 +28,12 @@ struct TeensyIO : MouseIO {
   std::vector<WorldCoord> readings{};
 
   Gyro gyro{};
+
+  PID velocityPIDRight{velocityPIDConstants};
+  PID velocityPIDLeft{velocityPIDConstants};
+
+  MotorFeedForward leftff{0, 0, 0};
+  MotorFeedForward rightff{0, 0, 0};
 
   DRV8833Motor mA = DRV8833Motor(AIN1, AIN2, -1, STBY);
   DRV8833Motor mB = DRV8833Motor(BIN1, BIN2, 1, STBY);
@@ -58,6 +66,14 @@ struct TeensyIO : MouseIO {
     double r = std::clamp(right, -1.0, 1.0);
     mA.drive((int)(r * 255));
     mB.drive((int)(l * 255));
+  }
+
+  void driveVelocity(double left, double right) override {
+    driveVoltage(
+        leftff.calculate(left, getDt()) +
+            velocityPIDLeft.calculate(getDriveSpeedLeft(), left, getDt()),
+        rightff.calculate(right, getDt()) +
+            velocityPIDRight.calculate(getDriveSpeedRight(), right, getDt()));
   }
 
   double getDriveSpeedLeft() override {

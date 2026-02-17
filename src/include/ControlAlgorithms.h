@@ -101,12 +101,11 @@ struct MotorFeedForward {
 
   MotorFeedForward(double ks, double kv, double ka) : ks(ks), kv(kv), ka(ka) {}
 
-  double calculate(double velocitySetpoint, double velocityMeasurement,
-                   double dt) {
-    double sign = (0 < velocityMeasurement) - (velocityMeasurement < 0);
-    double voltage = ks * sign + kv * velocityMeasurement * ka *
-                                     (velocityMeasurement - lastVelocity) / dt;
-    lastVelocity = velocityMeasurement;
+  double calculate(double velocitySetpoint, double dt) {
+    double sign = (0 < velocitySetpoint) - (velocitySetpoint < 0);
+    double voltage = ks * sign + kv * velocitySetpoint * ka *
+                                     (velocitySetpoint - lastVelocity) / dt;
+    lastVelocity = velocitySetpoint;
     return voltage;
   }
 };
@@ -159,7 +158,5 @@ struct SysIDAction : Action {
     }
     totalTime += io.getDt();
   }
-  void end(MouseState &s, MouseIO &io) override {
-    io.driveVoltage(0.0, 0.0); 
-  }
+  void end(MouseState &s, MouseIO &io) override { io.driveVoltage(0.0, 0.0); }
 };

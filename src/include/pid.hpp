@@ -35,4 +35,5 @@ public:
   void resetAccum() { accum = 0; }
 };
 
-PIDConstants rot90PID{0.01, 0, 0};
+PIDConstants rot90PIDConstants{0.01, 0, 0};
+PIDConstants velocityPIDConstants{0, 0, 0};
