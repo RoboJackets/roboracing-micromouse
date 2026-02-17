@@ -5,6 +5,7 @@
 
 #include "Constants.h"
 #include "IRSensor.h"
+#include "EncoderSensor.h"
 #include "IdealState.h"
 #include "Mouse.h"
 #include "MouseIO.h"
@@ -23,6 +24,7 @@ struct TeensyIO : MouseIO {
   double rightPosition = 0;
   double gyroYaw = 0;
   std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
+  std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0}, EncoderSensor{BCODER_a, BCODER_b, 0}};
   std::vector<WorldCoord> readings{};
 
   Gyro gyro{};
@@ -50,6 +52,9 @@ struct TeensyIO : MouseIO {
   }
   void updateEncoders() {
     // set leftpos and right pos and gyro
+
+ 
+
   }
   unsigned char getGridDir() override { return dir; }
 
@@ -104,11 +109,19 @@ struct TeensyIO : MouseIO {
     // updateEncoders();
     // updateWorldCoord();
   }
+  void isr0() { encoders[0].updateEncoder(); }
+  void isr1() { encoders[1].updateEncoder(); }
 
   void init() override {
     lastMicros = micros();
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(EMIT_1, OUTPUT);
+    pinMode(ACODER_a, INPUT);
+    pinMode(ACODER_b, INPUT);
+    attachInterrupt(digitalPinToInterrupt(ACODER_a), isr0, CHANGE);
+    pinMode(BCODER_a, INPUT);
+    pinMode(BCODER_b, INPUT);
+    attachInterrupt(digitalPinToInterrupt(BCODER_a), isr1, CHANGE);
     // pinMode(EMIT_2, OUTPUT);
     // pinMode(EMIT_3, OUTPUT);
     // pinMode(EMIT_4, OUTPUT);
