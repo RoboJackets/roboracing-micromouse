@@ -13,7 +13,6 @@
 #include <ControlAlgorithms.h>
 #include <DRV8833.h>
 #include <Gyro.cpp>
-#include <pid.hpp>
 
 struct TeensyIO : MouseIO {
   unsigned char dir = TOP;
@@ -28,7 +27,6 @@ struct TeensyIO : MouseIO {
   std::vector<WorldCoord> readings{};
 
   Gyro gyro{};
-
   PID velocityPIDRight{velocityPIDConstants};
   PID velocityPIDLeft{velocityPIDConstants};
 
