@@ -217,6 +217,7 @@ void search_all(const MouseState &state) {
     std::string s = path_to_instruct(vec);
     // std::cerr << s << std::endl;
     std::vector<unsigned char> v = std::move(parse(s));
+
   }
 }
 std::vector<unsigned char> getCmds() { return cmds; }
