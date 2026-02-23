@@ -212,13 +212,19 @@ void search_all(const MouseState &state) {
   dfs(state, start, temp, visited, solutions);
 
   double bestWeight = 9999999999999.0;
+  std::vector<unsigned char> bestVec{};
 
   for (const auto &vec : solutions) {
     std::string s = path_to_instruct(vec);
     // std::cerr << s << std::endl;
     std::vector<unsigned char> v = std::move(parse(s));
-
+    int w = computeWeight(v);
+    if (w < bestWeight) {
+      bestWeight = w;
+      bestVec = std::move(v);
+    }
   }
+  cmds = bestVec;
 }
 std::vector<unsigned char> getCmds() { return cmds; }
 } // namespace CellSelection

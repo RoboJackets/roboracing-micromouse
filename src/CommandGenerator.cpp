@@ -7,6 +7,8 @@
 
 #include "Commands.h"
 #include "Constants.h"
+#include "ControlAlgorithms.h"
+#include <cmath>
 
 State transition(State currentState, char c,
                  std::vector<unsigned char> &commands) {
@@ -204,7 +206,6 @@ std::vector<unsigned char> parse(
   std::vector<unsigned char> newCommands = commands;
   return newCommands;
 }
-#include "ControlAlgorithms.h"
 double computeWeight(std::vector<unsigned char> cmds) {
   double weight = 0;
   for (const auto &vec : cmds) {
@@ -220,7 +221,18 @@ double computeWeight(std::vector<unsigned char> cmds) {
           MAX_ACCEL_M_S2, MAX_SPEED_M_S, std::sqrt(2) * CELL_SIZE_METERS * arg);
       break;
     case ST0:
-      weight += 0.0;
+      double w = 0;
+      if (vec == ST45L || vec == ST45L) {
+        w = (M_PI / 8) * CELL_SIZE_METERS / 2;
+      }
+      if (vec == ST90L || vec == ST90R) {
+        w = (M_PI / 4) * CELL_SIZE_METERS / 2;
+      }
+      if (vec == ST135L || vec == ST135R) {
+        w = (5 * M_PI / 8) * CELL_SIZE_METERS / 2;
+      }
+      weight +=
+          TrapezoidalProfile::totalTime(MAX_ACCEL_M_S2, CURVE_VELOCITY, w);
       break;
     default:
       break;
