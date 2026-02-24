@@ -1,15 +1,5 @@
 #include "CommandGenerator.h"
 
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
-
-#include "Commands.h"
-#include "Constants.h"
-#include "ControlAlgorithms.h"
-#include <cmath>
-
 State transition(State currentState, char c,
                  std::vector<unsigned char> &commands) {
   unsigned char x = currentState.x;
@@ -220,7 +210,7 @@ double computeWeight(std::vector<unsigned char> cmds) {
       weight += TrapezoidalProfile::totalTime(
           MAX_ACCEL_M_S2, MAX_SPEED_M_S, std::sqrt(2) * CELL_SIZE_METERS * arg);
       break;
-    case ST0:
+    case ST0: {
       double w = 0;
       if (vec == ST45L || vec == ST45L) {
         w = (M_PI / 8) * CELL_SIZE_METERS / 2;
@@ -234,6 +224,7 @@ double computeWeight(std::vector<unsigned char> cmds) {
       weight +=
           TrapezoidalProfile::totalTime(MAX_ACCEL_M_S2, CURVE_VELOCITY, w);
       break;
+    }
     default:
       break;
     }

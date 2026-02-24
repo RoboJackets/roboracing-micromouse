@@ -1,11 +1,5 @@
 #include "FloodFillSolver.h"
 
-#include <queue>
-#include <string>
-#include "CommandAction.h"
-#include "CommandGenerator.h"
-#include "MoveAction.h"
-
 namespace {
 CommandAction cmd;
 

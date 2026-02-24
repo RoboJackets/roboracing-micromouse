@@ -1,7 +1,4 @@
 #include "StateMachine.h"
-#include "ControlActions.h"
-#include "SequentialAction.h"
-#include <string>
 
 namespace StateMachine {
 GoalState currentState = GoalState::GOAL_SEARCH;
@@ -16,7 +13,7 @@ FastPathSolver fastPath{};
 Solver noop = Solver{};
 EmptyAction empty = EmptyAction{};
 SequentialAction square = SequentialAction(
-    {DriveTimeAction(1, 0.5), YawPIDAction(90), DriveTimeAction(1, 0.5),
+  {DriveTimeAction(1, 0.5), YawPIDAction(90), DriveTimeAction(1, 0.5),
      YawPIDAction(180), DriveTimeAction(1, 0.5), YawPIDAction(270),
      DriveTimeAction(1, 0.5), YawPIDAction(0)});
 DriveTimeAction vroom = DriveTimeAction(1000, 0.1);

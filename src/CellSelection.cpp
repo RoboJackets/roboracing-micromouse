@@ -1,13 +1,5 @@
 #include "CellSelection.h"
 
-#include "CommandGenerator.h"
-#include "Mouse.h"
-#include <queue>
-#include <sstream>
-#include <stack>
-#include <string>
-#include <unordered_set>
-
 void floodFill(MouseState &state, const Goals *goal, int (&dists)[N][N]) {
   for (int x = 0; x < N; ++x) {
     for (int y = 0; y < N; ++y) {

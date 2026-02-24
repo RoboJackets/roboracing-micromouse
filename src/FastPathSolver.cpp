@@ -1,8 +1,4 @@
 #include "FastPathSolver.h"
-
-#include "CellSelection.h"
-#include "CommandAction.h"
-#include "CommandGenerator.h"
 CommandAction g_cmd{};
 
 void FastPathSolver::init(MouseState& state, const Goals* goal) {

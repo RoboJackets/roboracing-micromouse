@@ -1,6 +1,15 @@
 #pragma once
+#include "ControlAlgorithms.h"
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
+
+
+#include "Commands.h"
+#include "Constants.h"
+#include <cmath>
+
 enum ActionState {
   START,
   ORTHO_F,
