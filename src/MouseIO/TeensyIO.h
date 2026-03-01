@@ -29,8 +29,8 @@ struct TeensyIO : MouseIO {
   std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0}, EncoderSensor{BCODER_a, BCODER_b, 0}};
   std::vector<WorldCoord> readings{};
   
-  static void isr0() { if(instance) instance->encoders[0].updateEncoder(); }
-  static void isr1() { if(instance) instance->encoders[1].updateEncoder(); }
+  static void isr0() { instance->encoders[0].updateEncoder(); }
+  static void isr1() { instance->encoders[1].updateEncoder(); }
 
   Gyro gyro{};
 
