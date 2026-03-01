@@ -15,6 +15,8 @@
 #include <Gyro.cpp>
 
 struct TeensyIO : MouseIO {
+  static TeensyIO* instance;
+  
   unsigned char dir = TOP;
   uint32_t lastMicros = 0;
   WorldCoord w = WorldCoord{};
@@ -26,6 +28,9 @@ struct TeensyIO : MouseIO {
   std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
   std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0}, EncoderSensor{BCODER_a, BCODER_b, 0}};
   std::vector<WorldCoord> readings{};
+  
+  static void isr0() { if(instance) instance->encoders[0].updateEncoder(); }
+  static void isr1() { if(instance) instance->encoders[1].updateEncoder(); }
 
   Gyro gyro{};
 
@@ -51,10 +56,10 @@ struct TeensyIO : MouseIO {
     w = WorldCoord{w.x + deltaX, w.y + deltaY, getGyroYaw()};
   }
   void updateEncoders() {
-    // set leftpos and right pos and gyro
-
- 
-
+    lastLeftPosition = leftPosition;
+    lastRightPosition = rightPosition;
+    leftPosition = encoders[0].getPosition();
+    rightPosition = encoders[1].getPosition();
   }
   unsigned char getGridDir() override { return dir; }
 
@@ -106,11 +111,10 @@ struct TeensyIO : MouseIO {
 
   void update(MouseState &mouseState) override {
     updateSensorState();
-    // updateEncoders();
-    // updateWorldCoord();
+    updateEncoders();
+    updateWorldCoord();
   }
-  void isr0() { encoders[0].updateEncoder(); }
-  void isr1() { encoders[1].updateEncoder(); }
+
 
   void init() override {
     lastMicros = micros();
