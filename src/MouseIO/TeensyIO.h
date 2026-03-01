@@ -39,6 +39,8 @@ struct TeensyIO : MouseIO {
   GridCoord getGridCoord() override {
     int gx = (int)(w.x / CELL_SIZE_METERS + 0.5);
     int gy = (int)(w.y / CELL_SIZE_METERS + 0.5);
+    unsigned char theta = getGyroYaw();
+    // TODO: update gyro
     return GridCoord{gx, gy};
   }
 

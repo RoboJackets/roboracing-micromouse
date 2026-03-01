@@ -4,7 +4,6 @@
 #include <tuple>
 #include <vector>
 
-
 struct PIDConstants {
   double p = 0;
   double i = 0;
@@ -13,6 +12,7 @@ struct PIDConstants {
 
 inline PIDConstants rot90PIDConstants{0.01, 0, 0};
 inline PIDConstants velocityPIDConstants{0, 0, 0};
+inline PIDConstants profilePIDConstants{0, 0, 0};
 
 class PID {
   double p = 0;
