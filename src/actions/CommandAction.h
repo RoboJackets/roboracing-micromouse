@@ -9,23 +9,44 @@ struct CommandAction : Action {
   std::vector<unsigned char> buf;
   size_t pc = 0;
   bool canceled = false;
+  Action *curr = nullptr;
 
   void load(std::vector<unsigned char> b) {
     buf = std::move(b);
     canceled = false;
     pc = 0;
+    curr = nullptr;
   }
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled || pc >= buf.size(); }
 
-  void run(MouseState& s, MouseIO& io) override {
-    if (completed()) return;
+  void run(MouseState &s, MouseIO &io) override {
+    if (completed())
+      return;
     if (io.isMMS()) {
       runMMS(s, io);
       return;
     }
+    if (curr == nullptr) {
+      determineAction();
+    }
+    curr->run(s, io);
+    if (curr->completed()) {
+      curr = nullptr;
+    }
   }
-  void runMMS(MouseState& s, MouseIO& io) {
+  void determineAction() {
+    unsigned char c = buf[pc++];
+
+    unsigned char cls = c & 0b11100000;
+    unsigned char arg = c & 0b00011111;
+    switch (cls) {
+    case EX_FWD0:
+
+      break;
+    }
+  }
+  void runMMS(MouseState &s, MouseIO &io) {
     io.update(s);
     unsigned char c = buf[pc++];
 
