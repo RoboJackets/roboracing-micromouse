@@ -25,6 +25,7 @@ struct TeensyIO : MouseIO {
   double gyroYaw = 0;
   std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
   std::vector<WorldCoord> readings{};
+  double gyroOffset = 0;
 
   Gyro gyro{};
   PID velocityPIDRight{velocityPIDConstants};
@@ -67,6 +68,7 @@ struct TeensyIO : MouseIO {
     mA.drive((int)(r * 255));
     mB.drive((int)(l * 255));
   }
+  void setGyroOffset(double offset) { gyroOffset = offset; }
 
   void driveVelocity(double left, double right) override {
     driveVoltage(
@@ -111,7 +113,7 @@ struct TeensyIO : MouseIO {
       readings.push_back(sensor.getReading(dist));
     }
     gyro.update();
-    gyroYaw = gyro.ypr[0] * 180.0 / M_PI;
+    gyroYaw = gyro.ypr[0] * 180.0 / M_PI - gyroOffset;
     // Serial.println(readings.at(0).hypot());
   }
 
