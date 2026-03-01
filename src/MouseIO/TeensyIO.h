@@ -70,6 +70,8 @@ struct TeensyIO : MouseIO {
   }
   void setGyroOffset(double offset) { gyroOffset = offset; }
 
+  void setWorldCoord(WorldCoord c) { w = c; }
+
   void driveVelocity(double left, double right) override {
     driveVoltage(
         leftff.calculate(left, getDt()) +

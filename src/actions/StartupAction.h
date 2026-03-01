@@ -1,6 +1,7 @@
 #pragma once
 #include "Action.h"
 #include "ControlAlgorithms.h"
+#include <Constants.h>
 #include <IRSensor.h>
 
 struct StartupAction : Action {
@@ -13,12 +14,9 @@ struct StartupAction : Action {
   void run(MouseState &s, MouseIO &io) override {
     WorldCoord left = io.getSensorState().at(2);
     WorldCoord right = io.getSensorState().at(3);
-    double e = left.x - right.x;
-    double c = -p.calculate(e, 0, io.getDt());
-    io.driveVoltage(c, -c);
+    io.setGyroOffset(io.getGyroYaw() - 90);
+    io.setWorldCoord(WorldCoord{left.x, ROBOT_LENGTH / 2});
+    canceled = true;
   }
-  void end(MouseState &s, MouseIO &io) override {
-    io.driveVoltage(0.0, 0.0);
-    io.setGyroOffset(io.getGyroYaw());
-  }
+  void end(MouseState &s, MouseIO &io) override {}
 };
