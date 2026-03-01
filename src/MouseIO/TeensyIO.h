@@ -23,6 +23,8 @@ struct TeensyIO : MouseIO {
   double leftPosition = 0;
   double rightPosition = 0;
   double gyroYaw = 0;
+  double width; // left to right
+  double length; // front to back
   std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
   std::vector<WorldCoord> readings{};
 
@@ -103,6 +105,7 @@ struct TeensyIO : MouseIO {
       delayMicroseconds(EMIT_RECV_DELAY_US);
       int post = analogRead(sensor.RECV);
       digitalWrite(sensor.EMIT, LOW);
+      // relative to mouse in m
       double dist = post < 4 ? std::numeric_limits<double>::infinity()
                              : 0.647426 / pow(max(post, 1), 0.516999);
       Serial.println(post);
@@ -113,8 +116,35 @@ struct TeensyIO : MouseIO {
     // Serial.println(readings.at(0).hypot());
   }
 
+  void updateMazeState(MouseState &mouseState) {
+    // 18 x 18 cm squares
+    int cell_size_cm = (int)(CELL_SIZE_METERS * 100);
+    double square_x = ((int)(w.x * 100) % cell_size_cm) / 100;
+    double square_y = ((int)(w.y * 100) % cell_size_cm) / 100;
+    int gx = getGridCoord().x;
+    int gy = getGridCoord().y;
+    for (int i = 0; i < readings.size(); i++) {
+        if (square_x + readings.at(i).x < CELL_SIZE_METERS && square_y + readings.at(i).y < CELL_SIZE_METERS) {
+          double angle = w.theta;
+          // left 45
+          if (i == 2) {
+            angle += 45;
+          // right 45
+          } else if (i == 3) {
+            angle -= 45;
+          }
+          mouseState.walls[gx][gy] |= angle >= 315 || angle < 45;
+          mouseState.walls[gx][gy] |= 1 << (angle >= 45 || angle < 135);
+          mouseState.walls[gx][gy] |= 2 << (angle >= 135 || angle < 225);
+          mouseState.walls[gx][gy] |= 3 << (angle >= 225 || angle < 315);
+      } 
+    }
+    
+  }
+
   void update(MouseState &mouseState) override {
     updateSensorState();
+    updateMazeState(mouseState);
     // updateEncoders();
     // updateWorldCoord();
   }

@@ -16,11 +16,13 @@ constexpr Goals CENTER_GOALS{centerGoals, 4, 0, 1};
 constexpr Goals START_GOALS{startGoal, 1, 3, 0};
 
 struct MouseState {
+  // 0,0 is bottom left, in line with mm rulebook
   WorldCoord worldCoord{};
   int dists[N][N]{};
   bool explored[N][N]{};
   unsigned char walls[N][N]{};  // bitmask
 
+  // grid coords
   int y = 0;
   int x = 0;
   unsigned char dir = TOP;

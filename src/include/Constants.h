@@ -9,7 +9,7 @@ constexpr double WHEEL_RADIUS_M = 0.1;
 
 constexpr double COUNTS_PER_REVOLUTION = 1;
 
-constexpr double CELL_SIZE_METERS = 0.2;
+constexpr double CELL_SIZE_METERS = 0.18;
 constexpr double MAX_SPEED_M_S = 10;
 constexpr double MAX_ACCEL_M_S2 = 5;
 constexpr double WHEEL_SEPERATION_M = 0.1;
