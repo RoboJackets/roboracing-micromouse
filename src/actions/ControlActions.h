@@ -82,3 +82,41 @@ struct ProfiledDriveAction : Action {
     }
   }
 };
+struct ProfiledCurveAction : Action {
+  TrapezoidalProfile profile;
+  bool canceled = false;
+  PID irPID = PID{IRadjust};
+  double measurement = 0;
+  double irDelta = 0;
+  bool turnLeft;
+  double outerRatio;
+
+  ProfiledCurveAction(double radius, double angle, bool turnLeft,
+                      double initialVelocity, double finalVelocity)
+      : profile({CURVE_VELOCITY, MAX_ACCEL_M_S2, initialVelocity, finalVelocity,
+                 profilePIDConstants, radius * angle}),
+        turnLeft(turnLeft),
+        outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius) {}
+
+  void cancel() override { canceled = true; }
+  bool completed() const override { return canceled; }
+  void setMeasurement(double m) { measurement = m; }
+  void setIRDelta(double i) { irDelta = i; }
+
+  void run(MouseState &s, MouseIO &io) override {
+    double v = profile.calculate(io.getDt(), measurement);
+    double c =
+        std::isinf(irDelta) ? 0.0 : irPID.calculate(irDelta, 0, io.getDt());
+    double vOuter = v * outerRatio + c;
+    double vInner = v / outerRatio - c;
+    turnLeft ? io.driveVelocity(vInner, vOuter)
+             : io.driveVelocity(vOuter, vInner);
+  }
+
+  void end(MouseState &s, MouseIO &io) override {
+    profile.finalVelocity == 0
+        ? io.driveVoltage(0, 0)
+        : io.driveVelocity(profile.finalVelocity, profile.finalVelocity);
+    irPID.resetAccum();
+  }
+};
