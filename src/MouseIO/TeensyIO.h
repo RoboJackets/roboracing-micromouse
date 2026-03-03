@@ -41,7 +41,12 @@ struct TeensyIO : MouseIO {
   GridCoord getGridCoord() override {
     int gx = (int)(w.x / CELL_SIZE_METERS + 0.5);
     int gy = (int)(w.y / CELL_SIZE_METERS + 0.5);
-    return GridCoord{gx, gy};
+    double angle = w.theta;
+    unsigned char dir = (angle >= 315 || angle < 45) 
+                      || (1 << (angle >= 45 && angle < 135))
+                      || (2 << (angle >= 135 && angle < 225))
+                      || (3 << (angle >= 225 && angle < 315));
+    return GridCoord{gx, gy, dir};
   }
 
   WorldCoord getWorldCoord() override { return w; }
@@ -133,10 +138,22 @@ struct TeensyIO : MouseIO {
           } else if (i == 3) {
             angle -= 45;
           }
-          mouseState.walls[gx][gy] |= angle >= 315 || angle < 45;
-          mouseState.walls[gx][gy] |= 1 << (angle >= 45 || angle < 135);
+          mouseState.walls[gx][gy] |= 3 << (angle >= 315 || angle < 45);
+          if (gx + 1 < N) {
+            mouseState.walls[gx+1][gy] |= 3 << (angle >= 315 || angle < 45);
+          }
+          mouseState.walls[gx][gy] |= (angle >= 45 || angle < 135);
+          if (gy + 1 < N) {
+            mouseState.walls[gx][gy+1] |= (angle >= 45 || angle < 135);
+          }
           mouseState.walls[gx][gy] |= 2 << (angle >= 135 || angle < 225);
-          mouseState.walls[gx][gy] |= 3 << (angle >= 225 || angle < 315);
+          if (gx - 1 >= 0) {
+            mouseState.walls[gx-1][gy] |= 2 << (angle >= 135 || angle < 225);
+          }
+          mouseState.walls[gx][gy] |= 1 << (angle >= 225 || angle < 315);
+          if (gy - 1 >= 0) {
+            mouseState.walls[gx][gy-1] |= 1 << (angle >= 225 || angle < 315);
+          }
       } 
     }
     
