@@ -56,8 +56,7 @@ struct TeensyIO : MouseIO {
   void updateWorldCoord() override {
     double deltaLeft = getDrivePosLeft() - lastLeftPosition;
     double deltaRight = getDrivePosRight() - lastRightPosition;
-    double wheelDelta = 2 * M_PI * WHEEL_RADIUS_M / COUNTS_PER_REVOLUTION *
-                        ((deltaLeft + deltaRight) / 2);
+    double wheelDelta = ((deltaLeft + deltaRight) / 2);
 
     double deltaX = wheelDelta * std::cos(getGyroYaw());
     double deltaY = wheelDelta * std::sin(getGyroYaw());

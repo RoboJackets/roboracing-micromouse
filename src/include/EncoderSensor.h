@@ -23,6 +23,6 @@ struct EncoderSensor {
         }
     }
     double getPosition() {
-        return (encoder_counts / COUNTS_PER_REVOLUTION) * 2 * M_PI * WHEEL_RADIUS_M;
+        return ((encoder_counts / COUNTS_PER_REVOLUTION) * 2 * M_PI * WHEEL_RADIUS_M) / DRIVE_GEAR_RATIO;
     }
 };
