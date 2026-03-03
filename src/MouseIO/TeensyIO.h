@@ -5,8 +5,8 @@
 
 #include "Constants.h"
 #include "ControlAlgorithms.h"
-#include "IRSensor.h"
 #include "EncoderSensor.h"
+#include "IRSensor.h"
 #include "IdealState.h"
 #include "Mouse.h"
 #include "MouseIO.h"
@@ -15,9 +15,10 @@
 #include <DRV8833.h>
 #include <Gyro.cpp>
 
+
 struct TeensyIO : MouseIO {
-  static TeensyIO* instance;
-  
+  static TeensyIO *instance;
+
   unsigned char dir = TOP;
   uint32_t lastMicros = 0;
   WorldCoord w = WorldCoord{};
@@ -26,10 +27,13 @@ struct TeensyIO : MouseIO {
   double leftPosition = 0;
   double rightPosition = 0;
   double gyroYaw = 0;
-  std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
-  std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0}, EncoderSensor{BCODER_a, BCODER_b, 0}};
+  std::vector<IRSensor> sensors{
+      IRSensor{{}, EMIT_1, RECV_1}, IRSensor{{}, EMIT_1, RECV_1},
+      IRSensor{{}, EMIT_1, RECV_1}, IRSensor{{}, EMIT_1, RECV_1}};
+  std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0},
+                                      EncoderSensor{BCODER_a, BCODER_b, 0}};
   std::vector<WorldCoord> readings{};
-  
+
   static void isr0() { instance->encoders[0].updateEncoder(); }
   static void isr1() { instance->encoders[1].updateEncoder(); }
   double gyroOffset = 0;
@@ -133,7 +137,6 @@ struct TeensyIO : MouseIO {
     updateEncoders();
     updateWorldCoord();
   }
-
 
   void init() override {
     lastMicros = micros();

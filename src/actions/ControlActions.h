@@ -58,11 +58,9 @@ struct YawPIDAction : Action {
 struct ProfiledDriveAction : Action {
   TrapezoidalProfile profile;
   ProfiledDriveAction(double setpoint, double initalVelocity,
-                      double finalVelocity) {
-    profile =
-        TrapezoidalProfile{MAX_SPEED_M_S, MAX_ACCEL_M_S2,      initalVelocity,
-                           finalVelocity, profilePIDConstants, setpoint};
-  }
+                      double finalVelocity)
+      : profile({MAX_SPEED_M_S, MAX_ACCEL_M_S2, initalVelocity, finalVelocity,
+                 profilePIDConstants, setpoint}) {}
   bool canceled = false;
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
