@@ -1,7 +1,6 @@
 #include "Action.h"
 #include "CommandGenerator.h"
 #include "Commands.h"
-#include "pid.hpp"
 #include <Arduino.h>
 #include <cmath>
 
@@ -31,7 +30,7 @@ struct YawPIDAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
 
-  PID p{rot90PID};
+  PID p{rot90PIDConstants};
   double setpoint;
 
   YawPIDAction(double setpoint) : setpoint(setpoint) {}
@@ -54,5 +53,30 @@ struct YawPIDAction : Action {
   void end(MouseState &s, MouseIO &io) override {
     io.driveVoltage(0.0, 0.0);
     p.resetAccum();
+  }
+};
+struct ProfiledDriveAction : Action {
+  TrapezoidalProfile profile;
+  ProfiledDriveAction(double setpoint, double initalVelocity,
+                      double finalVelocity) {
+    profile =
+        TrapezoidalProfile{MAX_SPEED_M_S, MAX_ACCEL_M_S2,      initalVelocity,
+                           finalVelocity, profilePIDConstants, setpoint};
+  }
+  bool canceled = false;
+  void cancel() override { canceled = true; }
+  bool completed() const override { return canceled; }
+  double measurement = 0;
+  void setMeasurement(double m) { measurement = m; }
+  void run(MouseState &s, MouseIO &io) override {
+    double v = profile.calculate(io.getDt(), measurement);
+    io.driveVelocity(v, v);
+  }
+  void end(MouseState &s, MouseIO &io) override {
+    if (profile.finalVelocity == 0) {
+      io.driveVoltage(0, 0);
+    } else {
+      io.driveVelocity(profile.finalVelocity, profile.finalVelocity);
+    }
   }
 };

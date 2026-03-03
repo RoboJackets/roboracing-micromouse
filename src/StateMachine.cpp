@@ -1,7 +1,4 @@
 #include "StateMachine.h"
-#include "ControlActions.h"
-#include "SequentialAction.h"
-#include <string>
 
 namespace StateMachine {
 GoalState currentState = GoalState::GOAL_SEARCH;
@@ -95,7 +92,7 @@ void tick(MouseIO *io) {
   updateState();          // determine overall goal (solver)
   if (a->completed()) {
     a->end(mouseState, *io);
-    a = &empty; // determine action
+    a = solver->run(mouseState, goal); // determine action
   }
   a->run(mouseState, *io); // run action
 }

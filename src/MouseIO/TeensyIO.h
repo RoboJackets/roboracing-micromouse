@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "Constants.h"
+#include "ControlAlgorithms.h"
 #include "IRSensor.h"
 #include "EncoderSensor.h"
 #include "IdealState.h"
@@ -31,8 +32,14 @@ struct TeensyIO : MouseIO {
   
   static void isr0() { instance->encoders[0].updateEncoder(); }
   static void isr1() { instance->encoders[1].updateEncoder(); }
+  double gyroOffset = 0;
 
   Gyro gyro{};
+  PID velocityPIDRight{velocityPIDConstants};
+  PID velocityPIDLeft{velocityPIDConstants};
+
+  MotorFeedForward leftff{0, 0, 0};
+  MotorFeedForward rightff{0, 0, 0};
 
   DRV8833Motor mA = DRV8833Motor(AIN1, AIN2, -1, STBY);
   DRV8833Motor mB = DRV8833Motor(BIN1, BIN2, 1, STBY);
@@ -40,6 +47,8 @@ struct TeensyIO : MouseIO {
   GridCoord getGridCoord() override {
     int gx = (int)(w.x / CELL_SIZE_METERS + 0.5);
     int gy = (int)(w.y / CELL_SIZE_METERS + 0.5);
+    unsigned char theta = getGyroYaw();
+    // TODO: update gyro
     return GridCoord{gx, gy};
   }
 
@@ -68,6 +77,17 @@ struct TeensyIO : MouseIO {
     double r = std::clamp(right, -1.0, 1.0);
     mA.drive((int)(r * 255));
     mB.drive((int)(l * 255));
+  }
+  void setGyroOffset(double offset) { gyroOffset = offset; }
+
+  void setWorldCoord(WorldCoord c) { w = c; }
+
+  void driveVelocity(double left, double right) override {
+    driveVoltage(
+        leftff.calculate(left, getDt()) +
+            velocityPIDLeft.calculate(getDriveSpeedLeft(), left, getDt()),
+        rightff.calculate(right, getDt()) +
+            velocityPIDRight.calculate(getDriveSpeedRight(), right, getDt()));
   }
 
   double getDriveSpeedLeft() override {
@@ -105,7 +125,7 @@ struct TeensyIO : MouseIO {
       readings.push_back(sensor.getReading(dist));
     }
     gyro.update();
-    gyroYaw = gyro.ypr[0] * 180.0 / M_PI;
+    gyroYaw = gyro.ypr[0] * 180.0 / M_PI - gyroOffset;
     // Serial.println(readings.at(0).hypot());
   }
 
