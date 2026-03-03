@@ -62,13 +62,17 @@ struct ProfiledDriveAction : Action {
       : profile({MAX_SPEED_M_S, MAX_ACCEL_M_S2, initalVelocity, finalVelocity,
                  profilePIDConstants, setpoint}) {}
   bool canceled = false;
+  PID irPID = PID{IRadjust};
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
   double measurement = 0;
+  double irDelta = 0;
   void setMeasurement(double m) { measurement = m; }
+  void setIRDelta(double i) { irDelta = i; }
   void run(MouseState &s, MouseIO &io) override {
     double v = profile.calculate(io.getDt(), measurement);
-    io.driveVelocity(v, v);
+    double c = irPID.calculate(irDelta, 0, io.getDt());
+    io.driveVelocity(v + c, v - c);
   }
   void end(MouseState &s, MouseIO &io) override {
     if (profile.finalVelocity == 0) {
