@@ -6,6 +6,7 @@
 #include "Constants.h"
 #include "ControlAlgorithms.h"
 #include "IRSensor.h"
+#include "EncoderSensor.h"
 #include "IdealState.h"
 #include "Mouse.h"
 #include "MouseIO.h"
@@ -15,6 +16,8 @@
 #include <Gyro.cpp>
 
 struct TeensyIO : MouseIO {
+  static TeensyIO* instance;
+  
   unsigned char dir = TOP;
   uint32_t lastMicros = 0;
   WorldCoord w = WorldCoord{};
@@ -24,7 +27,11 @@ struct TeensyIO : MouseIO {
   double rightPosition = 0;
   double gyroYaw = 0;
   std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
+  std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0}, EncoderSensor{BCODER_a, BCODER_b, 0}};
   std::vector<WorldCoord> readings{};
+  
+  static void isr0() { instance->encoders[0].updateEncoder(); }
+  static void isr1() { instance->encoders[1].updateEncoder(); }
   double gyroOffset = 0;
 
   Gyro gyro{};
@@ -49,8 +56,7 @@ struct TeensyIO : MouseIO {
   void updateWorldCoord() override {
     double deltaLeft = getDrivePosLeft() - lastLeftPosition;
     double deltaRight = getDrivePosRight() - lastRightPosition;
-    double wheelDelta = 2 * M_PI * WHEEL_RADIUS_M / COUNTS_PER_REVOLUTION *
-                        ((deltaLeft + deltaRight) / 2);
+    double wheelDelta = ((deltaLeft + deltaRight) / 2);
 
     double deltaX = wheelDelta * std::cos(getGyroYaw());
     double deltaY = wheelDelta * std::sin(getGyroYaw());
@@ -58,7 +64,10 @@ struct TeensyIO : MouseIO {
     w = WorldCoord{w.x + deltaX, w.y + deltaY, getGyroYaw()};
   }
   void updateEncoders() {
-    // set leftpos and right pos and gyro
+    lastLeftPosition = leftPosition;
+    lastRightPosition = rightPosition;
+    leftPosition = encoders[0].getPosition();
+    rightPosition = encoders[1].getPosition();
   }
   unsigned char getGridDir() override { return dir; }
 
@@ -121,14 +130,21 @@ struct TeensyIO : MouseIO {
 
   void update(MouseState &mouseState) override {
     updateSensorState();
-    // updateEncoders();
-    // updateWorldCoord();
+    updateEncoders();
+    updateWorldCoord();
   }
+
 
   void init() override {
     lastMicros = micros();
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(EMIT_1, OUTPUT);
+    pinMode(ACODER_a, INPUT);
+    pinMode(ACODER_b, INPUT);
+    attachInterrupt(digitalPinToInterrupt(ACODER_a), isr0, CHANGE);
+    pinMode(BCODER_a, INPUT);
+    pinMode(BCODER_b, INPUT);
+    attachInterrupt(digitalPinToInterrupt(BCODER_a), isr1, CHANGE);
     // pinMode(EMIT_2, OUTPUT);
     // pinMode(EMIT_3, OUTPUT);
     // pinMode(EMIT_4, OUTPUT);
