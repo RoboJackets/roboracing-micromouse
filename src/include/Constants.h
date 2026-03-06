@@ -26,3 +26,6 @@ constexpr double MASS = 1;
 constexpr double MAX_CURVE_CF = MASS * 9.81 * COEF_FRICTION;
 const double CURVE_VELOCITY =
     std::sqrt((MAX_CURVE_CF * CELL_SIZE_METERS / 2) / MASS);
+
+constexpr double FRONT_SENSOR_SEP = 1;
+constexpr double GYRO_ALPHA = 0.98;

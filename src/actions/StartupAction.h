@@ -14,7 +14,7 @@ struct StartupAction : Action {
   void run(MouseState &s, MouseIO &io) override {
     WorldCoord left = io.getSensorState().at(2);
     WorldCoord right = io.getSensorState().at(3);
-    io.setGyroOffset(io.getGyroYaw() - 90);
+    io.setGyroOffset(io.getGyroYaw() - M_PI / 2.0);
     io.setWorldCoord(WorldCoord{left.x, ROBOT_LENGTH / 2});
     canceled = true;
   }

@@ -15,7 +15,6 @@
 #include <DRV8833.h>
 #include <Gyro.cpp>
 
-
 struct TeensyIO : MouseIO {
   static TeensyIO *instance;
 
@@ -62,10 +61,19 @@ struct TeensyIO : MouseIO {
     double deltaRight = getDrivePosRight() - lastRightPosition;
     double wheelDelta = ((deltaLeft + deltaRight) / 2);
 
-    double deltaX = wheelDelta * std::cos(getGyroYaw());
-    double deltaY = wheelDelta * std::sin(getGyroYaw());
+    if (readings.size() >= 2) {
+      double deltaR = readings.at(0).y - readings.at(1).y;
+      double sensorYaw = std::atan2(deltaR, FRONT_SENSOR_SEP);
+      double currentHeading = gyroYaw - gyroOffset;
+      double nearestCardinal = std::round(currentHeading / (M_PI / 2.0)) * (M_PI / 2.0);
+      double sensorOffset = gyroYaw - nearestCardinal - sensorYaw;
+      gyroOffset = GYRO_ALPHA * gyroOffset + (1.0 - GYRO_ALPHA) * sensorOffset;
+    }
+    double theta = getGyroYaw() - gyroOffset;
+    double deltaX = wheelDelta * std::cos(theta);
+    double deltaY = wheelDelta * std::sin(theta);
 
-    w = WorldCoord{w.x + deltaX, w.y + deltaY, getGyroYaw()};
+    w = WorldCoord{w.x + deltaX, w.y + deltaY, theta};
   }
   void updateEncoders() {
     lastLeftPosition = leftPosition;
@@ -128,7 +136,7 @@ struct TeensyIO : MouseIO {
       readings.push_back(sensor.getReading(dist));
     }
     gyro.update();
-    gyroYaw = gyro.ypr[0] * 180.0 / M_PI - gyroOffset;
+    gyroYaw = gyro.ypr[0];
     // Serial.println(readings.at(0).hypot());
   }
 
