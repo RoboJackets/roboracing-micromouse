@@ -27,8 +27,9 @@ struct DriveTimeAction : Action {
 
 struct YawPIDAction : Action {
   bool canceled = false;
+  double error = 0;
   void cancel() override { canceled = true; }
-  bool completed() const override { return canceled; }
+  bool completed() const override { return std::abs(error) < 0.01 || canceled; }
 
   PID p{rot90PIDConstants};
   double setpoint;
@@ -39,7 +40,7 @@ struct YawPIDAction : Action {
     double setpoint_r = setpoint * (PI / 180);
     double measure_r = io.getWorldCoord().theta;
     double error_raw = setpoint_r - measure_r;
-    double error = std::atan2(std::sin(error_raw), std::cos(error_raw));
+    error = std::atan2(std::sin(error_raw), std::cos(error_raw));
     Serial.print(error);
     Serial.print("     ");
     Serial.print(io.getGyroYaw());
@@ -56,19 +57,36 @@ struct YawPIDAction : Action {
 };
 struct ProfiledDriveAction : Action {
   TrapezoidalProfile profile;
-  ProfiledDriveAction(double setpoint, double initalVelocity,
+  double error = 0;
+  double setpoint;
+  double angle;
+  double measurement = 0;
+  bool started = false;
+  WorldCoord prevCoord;
+  ProfiledDriveAction(double setpoint, double angle, double initalVelocity,
                       double finalVelocity)
       : profile({MAX_SPEED_M_S, MAX_ACCEL_M_S2, initalVelocity, finalVelocity,
-                 profilePIDConstants, setpoint}) {}
+                 profilePIDConstants, setpoint}),
+        setpoint(setpoint), angle(angle) {}
   bool canceled = false;
   PID irPID = PID{IRadjust};
   void cancel() override { canceled = true; }
-  bool completed() const override { return canceled; }
-  double measurement = 0;
+  bool completed() const override {
+    return std::abs(error) < 0.005 || canceled;
+  }
   double irDelta = 0;
-  void setMeasurement(double m) { measurement = m; }
   void setIRDelta(double i) { irDelta = i; }
   void run(MouseState &s, MouseIO &io) override {
+    WorldCoord w = io.getWorldCoord();
+    if (!started) {
+      prevCoord = w;
+      started = true;
+    }
+    double dx = w.x - prevCoord.x;
+    double dy = w.y - prevCoord.y;
+    measurement += dx * std::cos(angle) + dy * std::sin(angle);
+    prevCoord = w;
+    error = setpoint - measurement;
     double v = profile.calculate(io.getDt(), measurement);
     double c = irPID.calculate(irDelta, 0, io.getDt());
     io.driveVelocity(v + c, v - c);
@@ -89,20 +107,36 @@ struct ProfiledCurveAction : Action {
   double irDelta = 0;
   bool turnLeft;
   double outerRatio;
+  double radius;
+  bool started = false;
+  double prevTheta = 0;
+  double error = 0;
+  double setpoint;
 
   ProfiledCurveAction(double radius, double angle, bool turnLeft,
                       double initialVelocity, double finalVelocity)
       : profile({CURVE_VELOCITY, MAX_ACCEL_M_S2, initialVelocity, finalVelocity,
                  profilePIDConstants, radius * angle}),
         turnLeft(turnLeft),
-        outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius) {}
+        outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius),
+        radius(radius), setpoint(radius * angle) {}
 
   void cancel() override { canceled = true; }
-  bool completed() const override { return canceled; }
-  void setMeasurement(double m) { measurement = m; }
+  bool completed() const override {
+    return std::abs(error) < 0.005 || canceled;
+  }
   void setIRDelta(double i) { irDelta = i; }
 
   void run(MouseState &s, MouseIO &io) override {
+    WorldCoord w = io.getWorldCoord();
+    if (!started) {
+      prevTheta = w.theta;
+      started = true;
+    }
+    double dTheta = w.theta - prevTheta;
+    measurement += std::abs(dTheta) * radius;
+    prevTheta = w.theta;
+    error = setpoint - measurement;
     double v = profile.calculate(io.getDt(), measurement);
     double c =
         std::isinf(irDelta) ? 0.0 : irPID.calculate(irDelta, 0, io.getDt());
