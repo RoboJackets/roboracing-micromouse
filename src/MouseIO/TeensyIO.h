@@ -61,11 +61,13 @@ struct TeensyIO : MouseIO {
     double deltaRight = getDrivePosRight() - lastRightPosition;
     double wheelDelta = ((deltaLeft + deltaRight) / 2);
 
-    if (readings.size() >= 2) {
+    if (readings.size() >= 2 && readings.at(0).hypot() < 0.18 &&
+        readings.at(1).hypot() < 0.18) {
       double deltaR = readings.at(0).y - readings.at(1).y;
       double sensorYaw = std::atan2(deltaR, FRONT_SENSOR_SEP);
       double currentHeading = gyroYaw - gyroOffset;
-      double nearestCardinal = std::round(currentHeading / (M_PI / 2.0)) * (M_PI / 2.0);
+      double nearestCardinal =
+          std::round(currentHeading / (M_PI / 2.0)) * (M_PI / 2.0);
       double sensorOffset = gyroYaw - nearestCardinal - sensorYaw;
       gyroOffset = GYRO_ALPHA * gyroOffset + (1.0 - GYRO_ALPHA) * sensorOffset;
     }
