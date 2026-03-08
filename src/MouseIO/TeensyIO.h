@@ -31,7 +31,6 @@ struct TeensyIO : MouseIO {
       IRSensor{{}, EMIT_1, RECV_1}, IRSensor{{}, EMIT_1, RECV_1}};
   std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0},
                                       EncoderSensor{BCODER_a, BCODER_b, 0}};
-  std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
   std::vector<WorldCoord> readings{};
 
   static void isr0() { instance->encoders[0].updateEncoder(); }
