@@ -41,12 +41,16 @@ struct TeensyIO : MouseIO {
   GridCoord getGridCoord() override {
     int gx = (int)(w.x / CELL_SIZE_METERS + 0.5);
     int gy = (int)(w.y / CELL_SIZE_METERS + 0.5);
-    double angle = w.theta;
-    unsigned char dir = (angle >= 315 || angle < 45) 
-                      || (1 << (angle >= 45 && angle < 135))
-                      || (2 << (angle >= 135 && angle < 225))
-                      || (3 << (angle >= 225 && angle < 315));
+    unsigned char dir = getGridDir(w.theta);
     return GridCoord{gx, gy, dir};
+  }
+
+  unsigned char getGridDir(double angle) {
+    angle = std::fmod(angle, 2*PI);
+    return (angle >= 315 || angle < 45) 
+            || (1 << (angle >= 45 && angle < 135))
+            || (2 << (angle >= 135 && angle < 225))
+            || (3 << (angle >= 225 && angle < 315));
   }
 
   WorldCoord getWorldCoord() override { return w; }
@@ -122,38 +126,18 @@ struct TeensyIO : MouseIO {
   }
 
   void updateMazeState(MouseState &mouseState) {
-    // 18 x 18 cm squares
-    int cell_size_cm = (int)(CELL_SIZE_METERS * 100);
-    double square_x = ((int)(w.x * 100) % cell_size_cm) / 100;
-    double square_y = ((int)(w.y * 100) % cell_size_cm) / 100;
+    double square_x = std::fmod(w.x, CELL_SIZE_METERS);
+    double square_y = std::fmod(w.y, CELL_SIZE_METERS);
     int gx = getGridCoord().x;
     int gy = getGridCoord().y;
-    for (int i = 0; i < readings.size(); i++) {
+    for (int i = 0; i < sensors.size(); i++) {
         if (square_x + readings.at(i).x < CELL_SIZE_METERS && square_y + readings.at(i).y < CELL_SIZE_METERS) {
-          double angle = w.theta;
-          // left 45
-          if (i == 2) {
-            angle += 45;
-          // right 45
-          } else if (i == 3) {
-            angle -= 45;
-          }
-          mouseState.walls[gx][gy] |= 3 << (angle >= 315 || angle < 45);
-          if (gx + 1 < N) {
-            mouseState.walls[gx+1][gy] |= 3 << (angle >= 315 || angle < 45);
-          }
-          mouseState.walls[gx][gy] |= (angle >= 45 || angle < 135);
-          if (gy + 1 < N) {
-            mouseState.walls[gx][gy+1] |= (angle >= 45 || angle < 135);
-          }
-          mouseState.walls[gx][gy] |= 2 << (angle >= 135 || angle < 225);
-          if (gx - 1 >= 0) {
-            mouseState.walls[gx-1][gy] |= 2 << (angle >= 135 || angle < 225);
-          }
-          mouseState.walls[gx][gy] |= 1 << (angle >= 225 || angle < 315);
-          if (gy - 1 >= 0) {
-            mouseState.walls[gx][gy-1] |= 1 << (angle >= 225 || angle < 315);
-          }
+          double angle = w.theta + sensors.at(i).pos_from_center.theta;
+          unsigned char sensedWall = getGridDir(angle);
+          mouseState.walls[gx][gy] |= sensedWall;
+          int cx = ((abs(std::cos(angle)) > sqrt(2)/2) ? 1 : 0) * (std::cos(angle) < 0 ? -1 : 1);
+          int cy = ((abs(std::sin(angle)) > sqrt(2)/2) ? 1 : 0) * (std::sin(angle) < 0 ? -1 : 1);
+          mouseState.walls[gx+cx][gy+cy] |= sensedWall;
       } 
     }
     
