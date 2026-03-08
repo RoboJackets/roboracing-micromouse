@@ -31,8 +31,6 @@ struct TeensyIO : MouseIO {
       IRSensor{{}, EMIT_1, RECV_1}, IRSensor{{}, EMIT_1, RECV_1}};
   std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0},
                                       EncoderSensor{BCODER_a, BCODER_b, 0}};
-  double width; // left to right
-  double length; // front to back
   std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
   std::vector<WorldCoord> readings{};
 
@@ -175,9 +173,9 @@ struct TeensyIO : MouseIO {
 
   void update(MouseState &mouseState) override {
     updateSensorState();
+    updateEncoders();
+    updateWorldCoord();
     updateMazeState(mouseState);
-    // updateEncoders();
-    // updateWorldCoord();
   }
 
   void init() override {
