@@ -12,7 +12,7 @@ struct MMSIO : MouseIO {
   void updateWorldCoord() override {}
   unsigned char getGridDir() override { return dir; }
 
-  void drive(double left, double right) override {}
+  void driveVoltage(double left, double right) override {}
   std::vector<WorldCoord> getSensorState() override {}
   void update(MouseState& mouseState) override {
     mouseState.x = x;

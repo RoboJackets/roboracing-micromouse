@@ -11,7 +11,8 @@ struct MouseIO {
   virtual WorldCoord getWorldCoord() { return WorldCoord{}; };
   virtual void updateWorldCoord() {};
 
-  virtual void drive(double left, double right) {};
+  virtual void driveVoltage(double left, double right) {};
+  virtual void driveVelocity(double left, double right) {};
   virtual double getDriveSpeedLeft() { return 0; };
   virtual double getDriveSpeedRight() { return 0; };
   virtual double getDrivePosLeft() { return 0; };
@@ -19,6 +20,8 @@ struct MouseIO {
   virtual double getGyroYaw() { return 0; };
   virtual void setState(IdealState state) {};
   virtual std::vector<WorldCoord> getSensorState() { return {}; };
+  void setGyroOffset(double offset) {};
+  void setWorldCoord(WorldCoord c) {};
 
   virtual void update(MouseState &mouseState) {};
 

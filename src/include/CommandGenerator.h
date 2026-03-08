@@ -1,6 +1,15 @@
 #pragma once
+#include "ControlAlgorithms.h"
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
+
+
+#include "Commands.h"
+#include "Constants.h"
+#include <cmath>
+
 enum ActionState {
   START,
   ORTHO_F,
@@ -20,4 +29,5 @@ struct State {
 };
 
 std::vector<unsigned char> parse(std::string s);
-std::string commandString(const std::vector<unsigned char>& commands);
+std::string commandString(const std::vector<unsigned char> &commands);
+double computeWeight(std::vector<unsigned char> cmds);

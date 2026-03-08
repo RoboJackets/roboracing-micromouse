@@ -1,6 +1,6 @@
 #include "MouseIO.h"
 #include "StateMachine.h"
-MouseIO* io = nullptr;
+MouseIO *io = nullptr;
 
 #ifdef MMS_SIM
 #include "../mms-cpp/API.cpp"
@@ -22,7 +22,5 @@ void setup() {
   io = &teensyIO;
   StateMachine::init(io);
 }
-void loop() {
-  StateMachine::tick(io);
-}
+void loop() { StateMachine::tick(io); }
 #endif
