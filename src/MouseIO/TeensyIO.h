@@ -50,9 +50,18 @@ struct TeensyIO : MouseIO {
   GridCoord getGridCoord() override {
     int gx = (int)(w.x / CELL_SIZE_METERS + 0.5);
     int gy = (int)(w.y / CELL_SIZE_METERS + 0.5);
+    unsigned char dir = getGridDir(w.theta);
     unsigned char theta = getGyroYaw();
     // TODO: update gyro
-    return GridCoord{gx, gy};
+    return GridCoord{gx, gy, dir};
+  }
+
+  unsigned char getGridDir(double angle) {
+    angle = std::fmod(angle, 2*PI);
+    return (angle >= 315 || angle < 45) 
+            || (1 << (angle >= 45 && angle < 135))
+            || (2 << (angle >= 135 && angle < 225))
+            || (3 << (angle >= 225 && angle < 315));
   }
 
   WorldCoord getWorldCoord() override { return w; }
@@ -132,6 +141,7 @@ struct TeensyIO : MouseIO {
       delayMicroseconds(EMIT_RECV_DELAY_US);
       int post = analogRead(sensor.RECV);
       digitalWrite(sensor.EMIT, LOW);
+      // relative to mouse in m
       double dist = post < 4 ? std::numeric_limits<double>::infinity()
                              : 0.647426 / pow(max(post, 1), 0.516999);
       Serial.println(post);
@@ -142,10 +152,29 @@ struct TeensyIO : MouseIO {
     // Serial.println(readings.at(0).hypot());
   }
 
+  void updateMazeState(MouseState &mouseState) {
+    double square_x = std::fmod(w.x, CELL_SIZE_METERS);
+    double square_y = std::fmod(w.y, CELL_SIZE_METERS);
+    int gx = getGridCoord().x;
+    int gy = getGridCoord().y;
+    for (int i = 0; i < sensors.size(); i++) {
+        if (square_x + readings.at(i).x < CELL_SIZE_METERS && square_y + readings.at(i).y < CELL_SIZE_METERS) {
+          double angle = w.theta + sensors.at(i).pos_from_center.theta;
+          unsigned char sensedWall = getGridDir(angle);
+          mouseState.walls[gx][gy] |= sensedWall;
+          int cx = ((abs(std::cos(angle)) > sqrt(2)/2) ? 1 : 0) * (std::cos(angle) < 0 ? -1 : 1);
+          int cy = ((abs(std::sin(angle)) > sqrt(2)/2) ? 1 : 0) * (std::sin(angle) < 0 ? -1 : 1);
+          mouseState.walls[gx+cx][gy+cy] |= sensedWall;
+      } 
+    }
+    
+  }
+
   void update(MouseState &mouseState) override {
     updateSensorState();
     updateEncoders();
     updateWorldCoord();
+    updateMazeState(mouseState);
   }
 
   void init() override {
