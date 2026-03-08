@@ -75,13 +75,14 @@ struct ProfiledDriveAction : Action {
     return std::abs(error) < 0.005 || canceled;
   }
   double irDelta = 0;
-  void setIRDelta(double i) { irDelta = i; }
   void run(MouseState &s, MouseIO &io) override {
     WorldCoord w = io.getWorldCoord();
     if (!started) {
       prevCoord = w;
       started = true;
     }
+    irDelta =
+        io.getSensorState().at(2).hypot() - io.getSensorState().at(3).hypot();
     double dx = w.x - prevCoord.x;
     double dy = w.y - prevCoord.y;
     measurement += dx * std::cos(angle) + dy * std::sin(angle);
@@ -125,7 +126,6 @@ struct ProfiledCurveAction : Action {
   bool completed() const override {
     return std::abs(error) < 0.005 || canceled;
   }
-  void setIRDelta(double i) { irDelta = i; }
 
   void run(MouseState &s, MouseIO &io) override {
     WorldCoord w = io.getWorldCoord();
@@ -138,8 +138,9 @@ struct ProfiledCurveAction : Action {
     prevTheta = w.theta;
     error = setpoint - measurement;
     double v = profile.calculate(io.getDt(), measurement);
-    double c =
-        std::isinf(irDelta) ? 0.0 : irPID.calculate(irDelta, 0, io.getDt());
+    // double c =
+    //     std::isinf(irDelta) ? 0.0 : irPID.calculate(irDelta, 0, io.getDt());
+    double c = 0;
     double vOuter = v * outerRatio + c;
     double vInner = v / outerRatio - c;
     turnLeft ? io.driveVelocity(vInner, vOuter)
