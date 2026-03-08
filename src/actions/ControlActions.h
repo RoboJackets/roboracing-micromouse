@@ -37,10 +37,9 @@ struct YawPIDAction : Action {
 
   void run(MouseState &s, MouseIO &io) override {
     double setpoint_r = setpoint * (PI / 180);
-    double measure_r = io.getGyroYaw();
+    double measure_r = io.getWorldCoord().theta;
     double error_raw = setpoint_r - measure_r;
-    double error =
-        std::atan2(std::sin(error_raw), std::cos(error_raw));
+    double error = std::atan2(std::sin(error_raw), std::cos(error_raw));
     Serial.print(error);
     Serial.print("     ");
     Serial.print(io.getGyroYaw());
