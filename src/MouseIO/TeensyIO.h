@@ -5,6 +5,7 @@
 
 #include "Constants.h"
 #include "ControlAlgorithms.h"
+#include "EncoderSensor.h"
 #include "IRSensor.h"
 #include "IdealState.h"
 #include "Mouse.h"
@@ -15,6 +16,8 @@
 #include <Gyro.cpp>
 
 struct TeensyIO : MouseIO {
+  static TeensyIO *instance;
+
   unsigned char dir = TOP;
   uint32_t lastMicros = 0;
   WorldCoord w = WorldCoord{};
@@ -23,10 +26,19 @@ struct TeensyIO : MouseIO {
   double leftPosition = 0;
   double rightPosition = 0;
   double gyroYaw = 0;
+  std::vector<IRSensor> sensors{
+      IRSensor{{}, EMIT_1, RECV_1}, IRSensor{{}, EMIT_1, RECV_1},
+      IRSensor{{}, EMIT_1, RECV_1}, IRSensor{{}, EMIT_1, RECV_1}};
+  std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0},
+                                      EncoderSensor{BCODER_a, BCODER_b, 0}};
   double width; // left to right
   double length; // front to back
   std::vector<IRSensor> sensors{IRSensor{{}, EMIT_1, RECV_1}};
   std::vector<WorldCoord> readings{};
+
+  static void isr0() { instance->encoders[0].updateEncoder(); }
+  static void isr1() { instance->encoders[1].updateEncoder(); }
+  double gyroOffset = 0;
 
   Gyro gyro{};
   PID velocityPIDRight{velocityPIDConstants};
@@ -42,6 +54,8 @@ struct TeensyIO : MouseIO {
     int gx = (int)(w.x / CELL_SIZE_METERS + 0.5);
     int gy = (int)(w.y / CELL_SIZE_METERS + 0.5);
     unsigned char dir = getGridDir(w.theta);
+    unsigned char theta = getGyroYaw();
+    // TODO: update gyro
     return GridCoord{gx, gy, dir};
   }
 
@@ -57,16 +71,29 @@ struct TeensyIO : MouseIO {
   void updateWorldCoord() override {
     double deltaLeft = getDrivePosLeft() - lastLeftPosition;
     double deltaRight = getDrivePosRight() - lastRightPosition;
-    double wheelDelta = 2 * M_PI * WHEEL_RADIUS_M / COUNTS_PER_REVOLUTION *
-                        ((deltaLeft + deltaRight) / 2);
+    double wheelDelta = ((deltaLeft + deltaRight) / 2);
 
-    double deltaX = wheelDelta * std::cos(getGyroYaw());
-    double deltaY = wheelDelta * std::sin(getGyroYaw());
+    if (readings.size() >= 2 && readings.at(0).hypot() < 0.18 &&
+        readings.at(1).hypot() < 0.18) {
+      double deltaR = readings.at(0).y - readings.at(1).y;
+      double sensorYaw = std::atan2(deltaR, FRONT_SENSOR_SEP);
+      double currentHeading = gyroYaw - gyroOffset;
+      double nearestCardinal =
+          std::round(currentHeading / (M_PI / 2.0)) * (M_PI / 2.0);
+      double sensorOffset = gyroYaw - nearestCardinal - sensorYaw;
+      gyroOffset = GYRO_ALPHA * gyroOffset + (1.0 - GYRO_ALPHA) * sensorOffset;
+    }
+    double theta = getGyroYaw() - gyroOffset;
+    double deltaX = wheelDelta * std::cos(theta);
+    double deltaY = wheelDelta * std::sin(theta);
 
-    w = WorldCoord{w.x + deltaX, w.y + deltaY, getGyroYaw()};
+    w = WorldCoord{w.x + deltaX, w.y + deltaY, theta};
   }
   void updateEncoders() {
-    // set leftpos and right pos and gyro
+    lastLeftPosition = leftPosition;
+    lastRightPosition = rightPosition;
+    leftPosition = encoders[0].getPosition();
+    rightPosition = encoders[1].getPosition();
   }
   unsigned char getGridDir() override { return dir; }
 
@@ -76,6 +103,9 @@ struct TeensyIO : MouseIO {
     mA.drive((int)(r * 255));
     mB.drive((int)(l * 255));
   }
+  void setGyroOffset(double offset) { gyroOffset = offset; }
+
+  void setWorldCoord(WorldCoord c) { w = c; }
 
   void driveVelocity(double left, double right) override {
     driveVoltage(
@@ -121,7 +151,7 @@ struct TeensyIO : MouseIO {
       readings.push_back(sensor.getReading(dist));
     }
     gyro.update();
-    gyroYaw = gyro.ypr[0] * 180.0 / M_PI;
+    gyroYaw = gyro.ypr[0];
     // Serial.println(readings.at(0).hypot());
   }
 
@@ -154,6 +184,12 @@ struct TeensyIO : MouseIO {
     lastMicros = micros();
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(EMIT_1, OUTPUT);
+    pinMode(ACODER_a, INPUT);
+    pinMode(ACODER_b, INPUT);
+    attachInterrupt(digitalPinToInterrupt(ACODER_a), isr0, CHANGE);
+    pinMode(BCODER_a, INPUT);
+    pinMode(BCODER_b, INPUT);
+    attachInterrupt(digitalPinToInterrupt(BCODER_a), isr1, CHANGE);
     // pinMode(EMIT_2, OUTPUT);
     // pinMode(EMIT_3, OUTPUT);
     // pinMode(EMIT_4, OUTPUT);

@@ -4,15 +4,16 @@
 #include <tuple>
 #include <vector>
 
-
 struct PIDConstants {
   double p = 0;
   double i = 0;
   double d = 0;
 };
 
-inline PIDConstants rot90PIDConstants{0.01, 0, 0};
+inline PIDConstants rot90PIDConstants{0.01 * 180.0 / M_PI, 0, 0};
 inline PIDConstants velocityPIDConstants{0, 0, 0};
+inline PIDConstants profilePIDConstants{0, 0, 0};
+inline PIDConstants IRadjust{0, 0, 0};
 
 class PID {
   double p = 0;
