@@ -28,22 +28,22 @@ struct CommandAction : Action {
       return;
     }
     if (curr == nullptr) {
-      determineAction();
+      determineAction(s, io);
     }
     curr->run(s, io);
     if (curr->completed()) {
       curr = nullptr;
     }
   }
-  void determineAction() {
+  void determineAction(MouseState &s, MouseIO &io) {
     unsigned char c = buf[pc++];
 
     unsigned char cls = c & 0b11100000;
     unsigned char arg = c & 0b00011111;
-    switch (cls) {
-    case EX_FWD0:
-
-      break;
+    if (cls == STOP) {
+      io.driveVoltage(0, 0);
+    }
+    if (cls == EX_FWD0) {
     }
   }
   void runMMS(MouseState &s, MouseIO &io) {
