@@ -3,15 +3,9 @@
 #include "Commands.h"
 #include <Arduino.h>
 #include <cmath>
+#include <numeric>
 
-bool cancelAvoidWall(MouseState &state, MouseIO &io) {
-  std::vector<WorldCoord> readings = io.getSensorState();
-  double wallThresh = .2;
-  double frontReadingX = (readings[0].x + readings[1].x) / 2;
-  double frontReadingY = (readings[0].y + readings[1].y) / 2;
-  double distFrontFromWall = sqrt(pow(frontReadingX - state.x, 2) + pow(frontReadingY - state.y, 2));
-  return distFrontFromWall < wallThresh;
-}
+
 
 struct DriveTimeAction : Action {
   bool canceled = false;
@@ -71,6 +65,8 @@ struct ProfiledDriveAction : Action {
   double angle;
   double measurement = 0;
   bool started = false;
+  std::vector<double> distancesL{};
+  std::vector<double> distancesR{};
   WorldCoord prevCoord;
   ProfiledDriveAction(double setpoint, double angle, double initalVelocity,
                       double finalVelocity)
@@ -86,7 +82,6 @@ struct ProfiledDriveAction : Action {
   double irDelta = 0;
   void run(MouseState &s, MouseIO &io) override {
     if (cancelAvoidWall(s, io)) {
-      cancel();
       return;
     }
     WorldCoord w = io.getWorldCoord();
@@ -112,6 +107,23 @@ struct ProfiledDriveAction : Action {
       io.driveVelocity(profile.finalVelocity, profile.finalVelocity);
     }
   }
+  bool cancelAvoidWall(MouseState &state, MouseIO &io) {
+    std::vector<WorldCoord> readings = io.getSensorState();
+    double wallThresh = .2;
+    double distFrontFromWallL = sqrt(pow(readings[0].x - state.x, 2) + pow(readings[0].y - state.y, 2));
+    double distFrontFromWallR = sqrt(pow(readings[1].x - state.x, 2) + pow(readings[1].y - state.y, 2));
+    if (distancesL.size() == 5) {
+      distancesL.pop_back();
+    }
+    distancesL.insert(distancesL.begin(), distFrontFromWallL);
+    if (distancesR.size() == 5) {
+      distancesR.pop_back();
+    }
+    distancesR.insert(distancesR.begin(), distFrontFromWallR);
+    bool canceled = std::accumulate(distancesR.begin(), distancesR.end(), 0.0)/distancesR.size() < wallThresh ||
+                    std::accumulate(distancesL.begin(), distancesL.end(), 0.0)/distancesL.size() < wallThresh;
+    return canceled;
+  }
 };
 struct ProfiledCurveAction : Action {
   TrapezoidalProfile profile;
@@ -126,6 +138,8 @@ struct ProfiledCurveAction : Action {
   double prevTheta = 0;
   double error = 0;
   double setpoint;
+  std::vector<double> distancesL{};
+  std::vector<double> distancesR{};
 
   ProfiledCurveAction(double radius, double angle, bool turnLeft,
                       double initialVelocity, double finalVelocity)
@@ -142,7 +156,6 @@ struct ProfiledCurveAction : Action {
 
   void run(MouseState &s, MouseIO &io) override {
     if (cancelAvoidWall(s, io)) {
-      cancel();
       return;
     }
     WorldCoord w = io.getWorldCoord();
@@ -169,5 +182,23 @@ struct ProfiledCurveAction : Action {
         ? io.driveVoltage(0, 0)
         : io.driveVelocity(profile.finalVelocity, profile.finalVelocity);
     irPID.resetAccum();
+  }
+
+  bool cancelAvoidWall(MouseState &state, MouseIO &io) {
+    std::vector<WorldCoord> readings = io.getSensorState();
+    double wallThresh = .2;
+    double distFrontFromWallL = sqrt(pow(readings[0].x - state.x, 2) + pow(readings[0].y - state.y, 2));
+    double distFrontFromWallR = sqrt(pow(readings[1].x - state.x, 2) + pow(readings[1].y - state.y, 2));
+    if (distancesL.size() == 5) {
+      distancesL.pop_back();
+    }
+    distancesL.insert(distancesL.begin(), distFrontFromWallL);
+    if (distancesR.size() == 5) {
+      distancesR.pop_back();
+    }
+    distancesR.insert(distancesR.begin(), distFrontFromWallR);
+    bool canceled = std::accumulate(distancesR.begin(), distancesR.end(), 0.0)/distancesR.size() < wallThresh ||
+                    std::accumulate(distancesL.begin(), distancesL.end(), 0.0)/distancesL.size() < wallThresh;
+    return canceled;
   }
 };
