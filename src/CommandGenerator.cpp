@@ -212,7 +212,7 @@ double computeWeight(std::vector<unsigned char> cmds) {
       break;
     case ST0: {
       double w = 0;
-      if (vec == ST45L || vec == ST45L) {
+      if (vec == ST45L || vec == ST45R) {
         w = (M_PI / 8) * CELL_SIZE_METERS / 2;
       }
       if (vec == ST90L || vec == ST90R) {

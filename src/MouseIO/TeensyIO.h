@@ -156,14 +156,17 @@ struct TeensyIO : MouseIO {
     int gx = getGridCoord().x;
     int gy = getGridCoord().y;
     for (int i = 0; i < sensors.size(); i++) {
-        if (gridRelative.x + readings.at(i).x < CELL_SIZE_METERS && gridRelative.y + readings.at(i).y < CELL_SIZE_METERS) {
-          double angle = gridRelative.theta + sensors.at(i).pos_from_center.theta;
-          unsigned char sensedWall = getGridDir(angle);
-          mouseState.walls[gx][gy] |= sensedWall;
-          int cx = ((abs(std::cos(angle)) > sqrt(2)/2) ? 1 : 0) * (std::cos(angle) < 0 ? -1 : 1);
-          int cy = ((abs(std::sin(angle)) > sqrt(2)/2) ? 1 : 0) * (std::sin(angle) < 0 ? -1 : 1);
-          mouseState.walls[gx+cx][gy+cy] |= sensedWall;
-      } 
+      if (gridRelative.x + readings.at(i).x < CELL_SIZE_METERS &&
+          gridRelative.y + readings.at(i).y < CELL_SIZE_METERS) {
+        double angle = gridRelative.theta + sensors.at(i).pos_from_center.theta;
+        unsigned char sensedWall = getGridDir(angle);
+        mouseState.walls[gx][gy] |= sensedWall;
+        int cx = ((abs(std::cos(angle)) > sqrt(2) / 2) ? 1 : 0) *
+                 (std::cos(angle) < 0 ? -1 : 1);
+        int cy = ((abs(std::sin(angle)) > sqrt(2) / 2) ? 1 : 0) *
+                 (std::sin(angle) < 0 ? -1 : 1);
+        mouseState.walls[gx + cx][gy + cy] |= sensedWall;
+      }
     }
   }
 

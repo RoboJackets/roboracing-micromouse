@@ -10,6 +10,8 @@ struct CommandAction : Action {
   size_t pc = 0;
   bool canceled = false;
   Action *curr = nullptr;
+  GridCoord goal{};
+  int goalAngle = 0;
 
   void load(std::vector<unsigned char> b) {
     buf = std::move(b);
@@ -32,6 +34,9 @@ struct CommandAction : Action {
     }
     curr->run(s, io);
     if (curr->completed()) {
+      s.x = io.getGridCoord().x;
+      s.y = io.getGridCoord().y;
+      s.dir = io.getGridCoord().dir;
       curr = nullptr;
     }
   }
@@ -42,8 +47,26 @@ struct CommandAction : Action {
     unsigned char arg = c & 0b00011111;
     if (cls == STOP) {
       io.driveVoltage(0, 0);
+      canceled = true;
+      return;
     }
     if (cls == EX_FWD0) {
+      GridCoord v = angleToVector(goalAngle);
+      goal.x += v.x * arg;
+      goal.y += v.y * arg;
+    }
+    if (cls == EX_ST0) {
+      if (c == EX_ST45L) goalAngle -= 1;
+      else if (c == EX_ST90L) goalAngle -= 2;
+      else if (c == EX_ST135L) goalAngle -= 3;
+      else if (c == EX_ST45R) goalAngle += 1;
+      else if (c == EX_ST90R) goalAngle += 2;
+      else if (c == EX_ST135R) goalAngle += 3;
+      goalAngle = (goalAngle + 8) % 8;
+
+      GridCoord v = angleToVector(goalAngle);
+      goal.x += v.x;
+      goal.y += v.y;
     }
   }
   void runMMS(MouseState &s, MouseIO &io) {
