@@ -56,12 +56,19 @@ struct CommandAction : Action {
       goal.y += v.y * arg;
     }
     if (cls == EX_ST0) {
-      if (c == EX_ST45L) goalAngle -= 1;
-      else if (c == EX_ST90L) goalAngle -= 2;
-      else if (c == EX_ST135L) goalAngle -= 3;
-      else if (c == EX_ST45R) goalAngle += 1;
-      else if (c == EX_ST90R) goalAngle += 2;
-      else if (c == EX_ST135R) goalAngle += 3;
+      if (c == EX_ST45L) {
+        goalAngle -= 1;
+      } else if (c == EX_ST90L) {
+        goalAngle -= 2;
+      } else if (c == EX_ST135L) {
+        goalAngle -= 3;
+      } else if (c == EX_ST45R) {
+        goalAngle += 1;
+      } else if (c == EX_ST90R) {
+        goalAngle += 2;
+      } else if (c == EX_ST135R) {
+        goalAngle += 3;
+      }
       goalAngle = (goalAngle + 8) % 8;
 
       GridCoord v = angleToVector(goalAngle);
