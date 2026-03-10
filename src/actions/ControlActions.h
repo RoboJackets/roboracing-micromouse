@@ -4,6 +4,15 @@
 #include <Arduino.h>
 #include <cmath>
 
+bool cancelAvoidWall(MouseState &state, MouseIO &io) {
+  std::vector<WorldCoord> readings = io.getSensorState();
+  double wallThresh = .2;
+  double frontReadingX = (readings[0].x + readings[1].x) / 2;
+  double frontReadingY = (readings[0].y + readings[1].y) / 2;
+  double distFrontFromWall = sqrt(pow(frontReadingX - state.x, 2) + pow(frontReadingY - state.y, 2));
+  return distFrontFromWall < wallThresh;
+}
+
 struct DriveTimeAction : Action {
   bool canceled = false;
   void cancel() override { canceled = true; }
@@ -76,6 +85,10 @@ struct ProfiledDriveAction : Action {
   }
   double irDelta = 0;
   void run(MouseState &s, MouseIO &io) override {
+    if (cancelAvoidWall(s, io)) {
+      cancel();
+      return;
+    }
     WorldCoord w = io.getWorldCoord();
     if (!started) {
       prevCoord = w;
@@ -128,6 +141,10 @@ struct ProfiledCurveAction : Action {
   }
 
   void run(MouseState &s, MouseIO &io) override {
+    if (cancelAvoidWall(s, io)) {
+      cancel();
+      return;
+    }
     WorldCoord w = io.getWorldCoord();
     if (!started) {
       prevTheta = w.theta;
