@@ -4,7 +4,9 @@
 #include "Action.h"
 #include "CommandGenerator.h"
 #include "Commands.h"
+#include "ControlActions.h"
 #include "MMSIO.h"
+
 struct CommandAction : Action {
   std::vector<unsigned char> buf;
   size_t pc = 0;
@@ -54,6 +56,21 @@ struct CommandAction : Action {
       GridCoord v = angleToVector(goalAngle);
       goal.x += v.x * arg;
       goal.y += v.y * arg;
+
+      WorldCoord rel = io.getWorldCoord().gridRelativeCoords();
+      double halfCell = CELL_SIZE_METERS / 2.0;
+      double dx =
+          v.x != 0 ? (v.x * arg * CELL_SIZE_METERS + halfCell - rel.x) : 0;
+      double dy =
+          v.y != 0 ? (v.y * arg * CELL_SIZE_METERS + halfCell - rel.y) : 0;
+      double distance = std::sqrt(dx * dx + dy * dy);
+      double vForward =
+          (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
+      double travelAngle =
+          M_PI / 2.0 -
+          goalAngle * M_PI / 4.0; // convert from 0 -> up to 0 -> right
+      double vRel = vForward * std::cos(rel.theta - travelAngle);
+      curr = &ProfiledDriveAction{distance, travelAngle, vRel, 0};
     }
     if (cls == EX_ST0) {
       if (c == EX_ST45L) {
