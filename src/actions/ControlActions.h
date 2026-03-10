@@ -131,7 +131,6 @@ struct ProfiledCurveAction : Action {
   PID irPID = PID{IRadjust};
   double measurement = 0;
   double irDelta = 0;
-  bool turnLeft;
   double outerRatio;
   double radius;
   bool started = false;
@@ -141,11 +140,10 @@ struct ProfiledCurveAction : Action {
   std::vector<double> distancesL{};
   std::vector<double> distancesR{};
 
-  ProfiledCurveAction(double radius, double angle, bool turnLeft,
+  ProfiledCurveAction(double radius, double angle,
                       double initialVelocity, double finalVelocity)
       : profile({CURVE_VELOCITY, MAX_ACCEL_M_S2, initialVelocity, finalVelocity,
-                 profilePIDConstants, radius * angle}),
-        turnLeft(turnLeft),
+                 profilePIDConstants, radius * std::abs(angle)}),
         outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius),
         radius(radius), setpoint(radius * angle) {}
 
@@ -164,17 +162,17 @@ struct ProfiledCurveAction : Action {
       started = true;
     }
     double dTheta = w.theta - prevTheta;
-    measurement += std::abs(dTheta) * radius;
+    measurement += dTheta * radius;
     prevTheta = w.theta;
     error = setpoint - measurement;
-    double v = profile.calculate(io.getDt(), measurement);
+    double v = profile.calculate(io.getDt(), std::abs(measurement));
     // double c =
     //     std::isinf(irDelta) ? 0.0 : irPID.calculate(irDelta, 0, io.getDt());
     double c = 0;
     double vOuter = v * outerRatio + c;
     double vInner = v / outerRatio - c;
-    turnLeft ? io.driveVelocity(vInner, vOuter)
-             : io.driveVelocity(vOuter, vInner);
+    (setpoint < 0) ? io.driveVelocity(vInner, vOuter)
+                   : io.driveVelocity(vOuter, vInner);
   }
 
   void end(MouseState &s, MouseIO &io) override {

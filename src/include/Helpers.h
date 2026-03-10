@@ -85,6 +85,20 @@ inline unsigned char vectorToDir(const GridCoord& vec) {
   return 0;
 }
 
+inline GridCoord angleToVector(int angle) {
+  switch (angle & 7) {
+    case 0: return {0, 1};    // N
+    case 1: return {1, 1};    // NE
+    case 2: return {1, 0};    // E
+    case 3: return {1, -1};   // SE
+    case 4: return {0, -1};   // S
+    case 5: return {-1, -1};  // SW
+    case 6: return {-1, 0};   // W
+    case 7: return {-1, 1};   // NW
+    default: return {0, 0};
+  }
+}
+
 inline GridCoord dirToVector(unsigned char dir) {
   switch (dir) {
     case LEFT:

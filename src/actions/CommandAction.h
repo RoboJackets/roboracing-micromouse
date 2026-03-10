@@ -4,12 +4,16 @@
 #include "Action.h"
 #include "CommandGenerator.h"
 #include "Commands.h"
+#include "ControlActions.h"
 #include "MMSIO.h"
+
 struct CommandAction : Action {
   std::vector<unsigned char> buf;
   size_t pc = 0;
   bool canceled = false;
   Action *curr = nullptr;
+  GridCoord goal{};
+  int goalAngle = 0;
 
   void load(std::vector<unsigned char> b) {
     buf = std::move(b);
@@ -28,22 +32,65 @@ struct CommandAction : Action {
       return;
     }
     if (curr == nullptr) {
-      determineAction();
+      determineAction(s, io);
     }
     curr->run(s, io);
     if (curr->completed()) {
+      s.x = io.getGridCoord().x;
+      s.y = io.getGridCoord().y;
+      s.dir = io.getGridCoord().dir;
       curr = nullptr;
     }
   }
-  void determineAction() {
+  void determineAction(MouseState &s, MouseIO &io) {
     unsigned char c = buf[pc++];
 
     unsigned char cls = c & 0b11100000;
     unsigned char arg = c & 0b00011111;
-    switch (cls) {
-    case EX_FWD0:
+    if (cls == STOP) {
+      io.driveVoltage(0, 0);
+      canceled = true;
+      return;
+    }
+    if (cls == EX_FWD0) {
+      GridCoord v = angleToVector(goalAngle);
+      goal.x += v.x * arg;
+      goal.y += v.y * arg;
 
-      break;
+      WorldCoord rel = io.getWorldCoord().gridRelativeCoords();
+      double halfCell = CELL_SIZE_METERS / 2.0;
+      double dx =
+          v.x != 0 ? (v.x * arg * CELL_SIZE_METERS + halfCell - rel.x) : 0;
+      double dy =
+          v.y != 0 ? (v.y * arg * CELL_SIZE_METERS + halfCell - rel.y) : 0;
+      double distance = std::sqrt(dx * dx + dy * dy);
+      double vForward =
+          (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
+      double travelAngle =
+          M_PI / 2.0 -
+          goalAngle * M_PI / 4.0; // convert from 0 -> up to 0 -> right
+      double vRel = vForward * std::cos(rel.theta - travelAngle);
+      curr = &ProfiledDriveAction{distance, travelAngle, vRel, 0};
+    }
+    if (cls == EX_ST0) {
+      if (c == EX_ST45L) {
+        goalAngle -= 1;
+      } else if (c == EX_ST90L) {
+        goalAngle -= 2;
+      } else if (c == EX_ST135L) {
+        goalAngle -= 3;
+      } else if (c == EX_ST45R) {
+        goalAngle += 1;
+      } else if (c == EX_ST90R) {
+        goalAngle += 2;
+      } else if (c == EX_ST135R) {
+        goalAngle += 3;
+      }
+      goalAngle = (goalAngle + 8) % 8;
+
+      GridCoord v = angleToVector(goalAngle);
+      goal.x += v.x;
+      goal.y += v.y;
     }
   }
   void runMMS(MouseState &s, MouseIO &io) {
