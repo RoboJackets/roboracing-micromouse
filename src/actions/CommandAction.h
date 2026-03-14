@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <vector>
 
 #include "Action.h"
@@ -6,14 +7,15 @@
 #include "Commands.h"
 #include "ControlActions.h"
 #include "EmptyAction.h"
-#include "SequentialAction.h"
 #include "MMSIO.h"
+#include "SequentialAction.h"
+
 
 struct CommandAction : Action {
   std::vector<unsigned char> buf;
   size_t pc = 0;
   bool canceled = false;
-  Action *curr = nullptr;
+  std::unique_ptr<Action> curr;
   GridCoord goal{};
   int goalAngle = 0;
 
@@ -21,7 +23,7 @@ struct CommandAction : Action {
     buf = std::move(b);
     canceled = false;
     pc = 0;
-    curr = nullptr;
+    curr.reset();
   }
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled || pc >= buf.size(); }
@@ -33,26 +35,26 @@ struct CommandAction : Action {
       runMMS(s, io);
       return;
     }
-    if (curr == nullptr) {
-      curr = &determineAction(s, io);
+    if (!curr) {
+      curr = determineAction(s, io);
     }
     curr->run(s, io);
     if (curr->completed()) {
       s.x = io.getGridCoord().x;
       s.y = io.getGridCoord().y;
       s.dir = io.getGridCoord().dir;
-      curr = nullptr;
+      curr.reset();
     }
   }
-  Action determineAction(MouseState &s, MouseIO &io) {
+  std::unique_ptr<Action> determineAction(MouseState &s, MouseIO &io) {
     unsigned char c = buf[pc++];
 
     unsigned char cls = c & 0b11100000;
     unsigned char arg = c & 0b00011111;
-    if (cls == STOP) {
+    if (c == STOP) {
       io.driveVoltage(0, 0);
       canceled = true;
-      return EmptyAction{};
+      return std::make_unique<EmptyAction>();
     }
     if (cls == EX_FWD0) {
       GridCoord v = angleToVector(goalAngle);
@@ -72,15 +74,16 @@ struct CommandAction : Action {
           M_PI / 2.0 -
           goalAngle * M_PI / 4.0; // convert from 0 -> up to 0 -> right
       double vRel = vForward * std::cos(rel.theta - travelAngle);
-      return ProfiledDriveAction{distance, travelAngle, vRel, 0.1};
+      return std::make_unique<ProfiledDriveAction>(distance, travelAngle, vRel, 0.1);
     }
     if (c == IPT180) {
       goalAngle += 4;
+      goalAngle = (goalAngle + 8) % 8;
       io.driveVoltage(0, 0);
-      auto fwdAction = ProfiledDriveAction{
-          CELL_SIZE_METERS, M_PI / 2.0 - goalAngle * M_PI / 4.0, 0, 0.1};
-      return SequentialAction{
-          {YawPIDAction{M_PI / 2.0 - goalAngle * M_PI / 4.0}, fwdAction}};
+      double theta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
+      return std::make_unique<SequentialAction>(SequentialAction::make(
+          YawPIDAction{theta},
+          ProfiledDriveAction{CELL_SIZE_METERS, theta, 0, 0.1}));
     }
     if (cls == EX_ST0) {
       if (c == EX_ST45L) {
@@ -95,8 +98,6 @@ struct CommandAction : Action {
         goalAngle += 2;
       } else if (c == EX_ST135R) {
         goalAngle += 3;
-      } else if (c == IPT180) {
-        goalAngle += 4;
       }
       double targetTheta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
       double currentTheta = io.getWorldCoord().theta;
@@ -113,9 +114,10 @@ struct CommandAction : Action {
       GridCoord v = angleToVector(goalAngle);
       goal.x += v.x;
       goal.y += v.y;
-      return ProfiledCurveAction{CELL_SIZE_METERS / 2.0, turnAngle, vForward,
-                                 0.1};
+      return std::make_unique<ProfiledCurveAction>(
+          CELL_SIZE_METERS / 2.0, turnAngle, vForward, 0.1);
     }
+    return std::make_unique<EmptyAction>();
   }
   void runMMS(MouseState &s, MouseIO &io) {
     io.update(s);

@@ -12,10 +12,10 @@ FloodFillSolver floodFill{};
 FastPathSolver fastPath{};
 Solver noop = Solver{};
 EmptyAction empty = EmptyAction{};
-SequentialAction square = SequentialAction(
-    {YawPIDAction(0), DriveTimeAction(1, 0.5), YawPIDAction(PI / 2),
-     DriveTimeAction(1, 0.5), YawPIDAction(PI), DriveTimeAction(1, 0.5),
-     YawPIDAction(1.5 * PI / 2), DriveTimeAction(1, 0.5), YawPIDAction(0)});
+SequentialAction square = SequentialAction::make(
+    YawPIDAction(0), DriveTimeAction(1, 0.5), YawPIDAction(PI / 2),
+    DriveTimeAction(1, 0.5), YawPIDAction(PI), DriveTimeAction(1, 0.5),
+    YawPIDAction(1.5 * PI / 2), DriveTimeAction(1, 0.5), YawPIDAction(0));
 DriveTimeAction vroom = DriveTimeAction(1000, 0.1);
 YawPIDAction pid = YawPIDAction(0);
 Action *a = &empty;
