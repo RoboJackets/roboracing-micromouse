@@ -6,6 +6,7 @@
 #include "Commands.h"
 #include "ControlActions.h"
 #include "EmptyAction.h"
+#include "SequentialAction.h"
 #include "MMSIO.h"
 
 struct CommandAction : Action {

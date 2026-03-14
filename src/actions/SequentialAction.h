@@ -1,3 +1,4 @@
+#pragma once
 #include "Action.h"
 #include "CommandGenerator.h"
 #include "Commands.h"

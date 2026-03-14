@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include "Constants.h"
 struct GridCoord {
   int x = 0;
   int y = 0;
