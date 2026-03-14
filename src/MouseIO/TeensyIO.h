@@ -18,6 +18,7 @@
 struct TeensyIO : MouseIO {
   unsigned char dir = TOP;
   uint32_t lastMicros = 0;
+  double cachedDt = 0;
   WorldCoord w = WorldCoord{};
   double lastLeftPosition = 0;
   double lastRightPosition = 0;
@@ -128,12 +129,15 @@ struct TeensyIO : MouseIO {
 
   std::vector<WorldCoord> getSensorState() override { return readings; };
 
-  double getDt() override {
+  void updateDt() {
     uint32_t now = micros();
     uint32_t deltaMicros = now - lastMicros;
     lastMicros = now;
-    double dt = deltaMicros * 1e-6;
-    return dt;
+    cachedDt = deltaMicros * 1e-6;
+  }
+
+  double getDt() override {
+    return cachedDt;
   }
 
   void updateSensorState() {
@@ -177,6 +181,7 @@ struct TeensyIO : MouseIO {
   }
 
   void update(MouseState &mouseState) override {
+    updateDt();
     updateSensorState();
     updateEncoders();
     updateWorldCoord();

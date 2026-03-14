@@ -35,7 +35,7 @@ public:
     }
     double error = setpoint - measurement;
     double result = 0;
-    result += measurement * p;
+    result += error * p;
     double derivative = (error - lastError) / dt;
     result += derivative * d;
     accum += error * dt;
