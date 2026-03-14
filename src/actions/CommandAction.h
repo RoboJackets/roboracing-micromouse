@@ -5,7 +5,9 @@
 #include "CommandGenerator.h"
 #include "Commands.h"
 #include "ControlActions.h"
+#include "EmptyAction.h"
 #include "MMSIO.h"
+
 
 struct CommandAction : Action {
   std::vector<unsigned char> buf;
@@ -32,7 +34,7 @@ struct CommandAction : Action {
       return;
     }
     if (curr == nullptr) {
-      determineAction(s, io);
+      curr = &determineAction(s, io);
     }
     curr->run(s, io);
     if (curr->completed()) {
@@ -42,7 +44,7 @@ struct CommandAction : Action {
       curr = nullptr;
     }
   }
-  void determineAction(MouseState &s, MouseIO &io) {
+  Action determineAction(MouseState &s, MouseIO &io) {
     unsigned char c = buf[pc++];
 
     unsigned char cls = c & 0b11100000;
@@ -50,7 +52,7 @@ struct CommandAction : Action {
     if (cls == STOP) {
       io.driveVoltage(0, 0);
       canceled = true;
-      return;
+      return EmptyAction{};
     }
     if (cls == EX_FWD0) {
       GridCoord v = angleToVector(goalAngle);
@@ -70,7 +72,10 @@ struct CommandAction : Action {
           M_PI / 2.0 -
           goalAngle * M_PI / 4.0; // convert from 0 -> up to 0 -> right
       double vRel = vForward * std::cos(rel.theta - travelAngle);
-      curr = &ProfiledDriveAction{distance, travelAngle, vRel, 0};
+      return ProfiledDriveAction{distance, travelAngle, vRel, 0.1};
+    }
+    if (c == IPT180) {
+      return YawPIDAction{M_PI / 2.0 - goalAngle * M_PI / 4.0};
     }
     if (cls == EX_ST0) {
       if (c == EX_ST45L) {
@@ -85,12 +90,26 @@ struct CommandAction : Action {
         goalAngle += 2;
       } else if (c == EX_ST135R) {
         goalAngle += 3;
+      } else if (c == IPT180) {
+        goalAngle += 4;
       }
+      double targetTheta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
+      double currentTheta = io.getWorldCoord().theta;
+      double turnAngle = std::atan2(std::sin(targetTheta - currentTheta),
+                                    std::cos(targetTheta - currentTheta));
+      double vForward =
+          (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
+
+      // Might need to be adjusted so it takes position into consideration,
+      // not just angle.
+
       goalAngle = (goalAngle + 8) % 8;
 
       GridCoord v = angleToVector(goalAngle);
       goal.x += v.x;
       goal.y += v.y;
+      return ProfiledCurveAction{CELL_SIZE_METERS / 2.0, turnAngle, vForward,
+                                 0.1};
     }
   }
   void runMMS(MouseState &s, MouseIO &io) {

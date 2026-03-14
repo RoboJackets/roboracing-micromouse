@@ -13,11 +13,11 @@ FastPathSolver fastPath{};
 Solver noop = Solver{};
 EmptyAction empty = EmptyAction{};
 SequentialAction square = SequentialAction(
-    {DriveTimeAction(1, 0.5), YawPIDAction(90), DriveTimeAction(1, 0.5),
-     YawPIDAction(180), DriveTimeAction(1, 0.5), YawPIDAction(270),
-     DriveTimeAction(1, 0.5), YawPIDAction(0)});
+    {YawPIDAction(0), DriveTimeAction(1, 0.5), YawPIDAction(PI / 2),
+     DriveTimeAction(1, 0.5), YawPIDAction(PI), DriveTimeAction(1, 0.5),
+     YawPIDAction(1.5 * PI / 2), DriveTimeAction(1, 0.5), YawPIDAction(0)});
 DriveTimeAction vroom = DriveTimeAction(1000, 0.1);
-YawPIDAction pid = YawPIDAction(90);
+YawPIDAction pid = YawPIDAction(0);
 Action *a = &empty;
 void switchState(GoalState state) {
   if (currentState == state) {
