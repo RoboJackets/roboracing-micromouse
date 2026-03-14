@@ -47,20 +47,24 @@ struct TeensyIO : MouseIO {
   DRV8833Motor mB = DRV8833Motor(BIN1, BIN2, 1, STBY);
 
   GridCoord getGridCoord() override {
-    int gx = (int)(w.x / CELL_SIZE_METERS + 0.5);
-    int gy = (int)(w.y / CELL_SIZE_METERS + 0.5);
+    int gx = std::lround(w.x / CELL_SIZE_METERS);
+    int gy = std::lround(w.y / CELL_SIZE_METERS);
     unsigned char dir = getGridDir(w.theta);
-    unsigned char theta = getGyroYaw();
     // TODO: update gyro
     return GridCoord{gx, gy, dir};
   }
 
   unsigned char getGridDir(double angle) {
-    angle = std::fmod(angle, 2 * PI);
-    return (angle >= 315 || angle < 45) ||
-           (1 << (angle >= 45 && angle < 135)) ||
-           (2 << (angle >= 135 && angle < 225)) ||
-           (3 << (angle >= 225 && angle < 315));
+    double deg = std::fmod(angle * 180.0 / M_PI, 360.0);
+    if (deg < 0)
+      deg += 360;
+    if (deg >= 315 || deg < 45)
+      return TOP;
+    if (deg < 135)
+      return RIGHT;
+    if (deg < 225)
+      return DOWN;
+    return LEFT;
   }
 
   WorldCoord getWorldCoord() override { return w; }
@@ -161,11 +165,13 @@ struct TeensyIO : MouseIO {
         double angle = gridRelative.theta + sensors.at(i).pos_from_center.theta;
         unsigned char sensedWall = getGridDir(angle);
         mouseState.walls[gx][gy] |= sensedWall;
-        int cx = ((abs(std::cos(angle)) > sqrt(2) / 2) ? 1 : 0) *
+        int cx = ((std::abs(std::cos(angle)) > sqrt(2) / 2) ? 1 : 0) *
                  (std::cos(angle) < 0 ? -1 : 1);
-        int cy = ((abs(std::sin(angle)) > sqrt(2) / 2) ? 1 : 0) *
+        int cy = ((std::abs(std::sin(angle)) > sqrt(2) / 2) ? 1 : 0) *
                  (std::sin(angle) < 0 ? -1 : 1);
-        mouseState.walls[gx + cx][gy + cy] |= sensedWall;
+        unsigned char oppositeWall =
+            ((sensedWall >> 2) | (sensedWall << 2)) & 0x0F;
+        mouseState.walls[gx + cx][gy + cy] |= oppositeWall;
       }
     }
   }

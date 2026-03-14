@@ -8,7 +8,6 @@
 #include "EmptyAction.h"
 #include "MMSIO.h"
 
-
 struct CommandAction : Action {
   std::vector<unsigned char> buf;
   size_t pc = 0;
@@ -75,7 +74,12 @@ struct CommandAction : Action {
       return ProfiledDriveAction{distance, travelAngle, vRel, 0.1};
     }
     if (c == IPT180) {
-      return YawPIDAction{M_PI / 2.0 - goalAngle * M_PI / 4.0};
+      goalAngle += 4;
+      io.driveVoltage(0, 0);
+      auto fwdAction = ProfiledDriveAction{
+          CELL_SIZE_METERS, M_PI / 2.0 - goalAngle * M_PI / 4.0, 0, 0.1};
+      return SequentialAction{
+          {YawPIDAction{M_PI / 2.0 - goalAngle * M_PI / 4.0}, fwdAction}};
     }
     if (cls == EX_ST0) {
       if (c == EX_ST45L) {
