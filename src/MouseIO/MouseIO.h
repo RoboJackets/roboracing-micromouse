@@ -20,6 +20,7 @@ struct MouseIO {
   virtual double getGyroYaw() { return 0; };
   virtual void setState(IdealState state) {};
   virtual std::vector<WorldCoord> getSensorState() { return {}; };
+  virtual std::vector<WorldCoord> getAverageSensorState() { return {}; };
   virtual void setGyroOffset(double offset) {};
   virtual void setWorldCoord(WorldCoord c) {};
 

@@ -73,7 +73,9 @@ struct ProfiledDriveAction : Action {
   PID irPID = PID{IRadjust};
   void cancel() override { canceled = true; }
   bool completed() const override {
-    return std::abs(error) < 0.005 || canceled;
+    return std::abs(error) < 0.005 || canceled ||
+           io->getAverageSensorState()[0].hypot() < 0.1 ||
+           io->getAverageSensorState()[1].hypot() < 0.1;
   }
   double irDelta = 0;
   void run(MouseState &s, MouseIO &io) override {
@@ -123,7 +125,9 @@ struct ProfiledCurveAction : Action {
 
   void cancel() override { canceled = true; }
   bool completed() const override {
-    return std::abs(error) < 0.005 || canceled;
+    return std::abs(error) < 0.005 || canceled ||
+           io->getAverageSensorState()[0].hypot() < 0.1 ||
+           io->getAverageSensorState()[1].hypot() < 0.1;
   }
 
   void run(MouseState &s, MouseIO &io) override {

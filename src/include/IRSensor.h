@@ -11,28 +11,32 @@ struct IRSensor {
   uint8_t EMIT;
   uint8_t RECV;
 
-  double buffer[IR_AVG_WINDOW]{};
+  WorldCoord buffer[IR_AVG_WINDOW]{};
   int buf_index = 0;
   int buf_count = 0;
 
-  void addReading(double dist) {
-    buffer[buf_index] = dist;
+  void addReading(WorldCoord coord) {
+    buffer[buf_index] = coord;
     buf_index = (buf_index + 1) % IR_AVG_WINDOW;
-    if (buf_count < IR_AVG_WINDOW) buf_count++;
+    if (buf_count < IR_AVG_WINDOW)
+      buf_count++;
   }
 
-  double getAverage() {
-    double sum = 0;
+  WorldCoord getAverage() {
+    double sum_x = 0, sum_y = 0;
     for (int i = 0; i < buf_count; i++) {
-      sum += buffer[i];
+      sum_x += buffer[i].x;
+      sum_y += buffer[i].y;
     }
-    return sum / buf_count;
+    return {sum_x / buf_count, sum_y / buf_count, pos_from_center.theta};
   }
 
   WorldCoord getReading(double dist) {
-    addReading(dist);
-    double avg = getAverage();
-    return {std::cos(pos_from_center.theta) * avg - pos_from_center.x,
-            std::sin(pos_from_center.theta) * avg - pos_from_center.y};
+    WorldCoord coord = {
+        std::cos(pos_from_center.theta) * dist - pos_from_center.x,
+        std::sin(pos_from_center.theta) * dist - pos_from_center.y,
+        pos_from_center.theta};
+    addReading(coord);
+    return getAverage();
   }
 };

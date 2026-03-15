@@ -14,6 +14,7 @@
 #include "Types.h"
 #include <DRV8833.h>
 #include <Gyro.cpp>
+#include "SDLogger.h"
 
 struct TeensyIO : MouseIO {
   unsigned char dir = TOP;
@@ -31,6 +32,7 @@ struct TeensyIO : MouseIO {
   std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0},
                                       EncoderSensor{BCODER_a, BCODER_b, 0}};
   std::vector<WorldCoord> readings{};
+  std::vector<WorldCoord> readingsAverage{};
 
   static TeensyIO *instance;
   static void isr0() { instance->encoders[0].updateEncoder(); }
@@ -76,7 +78,7 @@ struct TeensyIO : MouseIO {
 
     if (readings.size() >= 2 && readings.at(0).hypot() < 0.18 &&
         readings.at(1).hypot() < 0.18) {
-      double deltaR = readings.at(0).y - readings.at(1).y;
+      double deltaR = readingsAverage.at(0).y - readingsAverage.at(1).y;
       double sensorYaw = std::atan2(deltaR, FRONT_SENSOR_SEP);
       double currentHeading = gyroYaw - gyroOffset;
       double nearestCardinal =
@@ -128,7 +130,9 @@ struct TeensyIO : MouseIO {
   double getGyroYaw() override { return gyroYaw; };
 
   std::vector<WorldCoord> getSensorState() override { return readings; };
-
+  std::vector<WorldCoord> getAverageSensorState() override {
+    return readingsAverage;
+  };
   void updateDt() {
     uint32_t now = micros();
     uint32_t deltaMicros = now - lastMicros;
@@ -136,12 +140,11 @@ struct TeensyIO : MouseIO {
     cachedDt = deltaMicros * 1e-6;
   }
 
-  double getDt() override {
-    return cachedDt;
-  }
+  double getDt() override { return cachedDt; }
 
   void updateSensorState() {
     readings.clear();
+    readingsAverage.clear();
     for (int i = 0; i < sensors.size(); i++) {
       IRSensor sensor = sensors.at(i);
       digitalWrite(sensor.EMIT, HIGH);
@@ -153,6 +156,7 @@ struct TeensyIO : MouseIO {
                              : 0.647426 / pow(max(post, 1), 0.516999);
       Serial.println(post);
       readings.push_back(sensor.getReading(dist));
+      readingsAverage.push_back(sensor.getAverage());
     }
     gyro.update();
     gyroYaw = gyro.ypr[0];
@@ -186,10 +190,12 @@ struct TeensyIO : MouseIO {
     updateEncoders();
     updateWorldCoord();
     updateMazeState(mouseState);
+    Logger::tick();
   }
 
   void init() override {
     instance = this;
+    Logger::init();
     lastMicros = micros();
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(EMIT_1, OUTPUT);
