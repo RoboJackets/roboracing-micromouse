@@ -11,10 +11,11 @@
 #include "Mouse.h"
 #include "MouseIO.h"
 #include "Pins.h"
+#include "SDLogger.h"
 #include "Types.h"
 #include <DRV8833.h>
 #include <Gyro.cpp>
-#include "SDLogger.h"
+
 
 struct TeensyIO : MouseIO {
   unsigned char dir = TOP;
@@ -154,7 +155,6 @@ struct TeensyIO : MouseIO {
       // relative to mouse in m
       double dist = post < 4 ? std::numeric_limits<double>::infinity()
                              : 0.647426 / pow(max(post, 1), 0.516999);
-      Serial.println(post);
       readings.push_back(sensor.getReading(dist));
       readingsAverage.push_back(sensor.getAverage());
     }

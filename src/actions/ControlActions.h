@@ -42,12 +42,7 @@ struct YawPIDAction : Action {
     double measure_r = io.getWorldCoord().theta;
     double error_raw = setpoint_r - measure_r;
     error = std::atan2(std::sin(error_raw), std::cos(error_raw));
-    Serial.print(error);
-    Serial.print("     ");
-    Serial.print(io.getGyroYaw());
-    Serial.print("     ");
     double c = p.calculate(error, 0, io.getDt());
-    Serial.println(c);
     io.driveVoltage(c, -c);
   }
 
