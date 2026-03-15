@@ -1,3 +1,4 @@
+#pragma once
 #include "Action.h"
 #include "CommandGenerator.h"
 #include "Commands.h"
@@ -37,7 +38,7 @@ struct YawPIDAction : Action {
   YawPIDAction(double setpoint) : setpoint(setpoint) {}
 
   void run(MouseState &s, MouseIO &io) override {
-    double setpoint_r = setpoint * (PI / 180);
+    double setpoint_r = setpoint;
     double measure_r = io.getWorldCoord().theta;
     double error_raw = setpoint_r - measure_r;
     error = std::atan2(std::sin(error_raw), std::cos(error_raw));
@@ -113,8 +114,8 @@ struct ProfiledCurveAction : Action {
   double error = 0;
   double setpoint;
 
-  ProfiledCurveAction(double radius, double angle,
-                      double initialVelocity, double finalVelocity)
+  ProfiledCurveAction(double radius, double angle, double initialVelocity,
+                      double finalVelocity)
       : profile({CURVE_VELOCITY, MAX_ACCEL_M_S2, initialVelocity, finalVelocity,
                  profilePIDConstants, radius * std::abs(angle)}),
         outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius),

@@ -210,7 +210,7 @@ void search_all(const MouseState &state) {
     std::string s = path_to_instruct(vec);
     // std::cerr << s << std::endl;
     std::vector<unsigned char> v = std::move(parse(s));
-    int w = computeWeight(v);
+    double w = computeWeight(v);
     if (w < bestWeight) {
       bestWeight = w;
       bestVec = std::move(v);
