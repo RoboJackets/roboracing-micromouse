@@ -9,13 +9,15 @@
 #include <string>
 #include <vector>
 
+#include "Types.h"
+
 class Logger {
   static inline SdFat sd;
   static inline SdFile file;
   static inline bool initialized = false;
   static inline bool headerWritten = false;
 
-  static inline std::map<std::string, double> currentRow;
+  static inline std::map<std::string, std::string> currentRow;
   static inline std::vector<std::string> columns;
 
   static constexpr size_t BUF_SIZE = 4096;
@@ -57,11 +59,33 @@ class Logger {
     headerWritten = true;
   }
 
+  static void addColumn(const std::string &key) {
+    for (auto &col : columns) {
+      if (col == key)
+        return;
+    }
+    columns.push_back(key);
+  }
+
+  static void logRaw(const std::string &key, const std::string &value) {
+    if (!initialized)
+      return;
+    currentRow[key] = value;
+    addColumn(key);
+  }
+
+  static std::string indexed(const char *key, int i) {
+    return std::string(key) + "[" + std::to_string(i) + "]";
+  }
+
+  static std::string indexed(const char *key, int i, int j) {
+    return std::string(key) + "[" + std::to_string(i) + "][" +
+           std::to_string(j) + "]";
+  }
+
 public:
   static void init() {
     if (!sd.begin(SdioConfig(FIFO_SDIO))) {
-
-      // Blink LED to indicate failure
       pinMode(LED_BUILTIN, OUTPUT);
       for (int i = 0; i < 10; i++) {
         digitalWrite(LED_BUILTIN, HIGH);
@@ -89,14 +113,93 @@ public:
   }
 
   static void log(const char *key, double value) {
-    if (!initialized)
-      return;
-    currentRow[key] = value;
-    for (auto &col : columns) {
-      if (col == key)
-        return;
+    char num[24];
+    snprintf(num, sizeof(num), "%.6f", value);
+    logRaw(key, num);
+  }
+
+  static void log(const char *key, float value) { log(key, (double)value); }
+
+  static void log(const char *key, int value) {
+    logRaw(key, std::to_string(value));
+  }
+
+  static void log(const char *key, unsigned int value) {
+    logRaw(key, std::to_string(value));
+  }
+
+  static void log(const char *key, long value) {
+    logRaw(key, std::to_string(value));
+  }
+
+  static void log(const char *key, unsigned long value) {
+    logRaw(key, std::to_string(value));
+  }
+
+  static void log(const char *key, bool value) {
+    logRaw(key, value ? "1" : "0");
+  }
+
+  static void log(const char *key, unsigned char value) {
+    logRaw(key, std::to_string((int)value));
+  }
+
+  static void log(const char *key, const char *value) { logRaw(key, value); }
+
+  static void log(const char *key, const std::string &value) {
+    logRaw(key, value);
+  }
+
+  template <typename T>
+  static typename std::enable_if<std::is_enum<T>::value>::type
+  log(const char *key, T value) {
+    logRaw(key, std::to_string(static_cast<int>(value)));
+  }
+
+  static void log(const char *key, const WorldCoord &c) {
+    std::string k(key);
+    log((k + "/x").c_str(), c.x);
+    log((k + "/y").c_str(), c.y);
+    log((k + "/theta").c_str(), c.theta);
+  }
+
+  static void log(const char *key, const GridCoord &c) {
+    std::string k(key);
+    log((k + "/x").c_str(), c.x);
+    log((k + "/y").c_str(), c.y);
+    log((k + "/dir").c_str(), c.dir);
+  }
+
+  template <typename T>
+  static void log(const char *key, const std::vector<T> &vec) {
+    for (size_t i = 0; i < vec.size(); i++) {
+      log(indexed(key, i).c_str(), vec[i]);
     }
-    columns.push_back(key);
+  }
+
+  template <typename T, size_t N>
+  static void log(const char *key, const T (&arr)[N]) {
+    for (size_t i = 0; i < N; i++) {
+      log(indexed(key, i).c_str(), arr[i]);
+    }
+  }
+
+  template <typename T, size_t R, size_t C>
+  static void log(const char *key, const T (&arr)[R][C]) {
+    for (size_t i = 0; i < R; i++) {
+      for (size_t j = 0; j < C; j++) {
+        log(indexed(key, i, j).c_str(), arr[i][j]);
+      }
+    }
+  }
+
+  template <typename T>
+  static void log(const char *key, const std::vector<std::vector<T>> &vec) {
+    for (size_t i = 0; i < vec.size(); i++) {
+      for (size_t j = 0; j < vec[i].size(); j++) {
+        log(indexed(key, i, j).c_str(), vec[i][j]);
+      }
+    }
   }
 
   static void tick() {
@@ -122,8 +225,7 @@ public:
       bufWrite(",");
       auto it = currentRow.find(col);
       if (it != currentRow.end()) {
-        snprintf(num, sizeof(num), "%.6f", it->second);
-        bufWrite(num);
+        bufWrite(it->second.c_str());
       }
     }
     bufWrite("\n");
@@ -145,10 +247,13 @@ public:
 
 #else
 
+// No-op logger for simulation builds
 class Logger {
 public:
   static void init() {}
-  static void log(const char *, double) {}
+  static void log(const char *, ...) {}
+  template <typename T> static void log(const char *, const T &) {}
+  template <typename T> static void log(const char *, const std::vector<T> &) {}
   static void tick() {}
   static void close() {}
 };
