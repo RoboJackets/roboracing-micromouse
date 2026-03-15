@@ -176,7 +176,6 @@ Action *FloodFillSolver::run(MouseState &state, const Goals *goal) {
   floodFill(state, goal);
   unsigned char dir = traverse(state, goal);
   unsigned char c = stepInstr(state.dir, dir);
-  CommandAction cmd{};
   cmd.load({c});
   return &cmd;
 }
