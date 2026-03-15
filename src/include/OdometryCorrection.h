@@ -13,18 +13,29 @@ struct OdometeryCorrection {
     std::vector<WorldCoord> readings{};
 
     double getError() {
-
+        WorldCoord derived = deriveCoordFromIR();
+        double errorX = derived.x - cur.x;
+        double errorY = derived.y - cur.y;
+        return std::hypot(errorX, errorY);
     }
 
-    double deriveCoordFromIR() {
+    WorldCoord deriveCoordFromIR() {
+        double sumX = 0;
+        double sumY = 0;
+
+
         for (int i = 0; i < readings.size(); i++) {
-            Serial.print("This is x from");
-            Serial.print(i);
-            Serial.println(readings[i].x);
-            Serial.print("This is y from");
-            Serial.print(i);
-            Serial.println(readings[i].y);
+
+            sumX += readings.at(i).x;
+            sumY += readings.at(i).y;
+   
+
         }
+        sumX /= readings.size();
+        sumY /= readings.size();
+        return {sumX, sumY};
+        // logic to derive world coord from IR readings
+        return {};
     }
 };
 
