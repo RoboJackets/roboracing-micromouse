@@ -16,7 +16,6 @@
 #include <DRV8833.h>
 #include <Gyro.cpp>
 
-
 struct TeensyIO : MouseIO {
   unsigned char dir = TOP;
   uint32_t lastMicros = 0;
@@ -27,9 +26,10 @@ struct TeensyIO : MouseIO {
   double leftPosition = 0;
   double rightPosition = 0;
   double gyroYaw = 0;
+  // FL, FR, DL, DR
   std::vector<IRSensor> sensors{
-      IRSensor{{}, EMIT_1, RECV_1}, IRSensor{{}, EMIT_1, RECV_1},
-      IRSensor{{}, EMIT_1, RECV_1}, IRSensor{{}, EMIT_1, RECV_1}};
+      IRSensor{{}, EMIT_1, RECV_1}, IRSensor{{}, EMIT_4, RECV_4},
+      IRSensor{{}, EMIT_2, RECV_2}, IRSensor{{}, EMIT_3, RECV_3}};
   std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0},
                                       EncoderSensor{BCODER_a, BCODER_b, 0}};
   std::vector<WorldCoord> readings{};
