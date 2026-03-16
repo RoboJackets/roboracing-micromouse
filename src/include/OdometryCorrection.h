@@ -25,6 +25,7 @@ struct OdometeryCorrection {
             return cur;
 
         double wx = 0, wy = 0, totalWeight = 0;
+        // Find the closest reading as a reference point
         auto ref = *std::min_element(readings.begin(), readings.end(),
                                      [](WorldCoord &a, WorldCoord &b)
                                      {
@@ -54,5 +55,14 @@ struct OdometeryCorrection {
         double dist = std::hypot(readingA.x - readingB.x, readingA.y - readingB.y);
         return dist < threshold;
     }
+
+    WorldCoord correct() {
+        double error = getError();
+        double trust = IR_SENSOR_TRUST;
+        double correctedX = (1-trust) * cur.x + trust * (deriveCoordFromIR().x - cur.x);
+        double correctedY = (1-trust) * cur.y + trust * (deriveCoordFromIR().y - cur.y);
+        return {correctedX, correctedY, cur.theta};
+
+        }
 };
 
