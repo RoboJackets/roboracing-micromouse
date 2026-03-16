@@ -15,7 +15,7 @@
 #include "Types.h"
 #include <DRV8833.h>
 #include <Gyro.cpp>
-
+#include "OdometryCorrection.h"
 
 struct TeensyIO : MouseIO {
   unsigned char dir = TOP;
@@ -143,6 +143,13 @@ struct TeensyIO : MouseIO {
 
   double getDt() override { return cachedDt; }
 
+  void updateOdometry() {
+    OdometeryCorrection correction{};
+    correction.cur = w;
+    correction.readings = readings;
+    w = correction.correct();
+  }
+    
   void updateSensorState() {
     readings.clear();
     readingsAverage.clear();
