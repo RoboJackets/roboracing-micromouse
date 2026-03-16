@@ -70,6 +70,108 @@ struct TeensyIO : MouseIO {
       return DOWN;
     return LEFT;
   }
+  // IR stuff under here
+  std::pair<WorldCoord, WorldCoord> deriveCoordFromIR()
+  {
+    auto fuse = [&](int iA, int iB) -> WorldCoord
+    {
+      WorldCoord a = readings[iA];
+      WorldCoord b = readings[iB];
+      bool aValid = std::isfinite(a.hypot()) && a.hypot() > 0;
+      bool bValid = std::isfinite(b.hypot()) && b.hypot() > 0;
+
+      if (!aValid && !bValid)
+        return WorldCoord{};
+      if (aValid && !bValid)
+        return a;
+      if (!aValid && bValid)
+        return b;
+
+      if (!sameObject(a, b))
+        return a.hypot() < b.hypot() ? a : b;
+
+      double wA = 1.0 / (a.hypot() + 0.01);
+      double wB = 1.0 / (b.hypot() + 0.01);
+      double total = wA + wB;
+      return WorldCoord{
+          (a.x * wA + b.x * wB) / total,
+          (a.y * wA + b.y * wB) / total,
+          w.theta};
+    };
+
+    return {fuse(0, 2), fuse(1, 3)};
+  }
+
+  bool sameObject(WorldCoord readingA, WorldCoord readingB, double threshold)
+  {
+    double angleA = std::atan2(readingA.y, readingA.x);
+    double angleB = std::atan2(readingB.y, readingB.x);
+    double angleDiff = std::abs(angleA - angleB);
+    if (angleDiff > M_PI)
+      angleDiff = 2 * M_PI - angleDiff;
+    if (angleDiff > M_PI / 2.0)
+      return false;
+
+    double distA = readingA.hypot();
+    double distB = readingB.hypot();
+    return std::abs(distA - distB) < threshold;
+  }
+
+  double computeIRConfidence() // This is chat slop, ommitable if it doesn't work well
+  {
+    if (readings.size() < 4)
+      return 0.0;
+
+    auto countAgreeing = [&](int iA, int iB) -> int
+    {
+      WorldCoord a = readings[iA];
+      WorldCoord b = readings[iB];
+      bool aValid = std::isfinite(a.hypot()) && a.hypot() > 0;
+      bool bValid = std::isfinite(b.hypot()) && b.hypot() > 0;
+      if (!aValid && !bValid)
+        return 0;
+      if (!aValid || !bValid)
+        return 1;
+      return sameObject(a, b) ? 2 : 1;
+    };
+
+    double agreementScore = (countAgreeing(0, 2) + countAgreeing(1, 3)) / 4.0;
+
+    double totalDist = 0;
+    int count = 0;
+    for (auto &r : readings)
+    {
+      if (std::isfinite(r.hypot()) && r.hypot() > 0)
+      {
+        totalDist += r.hypot();
+        count++;
+      }
+    }
+    double avgDist = count > 0 ? totalDist / count : 1.0;
+    double distancePenalty = 1.0 / (1.0 + avgDist);
+
+    return agreementScore * distancePenalty;
+  }
+
+  WorldCoord correct()
+  {
+    double error = getError();
+    double confidence = computeIRConfidence();
+    double correctionStrength = confidence * std::exp(-error); // Should prolly tune ts
+    WorldCoord derived = deriveCoordFromIR();
+    double correctedX = w.x + correctionStrength * (derived.x - w.x);
+    double correctedY = w.y + correctionStrength * (derived.y - w.y);
+
+    return {correctedX, correctedY, w.theta};
+  }
+
+  double getError()
+  {
+    WorldCoord derived = deriveCoordFromIR();
+    double errorX = derived.x - w.x;
+    double errorY = derived.y - w.y;
+    return std::hypot(errorX, errorY);
+  }
 
   WorldCoord getWorldCoord() override { return w; }
   void updateWorldCoord() override {
@@ -92,6 +194,8 @@ struct TeensyIO : MouseIO {
     double deltaY = wheelDelta * std::sin(theta);
 
     w = WorldCoord{w.x + deltaX, w.y + deltaY, theta};
+    // IR correction here 
+    w = correct();
   }
   void updateEncoders() {
     lastLeftPosition = leftPosition;
@@ -143,13 +247,6 @@ struct TeensyIO : MouseIO {
 
   double getDt() override { return cachedDt; }
 
-  void updateOdometry() {
-    OdometeryCorrection correction{};
-    correction.cur = w;
-    correction.readings = readings;
-    w = correction.correct();
-  }
-    
   void updateSensorState() {
     readings.clear();
     readingsAverage.clear();
