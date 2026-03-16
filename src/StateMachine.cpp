@@ -1,7 +1,4 @@
 #include "StateMachine.h"
-#include "ControlActions.h"
-#include "SequentialAction.h"
-#include <string>
 
 namespace StateMachine {
 GoalState currentState = GoalState::GOAL_SEARCH;
@@ -15,12 +12,12 @@ FloodFillSolver floodFill{};
 FastPathSolver fastPath{};
 Solver noop = Solver{};
 EmptyAction empty = EmptyAction{};
-SequentialAction square = SequentialAction(
-    {DriveTimeAction(1, 0.5), YawPIDAction(90), DriveTimeAction(1, 0.5),
-     YawPIDAction(180), DriveTimeAction(1, 0.5), YawPIDAction(270),
-     DriveTimeAction(1, 0.5), YawPIDAction(0)});
+SequentialAction square = SequentialAction::make(
+    YawPIDAction(0), DriveTimeAction(1, 0.5), YawPIDAction(PI / 2),
+    DriveTimeAction(1, 0.5), YawPIDAction(PI), DriveTimeAction(1, 0.5),
+    YawPIDAction(1.5 * PI / 2), DriveTimeAction(1, 0.5), YawPIDAction(0));
 DriveTimeAction vroom = DriveTimeAction(1000, 0.1);
-YawPIDAction pid = YawPIDAction(90);
+YawPIDAction pid = YawPIDAction(0);
 Action *a = &empty;
 void switchState(GoalState state) {
   if (currentState == state) {
@@ -95,7 +92,7 @@ void tick(MouseIO *io) {
   updateState();          // determine overall goal (solver)
   if (a->completed()) {
     a->end(mouseState, *io);
-    a = &empty; // determine action
+    a = solver->run(mouseState, goal); // determine action
   }
   a->run(mouseState, *io); // run action
 }

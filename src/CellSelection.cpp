@@ -1,13 +1,5 @@
 #include "CellSelection.h"
 
-#include "CommandGenerator.h"
-#include "Mouse.h"
-#include <queue>
-#include <sstream>
-#include <stack>
-#include <string>
-#include <unordered_set>
-
 void floodFill(MouseState &state, const Goals *goal, int (&dists)[N][N]) {
   for (int x = 0; x < N; ++x) {
     for (int y = 0; y < N; ++y) {
@@ -212,12 +204,19 @@ void search_all(const MouseState &state) {
   dfs(state, start, temp, visited, solutions);
 
   double bestWeight = 9999999999999.0;
+  std::vector<unsigned char> bestVec{};
 
   for (const auto &vec : solutions) {
     std::string s = path_to_instruct(vec);
     // std::cerr << s << std::endl;
     std::vector<unsigned char> v = std::move(parse(s));
+    double w = computeWeight(v);
+    if (w < bestWeight) {
+      bestWeight = w;
+      bestVec = std::move(v);
+    }
   }
+  cmds = bestVec;
 }
 std::vector<unsigned char> getCmds() { return cmds; }
 } // namespace CellSelection

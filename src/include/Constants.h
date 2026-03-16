@@ -1,18 +1,31 @@
 #pragma once
 
+#include <cmath>
 #include <cstdint>
 
 constexpr uint32_t EMIT_RECV_DELAY_US = 10'000;
 
-double WHEEL_RADIUS_M = 0.1;
+constexpr double WHEEL_RADIUS_M = 0.1;
 
-double COUNTS_PER_REVOLUTION = 1;
+constexpr double COUNTS_PER_REVOLUTION = 1;
 
-double CELL_SIZE_METERS = 0.2;
-double MAX_SPEED_M_S = 10;
-double MAX_ACCEL_M_S2 = 5;
-double WHEEL_SEPERATION_M = 0.1;
-double MAX_ROT_SPEED_RAD_S = (2 * MAX_SPEED_M_S) / WHEEL_SEPERATION_M;
-double MAX_ROT_SPEED_RAD_S2 = (2 * MAX_ACCEL_M_S2) / WHEEL_SEPERATION_M;
-double COEF_FRICTION = 1;
-double DRIVE_G_RATIO = 1;
+constexpr double ROBOT_LENGTH = 0.1;
+
+constexpr double CELL_SIZE_METERS = 0.2;
+constexpr double MAX_SPEED_M_S = 10;
+constexpr double MAX_ACCEL_M_S2 = 5;
+constexpr double WHEEL_SEPERATION_M = 0.1;
+constexpr double MAX_ROT_SPEED_RAD_S = (2 * MAX_SPEED_M_S) / WHEEL_SEPERATION_M;
+constexpr double MAX_ROT_SPEED_RAD_S2 =
+    (2 * MAX_ACCEL_M_S2) / WHEEL_SEPERATION_M;
+constexpr double COEF_FRICTION = 1;
+constexpr double DRIVE_GEAR_RATIO = 1;
+constexpr double MAX_CURVE_SPEED_M_S =
+    MAX_SPEED_M_S / (1 + WHEEL_SEPERATION_M / CELL_SIZE_METERS);
+constexpr double MASS = 1;
+constexpr double MAX_CURVE_CF = MASS * 9.81 * COEF_FRICTION;
+const double CURVE_VELOCITY =
+    std::sqrt((MAX_CURVE_CF * CELL_SIZE_METERS / 2) / MASS);
+
+constexpr double FRONT_SENSOR_SEP = 1;
+constexpr double GYRO_ALPHA = 0.98;
