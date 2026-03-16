@@ -68,12 +68,14 @@ struct ProfiledDriveAction : Action {
   PID irPID = PID{IRadjust};
   void cancel() override { canceled = true; }
   bool completed() const override {
-    return std::abs(error) < 0.005 || canceled ||
-           io->getAverageSensorState()[0].hypot() < 0.1 ||
-           io->getAverageSensorState()[1].hypot() < 0.1;
+    return std::abs(error) < 0.005 || canceled;
   }
   double irDelta = 0;
   void run(MouseState &s, MouseIO &io) override {
+    if (io.getAverageSensorState()[0].hypot() < 0.1 ||
+        io.getAverageSensorState()[1].hypot() < 0.1) {
+      canceled = true;
+    }
     WorldCoord w = io.getWorldCoord();
     if (!started) {
       prevCoord = w;
@@ -120,12 +122,14 @@ struct ProfiledCurveAction : Action {
 
   void cancel() override { canceled = true; }
   bool completed() const override {
-    return std::abs(error) < 0.005 || canceled ||
-           io->getAverageSensorState()[0].hypot() < 0.1 ||
-           io->getAverageSensorState()[1].hypot() < 0.1;
+    return std::abs(error) < 0.005 || canceled;
   }
 
   void run(MouseState &s, MouseIO &io) override {
+    if (io.getAverageSensorState()[0].hypot() < 0.1 ||
+        io.getAverageSensorState()[1].hypot() < 0.1) {
+      canceled = true;
+    }
     WorldCoord w = io.getWorldCoord();
     if (!started) {
       prevTheta = w.theta;
