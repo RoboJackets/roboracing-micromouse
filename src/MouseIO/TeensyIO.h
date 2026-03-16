@@ -82,13 +82,12 @@ struct TeensyIO : MouseIO {
     return dt;
   }
 
-  void correctOdometry() {
-    OdometryCorrection odometryCorrection{};
-    odometeryCorrection.cur = getWorldCoord();
-    odometeryCorrection.readings = getSensorState();
-    curWorldCoord = getWorldCoord();
-    odometryCorrection.cur = curWorldCoord;
-    odometryCorrection.readings = getSensorState();
+  void updateOdometry() {
+    OdometeryCorrection correction{};
+    correction.cur = w;
+    correction.readings = readings;
+    w = correction.correct();
+  }
     
   void updateSensorState() {
     readings.clear();
@@ -110,6 +109,7 @@ struct TeensyIO : MouseIO {
 
   void update(MouseState &mouseState) override {
     updateSensorState();
+    updateOdometry();
     // updateEncoders();
     // updateWorldCoord();
   }
