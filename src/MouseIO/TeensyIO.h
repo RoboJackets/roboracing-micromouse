@@ -44,8 +44,8 @@ struct TeensyIO : MouseIO {
   MotorFeedForward leftff{0, 0, 0};
   MotorFeedForward rightff{0, 0, 0};
 
-  DRV8833Motor mA = DRV8833Motor(AIN1, AIN2, -1, STBY);
-  DRV8833Motor mB = DRV8833Motor(BIN1, BIN2, 1, STBY);
+  DRV8833Motor mLeft = DRV8833Motor(AIN1, AIN2, 1, STBY);
+  DRV8833Motor mRight = DRV8833Motor(BIN1, BIN2, 1, STBY);
 
   GridCoord getGridCoord() override {
     int gx = std::lround(w.x / CELL_SIZE_METERS);
@@ -103,8 +103,8 @@ struct TeensyIO : MouseIO {
     double l = std::clamp(left, -1.0, 1.0);
     double r = std::clamp(right, -1.0, 1.0);
     // Serial.println(l);
-    mA.drive((int)(l * 255));
-    mB.drive((int)(r * 255));
+    mLeft.drive((int)(l * 255));
+    mRight.drive((int)(r * 255));
   }
   void setGyroOffset(double offset) { gyroOffset = offset; }
 
@@ -200,7 +200,6 @@ struct TeensyIO : MouseIO {
     updateEncoders();
     updateWorldCoord();
     updateMazeState(mouseState);
-    driveVoltage(-0.4, 0);
     // Logger::tick();
   }
 
@@ -220,8 +219,8 @@ struct TeensyIO : MouseIO {
 
     gyro.initalizeGyro();
 
-    mA.begin();
-    mB.begin();
+    mLeft.begin();
+    mRight.begin();
 
     Serial.begin(9600);
   };

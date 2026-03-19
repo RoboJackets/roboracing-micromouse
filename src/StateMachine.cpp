@@ -95,6 +95,6 @@ void tick(MouseIO *io) {
     // a = solver->run(mouseState, goal); // determine action
     a = &pid;
   }
-  // a->run(mouseState, *io); // run action
+  a->run(mouseState, *io); // run action
 }
 } // namespace StateMachine

@@ -20,8 +20,6 @@ constexpr double MAX_ROT_SPEED_RAD_S2 =
     (2 * MAX_ACCEL_M_S2) / WHEEL_SEPERATION_M;
 constexpr double COEF_FRICTION = 1;
 constexpr double DRIVE_GEAR_RATIO = 1;
-constexpr double MAX_CURVE_SPEED_M_S =
-    MAX_SPEED_M_S / (1 + WHEEL_SEPERATION_M / CELL_SIZE_METERS);
 constexpr double MASS = 1;
 constexpr double MAX_CURVE_CF = MASS * 9.81 * COEF_FRICTION;
 const double CURVE_VELOCITY =
