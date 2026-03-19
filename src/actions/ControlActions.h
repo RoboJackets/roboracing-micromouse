@@ -30,7 +30,7 @@ struct YawPIDAction : Action {
   bool canceled = false;
   double error = 0;
   void cancel() override { canceled = true; }
-  bool completed() const override { return std::abs(error) < 0.01 || canceled; }
+  bool completed() const override { return canceled; }
 
   PID p{rot90PIDConstants};
   double setpoint;
@@ -44,9 +44,15 @@ struct YawPIDAction : Action {
     error = std::atan2(std::sin(error_raw), std::cos(error_raw));
     double c = p.calculate(error, 0, io.getDt());
     io.driveVoltage(c, -c);
+    // Serial.print("VOLTS: ");
+    // Serial.print(c);
+    // Serial.print("    ");
+    // Serial.print("GYRO: ");
+    // Serial.println(measure_r);
   }
 
   void end(MouseState &s, MouseIO &io) override {
+    Serial.print("ENDED!!!");
     io.driveVoltage(0.0, 0.0);
     p.resetAccum();
   }

@@ -30,8 +30,8 @@ struct TeensyIO : MouseIO {
   std::vector<IRSensor> sensors{
       IRSensor{{}, EMIT_1, RECV_1}, IRSensor{{}, EMIT_4, RECV_4},
       IRSensor{{}, EMIT_2, RECV_2}, IRSensor{{}, EMIT_3, RECV_3}};
-  std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0},
-                                      EncoderSensor{BCODER_a, BCODER_b, 0}};
+  std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0, true},
+                                      EncoderSensor{BCODER_a, BCODER_b, 0, false}};
   std::vector<WorldCoord> readings{};
   std::vector<WorldCoord> readingsAverage{};
 
@@ -47,7 +47,7 @@ struct TeensyIO : MouseIO {
   MotorFeedForward leftff{0, 0, 0};
   MotorFeedForward rightff{0, 0, 0};
 
-  DRV8833Motor mA = DRV8833Motor(AIN1, AIN2, -1, STBY);
+  DRV8833Motor mA = DRV8833Motor(AIN1, AIN2, 1, STBY);
   DRV8833Motor mB = DRV8833Motor(BIN1, BIN2, 1, STBY);
 
   GridCoord getGridCoord() override {
@@ -77,16 +77,16 @@ struct TeensyIO : MouseIO {
     double deltaRight = getDrivePosRight() - lastRightPosition;
     double wheelDelta = ((deltaLeft + deltaRight) / 2);
 
-    if (readings.size() >= 2 && readings.at(0).hypot() < 0.18 &&
-        readings.at(1).hypot() < 0.18) {
-      double deltaR = readingsAverage.at(0).y - readingsAverage.at(1).y;
-      double sensorYaw = std::atan2(deltaR, FRONT_SENSOR_SEP);
-      double currentHeading = gyroYaw - gyroOffset;
-      double nearestCardinal =
-          std::round(currentHeading / (M_PI / 2.0)) * (M_PI / 2.0);
-      double sensorOffset = gyroYaw - nearestCardinal - sensorYaw;
-      gyroOffset = GYRO_ALPHA * gyroOffset + (1.0 - GYRO_ALPHA) * sensorOffset;
-    }
+    // if (readings.size() >= 2 && readings.at(0).hypot() < 0.18 &&
+    //     readings.at(1).hypot() < 0.18) {
+    //   double deltaR = readingsAverage.at(0).y - readingsAverage.at(1).y;
+    //   double sensorYaw = std::atan2(deltaR, FRONT_SENSOR_SEP);
+    //   double currentHeading = gyroYaw - gyroOffset;
+    //   double nearestCardinal =
+    //       std::round(currentHeading / (M_PI / 2.0)) * (M_PI / 2.0);
+    //   double sensorOffset = gyroYaw - nearestCardinal - sensorYaw;
+    //   gyroOffset = GYRO_ALPHA * gyroOffset + (1.0 - GYRO_ALPHA) * sensorOffset;
+    // }
     double theta = getGyroYaw() - gyroOffset;
     double deltaX = wheelDelta * std::cos(theta);
     double deltaY = wheelDelta * std::sin(theta);
@@ -104,8 +104,9 @@ struct TeensyIO : MouseIO {
   void driveVoltage(double left, double right) override {
     double l = std::clamp(left, -1.0, 1.0);
     double r = std::clamp(right, -1.0, 1.0);
-    mA.drive((int)(r * 255));
-    mB.drive((int)(l * 255));
+    // Serial.println(l);
+    mA.drive((int)(l * 255));
+    mB.drive((int)(r * 255));
   }
   void setGyroOffset(double offset) { gyroOffset = offset; }
 
@@ -157,9 +158,15 @@ struct TeensyIO : MouseIO {
                              : 0.647426 / pow(max(post, 1), 0.516999);
       readings.push_back(sensor.getReading(dist));
       readingsAverage.push_back(sensor.getAverage());
+      // Serial.print(i);
+      // Serial.print(": ");
+      // Serial.print(post);
+      // Serial.print("     ");
     }
+    // Serial.println();
     gyro.update();
     gyroYaw = gyro.ypr[0];
+    // Serial.println(gyroYaw);
     // Serial.println(readings.at(0).hypot());
   }
 
@@ -190,12 +197,20 @@ struct TeensyIO : MouseIO {
     updateEncoders();
     updateWorldCoord();
     updateMazeState(mouseState);
-    Logger::tick();
+    // Serial.print("left: ");
+    // Serial.print(leftPosition);
+    // Serial.print("     ");
+    // Serial.print("right: ");
+    // Serial.print(rightPosition);
+    // Serial.println();
+    // io->driveVoltage(0, -0.5);
+    // Serial.println(gyroYaw);
+    // Logger::tick();
   }
 
   void init() override {
     instance = this;
-    Logger::init();
+    // Logger::init();
     lastMicros = micros();
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(EMIT_1, OUTPUT);
@@ -205,16 +220,19 @@ struct TeensyIO : MouseIO {
     pinMode(BCODER_a, INPUT);
     pinMode(BCODER_b, INPUT);
     attachInterrupt(digitalPinToInterrupt(BCODER_a), isr1, CHANGE);
-    // pinMode(EMIT_2, OUTPUT);
-    // pinMode(EMIT_3, OUTPUT);
-    // pinMode(EMIT_4, OUTPUT);
+    pinMode(EMIT_2, OUTPUT);
+    pinMode(EMIT_3, OUTPUT);
+    pinMode(EMIT_4, OUTPUT);
 
     pinMode(RECV_1, INPUT);
-    // pinMode(RECV_2, INPUT);
-    // pinMode(RECV_3, INPUT);
-    // pinMode(RECV_4, INPUT);
+    pinMode(RECV_2, INPUT);
+    pinMode(RECV_3, INPUT);
+    pinMode(RECV_4, INPUT);
 
     gyro.initalizeGyro();
+
+    mA.begin();
+    mB.begin();
 
     Serial.begin(9600);
   };
