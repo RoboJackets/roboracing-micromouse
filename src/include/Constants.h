@@ -5,21 +5,21 @@
 
 constexpr uint32_t EMIT_RECV_DELAY_US = 300;
 
-constexpr double WHEEL_RADIUS_M = 0.1;
+constexpr double WHEEL_RADIUS_M = 0.032;
 
 constexpr double COUNTS_PER_REVOLUTION = 12;
 
 constexpr double ROBOT_LENGTH = 0.1;
 
-constexpr double CELL_SIZE_METERS = 0.2;
+constexpr double CELL_SIZE_METERS = 0.18;
 constexpr double MAX_SPEED_M_S = 10;
 constexpr double MAX_ACCEL_M_S2 = 5;
 constexpr double WHEEL_SEPERATION_M = 0.1;
 constexpr double MAX_ROT_SPEED_RAD_S = (2 * MAX_SPEED_M_S) / WHEEL_SEPERATION_M;
 constexpr double MAX_ROT_SPEED_RAD_S2 =
     (2 * MAX_ACCEL_M_S2) / WHEEL_SEPERATION_M;
-constexpr double COEF_FRICTION = 1;
-constexpr double DRIVE_GEAR_RATIO = 1;
+constexpr double COEF_FRICTION = 0.5;
+constexpr double DRIVE_GEAR_RATIO = 30;
 constexpr double MASS = 1;
 constexpr double MAX_CURVE_CF = MASS * 9.81 * COEF_FRICTION;
 const double CURVE_VELOCITY =

@@ -37,12 +37,15 @@ struct TeensyIO : MouseIO {
   std::array<WorldCoord, 4> readingsAverage{};
   double gyroOffset = 0;
 
+  double filteredSpeedLeft = 0;
+  double filteredSpeedRight = 0;
+
   Gyro gyro{};
   PID velocityPIDRight{velocityPIDConstants};
   PID velocityPIDLeft{velocityPIDConstants};
 
-  MotorFeedForward leftff{0, 0, 0};
-  MotorFeedForward rightff{0, 0, 0};
+  MotorFeedForward leftff{0.6, 0.38, 0};
+  MotorFeedForward rightff{0.6, 0.38, 0};
 
   DRV8833Motor mLeft = DRV8833Motor(AIN1, AIN2, 1, STBY);
   DRV8833Motor mRight = DRV8833Motor(BIN1, BIN2, 1, STBY);
@@ -96,6 +99,12 @@ struct TeensyIO : MouseIO {
     lastRightPosition = rightPosition;
     leftPosition = encoderLeft.getPosition();
     rightPosition = encoderRight.getPosition();
+
+    double rawVR = (getDrivePosRight() - lastRightPosition) / getDt();
+    filteredSpeedRight = 0.2 * rawVR + (1.0 - 0.2) * filteredSpeedRight;
+
+    double rawVL = (getDrivePosLeft() - lastLeftPosition) / getDt();
+    filteredSpeedLeft = 0.2 * rawVL + (1.0 - 0.2) * filteredSpeedLeft;
   }
   unsigned char getGridDir() override { return dir; }
 
@@ -118,12 +127,8 @@ struct TeensyIO : MouseIO {
             velocityPIDRight.calculate(getDriveSpeedRight(), right, getDt()));
   }
 
-  double getDriveSpeedLeft() override {
-    return (getDrivePosLeft() - lastLeftPosition) / getDt();
-  };
-  double getDriveSpeedRight() override {
-    return (getDrivePosRight() - lastRightPosition) / getDt();
-  };
+  double getDriveSpeedLeft() override { return filteredSpeedLeft; }
+  double getDriveSpeedRight() override { return filteredSpeedRight; };
 
   double getDrivePosLeft() override { return leftPosition; };
   double getDrivePosRight() override { return rightPosition; };

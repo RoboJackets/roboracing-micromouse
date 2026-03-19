@@ -10,8 +10,8 @@ struct PIDConstants {
   double d = 0;
 };
 
-inline PIDConstants rot90PIDConstants{1, 0, 0};
-inline PIDConstants velocityPIDConstants{0, 0, 0};
+inline PIDConstants rot90PIDConstants{7, 2, 0};
+inline PIDConstants velocityPIDConstants{0.2, 0.005, 0};
 inline PIDConstants profilePIDConstants{0, 0, 0};
 inline PIDConstants IRadjust{0, 0, 0};
 

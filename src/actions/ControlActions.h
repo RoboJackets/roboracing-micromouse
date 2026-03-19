@@ -43,7 +43,7 @@ struct YawPIDAction : Action {
     double error_raw = setpoint_r - measure_r;
     error = std::atan2(std::sin(error_raw), std::cos(error_raw));
     double c = p.calculate(-error, 0, io.getDt());
-    io.driveVoltage(c, -c);
+    io.driveVelocity(c, -c);
     Serial.print("VOLTS: ");
     Serial.print(c);
     Serial.print("    ");
@@ -57,6 +57,38 @@ struct YawPIDAction : Action {
     p.resetAccum();
   }
 };
+struct SysIDRampAction : Action {
+  bool canceled = false;
+  double totalTime = 0;
+  double rampRate;
+  double maxTime;
+
+  SysIDRampAction(double rampRate = 0.03, double maxTime = 50.0)
+      : rampRate(rampRate), maxTime(maxTime) {}
+
+  void cancel() override { canceled = true; }
+  bool completed() const override { return canceled; }
+
+  void run(MouseState &s, MouseIO &io) override {
+    totalTime += io.getDt();
+    if (totalTime > maxTime) {
+      canceled = true;
+      return;
+    }
+    double voltage = totalTime * rampRate;
+    io.driveVoltage(voltage, voltage);
+
+    double speed =
+        (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
+    Serial.print("VOLTS: ");
+    Serial.print(voltage, 4);
+    Serial.print(",SPEED: ");
+    Serial.println(speed, 4);
+  }
+
+  void end(MouseState &s, MouseIO &io) override { io.driveVoltage(0.0, 0.0); }
+};
+
 struct ProfiledDriveAction : Action {
   TrapezoidalProfile profile;
   double error = 0;

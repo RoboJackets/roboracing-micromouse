@@ -18,6 +18,7 @@ SequentialAction square = SequentialAction::make(
     YawPIDAction(1.5 * PI / 2), DriveTimeAction(1, 0.5), YawPIDAction(0));
 DriveTimeAction vroom = DriveTimeAction(1000, 0.1);
 YawPIDAction pid = YawPIDAction(0);
+SysIDRampAction ramp{};
 Action *a = &empty;
 void switchState(GoalState state) {
   if (currentState == state) {
