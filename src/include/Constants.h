@@ -3,11 +3,11 @@
 #include <cmath>
 #include <cstdint>
 
-constexpr uint32_t EMIT_RECV_DELAY_US = 10'000;
+constexpr uint32_t EMIT_RECV_DELAY_US = 300;
 
 constexpr double WHEEL_RADIUS_M = 0.1;
 
-constexpr double COUNTS_PER_REVOLUTION = 1;
+constexpr double COUNTS_PER_REVOLUTION = 12;
 
 constexpr double ROBOT_LENGTH = 0.1;
 

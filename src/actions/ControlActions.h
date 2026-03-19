@@ -42,13 +42,13 @@ struct YawPIDAction : Action {
     double measure_r = io.getWorldCoord().theta;
     double error_raw = setpoint_r - measure_r;
     error = std::atan2(std::sin(error_raw), std::cos(error_raw));
-    double c = p.calculate(error, 0, io.getDt());
+    double c = p.calculate(-error, 0, io.getDt());
     io.driveVoltage(c, -c);
-    // Serial.print("VOLTS: ");
-    // Serial.print(c);
-    // Serial.print("    ");
-    // Serial.print("GYRO: ");
-    // Serial.println(measure_r);
+    Serial.print("VOLTS: ");
+    Serial.print(c);
+    Serial.print("    ");
+    Serial.print("GYRO: ");
+    Serial.println(measure_r);
   }
 
   void end(MouseState &s, MouseIO &io) override {

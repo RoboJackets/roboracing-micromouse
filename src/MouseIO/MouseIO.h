@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <vector>
 
 #include "IdealState.h"
@@ -19,8 +20,8 @@ struct MouseIO {
   virtual double getDrivePosRight() { return 0; };
   virtual double getGyroYaw() { return 0; };
   virtual void setState(IdealState state) {};
-  virtual std::vector<WorldCoord> getSensorState() { return {}; };
-  virtual std::vector<WorldCoord> getAverageSensorState() { return {}; };
+  virtual std::array<WorldCoord, 4> getSensorState() { return {}; };
+  virtual std::array<WorldCoord, 4> getAverageSensorState() { return {}; };
   virtual void setGyroOffset(double offset) {};
   virtual void setWorldCoord(WorldCoord c) {};
 

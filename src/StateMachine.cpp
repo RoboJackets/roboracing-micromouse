@@ -42,9 +42,9 @@ void switchState(GoalState state) {
     break;
   }
   currentState = state;
-  if (a && !a->completed())
+  if (a && !a->completed()) {
     a->cancel();
-  a = &empty;
+  }
   solver->init(mouseState, goal);
 }
 void updateState() {

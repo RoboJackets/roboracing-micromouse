@@ -22,26 +22,26 @@ void floodFill(MouseState &state, const Goals *goal, int (&dists)[N][N]) {
     const int dist = dists[c.y][c.x];
 
     // left
-    if (!(wall & LEFT) && state.explored[c.y][c.x - 1] &&
-        dist + 1 < dists[c.y][c.x - 1]) {
+    if (c.x - 1 >= 0 && !(wall & LEFT) &&
+        state.explored[c.y][c.x - 1] && dist + 1 < dists[c.y][c.x - 1]) {
       dists[c.y][c.x - 1] = dist + 1;
       queue.push({c.x - 1, c.y});
     }
     // right
-    if (!(wall & RIGHT) && state.explored[c.y][c.x + 1] &&
-        dist + 1 < dists[c.y][c.x + 1]) {
+    if (c.x + 1 < N && !(wall & RIGHT) &&
+        state.explored[c.y][c.x + 1] && dist + 1 < dists[c.y][c.x + 1]) {
       dists[c.y][c.x + 1] = dist + 1;
       queue.push({c.x + 1, c.y});
     }
     // down
-    if (!(wall & DOWN) && state.explored[c.y - 1][c.x] &&
-        dist + 1 < dists[c.y - 1][c.x]) {
+    if (c.y - 1 >= 0 && !(wall & DOWN) &&
+        state.explored[c.y - 1][c.x] && dist + 1 < dists[c.y - 1][c.x]) {
       dists[c.y - 1][c.x] = dist + 1;
       queue.push({c.x, c.y - 1});
     }
     // up
-    if (!(wall & TOP) && state.explored[c.y + 1][c.x] &&
-        dist + 1 < dists[c.y + 1][c.x]) {
+    if (c.y + 1 < N && !(wall & TOP) &&
+        state.explored[c.y + 1][c.x] && dist + 1 < dists[c.y + 1][c.x]) {
       dists[c.y + 1][c.x] = dist + 1;
       queue.push({c.x, c.y + 1});
     }
@@ -58,25 +58,29 @@ Path pathBFS(MouseState &state, const Goals *goal) {
     unsigned char bestDir = TOP;
     unsigned char wall = state.walls[current.y][current.x];
     int dist = dists[current.y][current.x];
-    if (!(wall & TOP) && state.explored[current.y + 1][current.x] &&
+    if (current.y + 1 < N && !(wall & TOP) &&
+        state.explored[current.y + 1][current.x] &&
         dists[current.y + 1][current.x] < best &&
         dists[current.y + 1][current.x] < dist) {
       best = dists[current.y + 1][current.x];
       bestDir = TOP;
     }
-    if (!(wall & LEFT) && state.explored[current.y][current.x - 1] &&
+    if (current.x - 1 >= 0 && !(wall & LEFT) &&
+        state.explored[current.y][current.x - 1] &&
         dists[current.y][current.x - 1] < best &&
         dists[current.y][current.x - 1] < dist) {
       best = dists[current.y][current.x - 1];
       bestDir = LEFT;
     }
-    if (!(wall & DOWN) && state.explored[current.y - 1][current.x] &&
+    if (current.y - 1 >= 0 && !(wall & DOWN) &&
+        state.explored[current.y - 1][current.x] &&
         dists[current.y - 1][current.x] < best &&
         dists[current.y - 1][current.x] < dist) {
       best = dists[current.y - 1][current.x];
       bestDir = DOWN;
     }
-    if (!(wall & RIGHT) && state.explored[current.y][current.x + 1] &&
+    if (current.x + 1 < N && !(wall & RIGHT) &&
+        state.explored[current.y][current.x + 1] &&
         dists[current.y][current.x + 1] < best &&
         dists[current.y][current.x + 1] < dist) {
       best = dists[current.y][current.x + 1];

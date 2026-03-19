@@ -13,7 +13,7 @@ struct MMSIO : MouseIO {
   unsigned char getGridDir() override { return dir; }
 
   void driveVoltage(double left, double right) override {}
-  std::vector<WorldCoord> getSensorState() override {}
+  std::array<WorldCoord, 4> getSensorState() override { return {}; }
   void update(MouseState& mouseState) override {
     mouseState.x = x;
     mouseState.y = y;
