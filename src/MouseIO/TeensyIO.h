@@ -15,7 +15,6 @@
 #include "Types.h"
 #include <DRV8833.h>
 #include <Gyro.cpp>
-#include "OdometryCorrection.h"
 
 struct TeensyIO : MouseIO {
   unsigned char dir = TOP;
@@ -71,107 +70,68 @@ struct TeensyIO : MouseIO {
     return LEFT;
   }
   // IR stuff under here
-  std::pair<WorldCoord, WorldCoord> deriveCoordFromIR()
-  {
-    auto fuse = [&](int iA, int iB) -> WorldCoord
-    {
-      WorldCoord a = readings[iA];
-      WorldCoord b = readings[iB];
-      bool aValid = std::isfinite(a.hypot()) && a.hypot() > 0;
-      bool bValid = std::isfinite(b.hypot()) && b.hypot() > 0;
 
-      if (!aValid && !bValid)
-        return WorldCoord{};
-      if (aValid && !bValid)
-        return a;
-      if (!aValid && bValid)
-        return b;
+  WorldCoord deriveLocalOffsetFromIR() {
+    double lateralY = 0;
+    int validPairs = 0;
 
-      if (!sameObject(a, b))
-        return a.hypot() < b.hypot() ? a : b;
+    auto accumulateLateralError = [&](int iLeft, int iRight) {
+      if (readings.size() <= std::max(iLeft, iRight))
+        return;
 
-      double wA = 1.0 / (a.hypot() + 0.01);
-      double wB = 1.0 / (b.hypot() + 0.01);
-      double total = wA + wB;
-      return WorldCoord{
-          (a.x * wA + b.x * wB) / total,
-          (a.y * wA + b.y * wB) / total,
-          w.theta};
-    };
+      WorldCoord leftRead = readings[iLeft];
+      WorldCoord rightRead = readings[iRight];
 
-    return {fuse(0, 2), fuse(1, 3)};
-  }
+      bool leftValid = std::isfinite(leftRead.hypot()) &&
+                       leftRead.hypot() > 0 &&
+                       leftRead.hypot() < CELL_SIZE_METERS;
+      bool rightValid = std::isfinite(rightRead.hypot()) &&
+                        rightRead.hypot() > 0 &&
+                        rightRead.hypot() < CELL_SIZE_METERS;
 
-  bool sameObject(WorldCoord readingA, WorldCoord readingB, double threshold)
-  {
-    double angleA = std::atan2(readingA.y, readingA.x);
-    double angleB = std::atan2(readingB.y, readingB.x);
-    double angleDiff = std::abs(angleA - angleB);
-    if (angleDiff > M_PI)
-      angleDiff = 2 * M_PI - angleDiff;
-    if (angleDiff > M_PI / 2.0)
-      return false;
+      if (leftValid && rightValid) {
+          lateralY += (leftRead.y - rightRead.y) / 2.0;
+          validPairs++;
 
-    double distA = readingA.hypot();
-    double distB = readingB.hypot();
-    return std::abs(distA - distB) < threshold;
-  }
-
-  double computeIRConfidence() // This is chat slop, ommitable if it doesn't work well
-  {
-    if (readings.size() < 4)
-      return 0.0;
-
-    auto countAgreeing = [&](int iA, int iB) -> int
-    {
-      WorldCoord a = readings[iA];
-      WorldCoord b = readings[iB];
-      bool aValid = std::isfinite(a.hypot()) && a.hypot() > 0;
-      bool bValid = std::isfinite(b.hypot()) && b.hypot() > 0;
-      if (!aValid && !bValid)
-        return 0;
-      if (!aValid || !bValid)
-        return 1;
-      return sameObject(a, b) ? 2 : 1;
-    };
-
-    double agreementScore = (countAgreeing(0, 2) + countAgreeing(1, 3)) / 4.0;
-
-    double totalDist = 0;
-    int count = 0;
-    for (auto &r : readings)
-    {
-      if (std::isfinite(r.hypot()) && r.hypot() > 0)
-      {
-        totalDist += r.hypot();
-        count++;
+          double avgX = (leftRead.x + rightRead.x) / 2.0;
+          forwardX += (CELL_SIZE_METERS / 2.0) - avgX;
+          validForward++; 
+      } else if (leftValid && !rightValid) {
+          lateralY += (CELL_SIZE_METERS / 2.0) - leftRead.y;
+          validPairs++;
+      } else if (!leftValid && rightValid) {
+          lateralY += rightRead.y - (CELL_SIZE_METERS / 2.0);
+          validPairs++;
       }
+    };
+
+    // Assuming index 0 is Left, 2 is Right
+    accumulateLateralError(0, 2);
+    // Assuming index 1 is Top-Left, 3 is Top-Right
+    accumulateLateralError(1, 3);
+
+    if (validPairs > 0) {
+      lateralY /=
+          validPairs; // Average the errors if both pairs report valid walls
     }
-    double avgDist = count > 0 ? totalDist / count : 1.0;
-    double distancePenalty = 1.0 / (1.0 + avgDist);
 
-    return agreementScore * distancePenalty;
+    return WorldCoord{0, lateralY, 0};
   }
 
-  WorldCoord correct()
-  {
-    double error = getError();
-    double confidence = computeIRConfidence();
-    double correctionStrength = confidence * std::exp(-error); // Should prolly tune ts
-    WorldCoord derived = deriveCoordFromIR();
-    double correctedX = w.x + correctionStrength * (derived.x - w.x);
-    double correctedY = w.y + correctionStrength * (derived.y - w.y);
+  WorldCoord correct() {
+    WorldCoord localError = deriveLocalOffsetFromIR();
 
-    return {correctedX, correctedY, w.theta};
-  }
+    double correctedLocalX = localError.x * 0.1 * std::exp(-std::abs(localError.x));
+    double correctedLocalY = localError.y * 0.1 * std::exp(-std::abs(localError.y));
 
-  double getError()
-  {
-    WorldCoord derived = deriveCoordFromIR();
-    double errorX = derived.x - w.x;
-    double errorY = derived.y - w.y;
-    return std::hypot(errorX, errorY);
-  }
+    // Now rotate the independently weighted components
+    double globalDeltaX = correctedLocalX * std::cos(w.theta) - correctedLocalY * std::sin(w.theta);
+    double globalDeltaY = correctedLocalX * std::sin(w.theta) + correctedLocalY * std::cos(w.theta);
+
+    return {w.x + globalDeltaX, w.y + globalDeltaY, w.theta};
+}
+
+  double getError() { return deriveLocalOffsetFromIR().hypot(); }
 
   WorldCoord getWorldCoord() override { return w; }
   void updateWorldCoord() override {
@@ -194,7 +154,7 @@ struct TeensyIO : MouseIO {
     double deltaY = wheelDelta * std::sin(theta);
 
     w = WorldCoord{w.x + deltaX, w.y + deltaY, theta};
-    // IR correction here 
+    // IR correction here
     w = correct();
   }
   void updateEncoders() {
