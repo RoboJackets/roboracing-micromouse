@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/rohannair/Desktop/Roboracing/roboracing-micromouse/tools/analyzer-ui/build/cmake_install.cmake",
+		"/Users/rohannair/Desktop/Roboracing/roboracing-micromouse/tools/analyzer-ui/build/_deps/glfw-build/cmake_install.cmake",
+		"/Users/rohannair/Desktop/Roboracing/roboracing-micromouse/tools/analyzer-ui/build/_deps/glfw-build/src/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
