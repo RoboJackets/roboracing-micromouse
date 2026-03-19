@@ -115,7 +115,7 @@ struct TeensyIO : MouseIO {
           validPairs; // Average the errors if both pairs report valid walls
     }
 
-    return WorldCoord{0, lateralY, 0};
+    return WorldCoord{ validForward > 0 ? forwardX / validForward : 0, validPairs   > 0 ? lateralY / validPairs   : 0, 0 };
   }
 
   WorldCoord correct() {
