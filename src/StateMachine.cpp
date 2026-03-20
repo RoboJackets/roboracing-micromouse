@@ -19,7 +19,12 @@ SequentialAction square = SequentialAction::make(
 DriveTimeAction vroom = DriveTimeAction(1000, 0.1);
 YawPIDAction pid = YawPIDAction(0);
 SysIDRampAction ramp{};
-Action *a = &empty;
+
+SequentialAction s = SequentialAction::make(
+    DelayAction(6), ProfiledDriveAction(0.3048, 0, 0, 0));
+SequentialAction r =
+    SequentialAction::make(DelayAction(6), RampVelocityAction{0.5, 2});
+Action *a = &r;
 void switchState(GoalState state) {
   if (currentState == state) {
     return;
@@ -94,7 +99,7 @@ void tick(MouseIO *io) {
   if (a->completed()) {
     a->end(mouseState, *io);
     // a = solver->run(mouseState, goal); // determine action
-    a = &pid;
+    a = &empty;
   }
   a->run(mouseState, *io); // run action
 }

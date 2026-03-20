@@ -44,8 +44,8 @@ struct TeensyIO : MouseIO {
   PID velocityPIDRight{velocityPIDConstants};
   PID velocityPIDLeft{velocityPIDConstants};
 
-  MotorFeedForward leftff{0.6, 0.38, 0};
-  MotorFeedForward rightff{0.6, 0.38, 0};
+  MotorFeedForward leftff{0.35, 0.45, 0};
+  MotorFeedForward rightff{0.35, 0.45, 0};
 
   DRV8833Motor mLeft = DRV8833Motor(AIN1, AIN2, 1, STBY);
   DRV8833Motor mRight = DRV8833Motor(BIN1, BIN2, 1, STBY);
@@ -94,32 +94,53 @@ struct TeensyIO : MouseIO {
 
     w = WorldCoord{w.x + deltaX, w.y + deltaY, theta};
   }
+  int decimCounter = 0;
+  double accumDeltaLeft = 0;
+  double accumDeltaRight = 0;
+  double accumDt = 0;
+  static constexpr int DECIM_N = 8;
+
   void updateEncoders() {
     lastLeftPosition = leftPosition;
     lastRightPosition = rightPosition;
     leftPosition = encoderLeft.getPosition();
     rightPosition = encoderRight.getPosition();
 
-    double rawVR = (getDrivePosRight() - lastRightPosition) / getDt();
-    filteredSpeedRight = 0.2 * rawVR + (1.0 - 0.2) * filteredSpeedRight;
+    accumDeltaLeft += leftPosition - lastLeftPosition;
+    accumDeltaRight += rightPosition - lastRightPosition;
+    accumDt += getDt();
 
-    double rawVL = (getDrivePosLeft() - lastLeftPosition) / getDt();
-    filteredSpeedLeft = 0.2 * rawVL + (1.0 - 0.2) * filteredSpeedLeft;
+    if (++decimCounter >= DECIM_N) {
+      filteredSpeedLeft = accumDeltaLeft / accumDt;
+      filteredSpeedRight = accumDeltaRight / accumDt;
+      accumDeltaLeft = 0;
+      accumDeltaRight = 0;
+      accumDt = 0;
+      decimCounter = 0;
+    }
   }
   unsigned char getGridDir() override { return dir; }
 
   void driveVoltage(double left, double right) override {
     double l = std::clamp(left, -1.0, 1.0);
     double r = std::clamp(right, -1.0, 1.0);
-    // Serial.println(l);
-    mLeft.drive((int)(l * 255));
-    mRight.drive((int)(r * 255));
+    if (l == 0.0 && r == 0.0) {
+      mLeft.brake();
+      mRight.brake();
+      Serial.println("BRAKE!!");
+    } else {
+      mLeft.drive((int)(l * 255));
+      mRight.drive((int)(r * 255));
+    }
   }
   void setGyroOffset(double offset) { gyroOffset = offset; }
 
   void setWorldCoord(WorldCoord c) { w = c; }
 
   void driveVelocity(double left, double right) override {
+    // Serial.printf("LEFT ERROR: %0.2f\n", getDriveSpeedLeft() - left);
+    Serial.printf("LEFT: %0.2f, RIGHT: %0.2f, LA: %0.2f, RA: %0.2f\n", left,
+                  right, getDriveSpeedLeft(), getDriveSpeedRight());
     driveVoltage(
         leftff.calculate(left, getDt()) +
             velocityPIDLeft.calculate(getDriveSpeedLeft(), left, getDt()),
@@ -165,9 +186,9 @@ struct TeensyIO : MouseIO {
       // Serial.print("     ");
     }
     // Serial.print("GYRO: ");
-    // Serial.print(gyroYaw);
+    // Serial.print(w.theta);
     // Serial.print("    ");
-    // Serial.println(leftPosition);
+    // Serial.printf("X: %0.2f Y: %0.2f\n", w.x, w.y);
     gyro.update();
     gyroYaw = gyro.ypr[0];
   }
@@ -205,7 +226,6 @@ struct TeensyIO : MouseIO {
     updateEncoders();
     updateWorldCoord();
     updateMazeState(mouseState);
-    // Logger::tick();
   }
 
   void init() override {

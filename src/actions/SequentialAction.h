@@ -23,6 +23,9 @@ struct SequentialAction : Action {
   bool completed() const override { return canceled; }
 
   void run(MouseState &s, MouseIO &io) override {
+    if (index >= actions.size()) {
+      return;
+    }
     if (actions[index]->completed()) {
       actions[index]->end(s, io);
       index++;
@@ -33,4 +36,5 @@ struct SequentialAction : Action {
     }
     actions[index]->run(s, io);
   }
+  void end(MouseState &s, MouseIO &io) override {}
 };

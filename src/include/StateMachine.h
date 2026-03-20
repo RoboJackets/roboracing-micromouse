@@ -5,6 +5,7 @@
 #include "FastPathSolver.h"
 #include "FloodFillSolver.h"
 #include "SequentialAction.h"
+#include "StartupAction.h"
 #include <string>
 
 enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };

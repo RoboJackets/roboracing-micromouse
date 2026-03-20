@@ -59,6 +59,6 @@ void DRV8833Motor::coast() {
 
 void DRV8833Motor::brake() {
   setStandbyHigh_();
-  digitalWrite(_in1, HIGH);
-  digitalWrite(_in2, HIGH);
+  analogWrite(_in1, 255);
+  analogWrite(_in2, 255);
 }

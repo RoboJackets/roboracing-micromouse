@@ -1,5 +1,6 @@
 #pragma once
 #include <Action.h>
+#include <Arduino.h>
 #include <cmath>
 #include <tuple>
 #include <vector>
@@ -8,17 +9,19 @@ struct PIDConstants {
   double p = 0;
   double i = 0;
   double d = 0;
+  double maxAccum = 1.0;
 };
 
-inline PIDConstants rot90PIDConstants{7, 2, 0};
-inline PIDConstants velocityPIDConstants{0.2, 0.005, 0};
-inline PIDConstants profilePIDConstants{0, 0, 0};
+inline PIDConstants rot90PIDConstants{2.9, 0, 0.01};
+inline PIDConstants velocityPIDConstants{0.7, 1.5, 0, 0.3};
+inline PIDConstants profilePIDConstants{7, 0.5, 0.1, 0.5};
 inline PIDConstants IRadjust{0, 0, 0};
 
 class PID {
   double p = 0;
   double i = 0;
   double d = 0;
+  double maxAccum = 1.0;
   double lastError = 0;
   bool inital = true;
   double lastSetpoint = 0;
@@ -26,7 +29,8 @@ class PID {
 
 public:
   PID(PIDConstants constants)
-      : p(constants.p), i(constants.i), d(constants.d) {}
+      : p(constants.p), i(constants.i), d(constants.d),
+        maxAccum(constants.maxAccum) {}
   double calculate(double measurement, double setpoint, double dt) {
     if (inital || lastSetpoint != setpoint) {
       lastSetpoint = setpoint;
@@ -39,6 +43,7 @@ public:
     double derivative = (error - lastError) / dt;
     result += derivative * d;
     accum += error * dt;
+    accum = std::clamp(accum, -maxAccum, maxAccum);
     result += i * accum;
     lastError = error;
     return result;
@@ -51,6 +56,8 @@ struct TrapezoidalProfile {
   PIDConstants pidConstants;
   double setpoint;
   double time = 0;
+  double startMeasurement = 0;
+  bool started = false;
   PID errorPid = PID{pidConstants};
   TrapezoidalProfile(double maxSpeed, double maxAccel, double initalVelocity,
                      double finalVelocity, PIDConstants pidConstants,
@@ -60,12 +67,16 @@ struct TrapezoidalProfile {
         setpoint(setpoint) {}
 
   double calculate(double dt, double measurement) {
+    if (!started) {
+      startMeasurement = measurement;
+      started = true;
+    }
     time += dt;
 
-    double error = setpoint - measurement;
-    double direction = error >= 0.0 ? 1.0 : -1.0;
+    double totalDistance = setpoint - startMeasurement;
+    double direction = totalDistance >= 0.0 ? 1.0 : -1.0;
 
-    double D = std::abs(error);
+    double D = std::abs(totalDistance);
     double v0 = std::abs(initalVelocity);
     double vf = std::abs(finalVelocity);
 
@@ -132,13 +143,16 @@ struct TrapezoidalProfile {
 
     velocity *= direction;
     position *= direction;
-
-    return velocity +
-           errorPid.calculate(measurement, measurement + position, dt);
+    // Serial.printf("V: %0.2f, P: %0.2f, T: %0.2f\n", velocity, error, time);
+    double desiredPosition = startMeasurement + position;
+    double output =
+        velocity + errorPid.calculate(measurement, desiredPosition, dt);
+    return std::clamp(output, -maxSpeed, maxSpeed);
   }
 
   void reset() {
     time = 0;
+    started = false;
     errorPid.resetAccum();
   }
 
