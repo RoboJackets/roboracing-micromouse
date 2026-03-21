@@ -34,6 +34,11 @@ void DRV8833Motor::setStandbyLow_() { digitalWrite(_stby, LOW); }
 void DRV8833Motor::drive(int speed) {
   setStandbyHigh_();
 
+  analogWrite(_in1, 0);
+  analogWrite(_in2, 0);
+  digitalWrite(_in1, LOW);
+  digitalWrite(_in2, LOW);
+
   if (speed * _offset > 0) {
     digitalWrite(_in2, LOW);
     analogWrite(_in1, std::abs(speed));

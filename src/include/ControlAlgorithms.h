@@ -12,9 +12,9 @@ struct PIDConstants {
   double maxAccum = 1.0;
 };
 
-inline PIDConstants rot90PIDConstants{2.9, 0, 0.01};
-inline PIDConstants velocityPIDConstants{0.7, 1.5, 0, 0.3};
-inline PIDConstants profilePIDConstants{7, 0.5, 0.1, 0.5};
+inline PIDConstants rot90PIDConstants{0.5, 0, 0};
+inline PIDConstants velocityPIDConstants{0.9, 0.3, 0.0, 0.3};
+inline PIDConstants profilePIDConstants{5, 0, 0};
 inline PIDConstants IRadjust{0, 0, 0};
 
 class PID {
@@ -143,8 +143,11 @@ struct TrapezoidalProfile {
 
     velocity *= direction;
     position *= direction;
-    // Serial.printf("V: %0.2f, P: %0.2f, T: %0.2f\n", velocity, error, time);
+    // Serial.printf("V: ")
+
     double desiredPosition = startMeasurement + position;
+    // Serial.printf("V: %0.2f, P: %0.2f, T: %0.2f\n", velocity,
+    // desiredPosition, time);
     double output =
         velocity + errorPid.calculate(measurement, desiredPosition, dt);
     return std::clamp(output, -maxSpeed, maxSpeed);

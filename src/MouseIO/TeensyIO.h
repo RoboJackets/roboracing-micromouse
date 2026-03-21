@@ -44,8 +44,8 @@ struct TeensyIO : MouseIO {
   PID velocityPIDRight{velocityPIDConstants};
   PID velocityPIDLeft{velocityPIDConstants};
 
-  MotorFeedForward leftff{0.35, 0.45, 0};
-  MotorFeedForward rightff{0.35, 0.45, 0};
+  MotorFeedForward leftff{0.35, 0.7, 0};
+  MotorFeedForward rightff{0.35, 0.7, 0};
 
   DRV8833Motor mLeft = DRV8833Motor(AIN1, AIN2, 1, STBY);
   DRV8833Motor mRight = DRV8833Motor(BIN1, BIN2, 1, STBY);
@@ -56,6 +56,11 @@ struct TeensyIO : MouseIO {
     unsigned char dir = getGridDir(w.theta);
     // TODO: update gyro
     return GridCoord{gx, gy, dir};
+  }
+
+  void resetPIDs() override {
+    velocityPIDLeft.resetAccum();
+    velocityPIDRight.resetAccum();
   }
 
   unsigned char getGridDir(double angle) {
@@ -94,30 +99,19 @@ struct TeensyIO : MouseIO {
 
     w = WorldCoord{w.x + deltaX, w.y + deltaY, theta};
   }
-  int decimCounter = 0;
-  double accumDeltaLeft = 0;
-  double accumDeltaRight = 0;
-  double accumDt = 0;
-  static constexpr int DECIM_N = 8;
-
   void updateEncoders() {
     lastLeftPosition = leftPosition;
     lastRightPosition = rightPosition;
     leftPosition = encoderLeft.getPosition();
     rightPosition = encoderRight.getPosition();
 
-    accumDeltaLeft += leftPosition - lastLeftPosition;
-    accumDeltaRight += rightPosition - lastRightPosition;
-    accumDt += getDt();
+    double dt = getDt();
+    double rawLeft = (leftPosition - lastLeftPosition) / dt;
+    double rawRight = (rightPosition - lastRightPosition) / dt;
 
-    if (++decimCounter >= DECIM_N) {
-      filteredSpeedLeft = accumDeltaLeft / accumDt;
-      filteredSpeedRight = accumDeltaRight / accumDt;
-      accumDeltaLeft = 0;
-      accumDeltaRight = 0;
-      accumDt = 0;
-      decimCounter = 0;
-    }
+    constexpr double alpha = 0.4;
+    filteredSpeedLeft += alpha * (rawLeft - filteredSpeedLeft);
+    filteredSpeedRight += alpha * (rawRight - filteredSpeedRight);
   }
   unsigned char getGridDir() override { return dir; }
 
@@ -139,8 +133,10 @@ struct TeensyIO : MouseIO {
 
   void driveVelocity(double left, double right) override {
     // Serial.printf("LEFT ERROR: %0.2f\n", getDriveSpeedLeft() - left);
-    Serial.printf("LEFT: %0.2f, RIGHT: %0.2f, LA: %0.2f, RA: %0.2f\n", left,
-                  right, getDriveSpeedLeft(), getDriveSpeedRight());
+    if (left > 0.1) {
+      Serial.printf("LEFT: %0.2f, RIGHT: %0.2f, LA: %0.2f, RA: %0.2f\n", left,
+                    right, getDriveSpeedLeft(), getDriveSpeedRight());
+    }
     driveVoltage(
         leftff.calculate(left, getDt()) +
             velocityPIDLeft.calculate(getDriveSpeedLeft(), left, getDt()),
@@ -170,7 +166,7 @@ struct TeensyIO : MouseIO {
 
   void updateSensorState() {
     for (int i = 0; i < sensors.size(); i++) {
-      IRSensor sensor = sensors.at(i);
+      IRSensor &sensor = sensors.at(i);
       digitalWrite(sensor.EMIT, HIGH);
       delayMicroseconds(EMIT_RECV_DELAY_US);
       int post = analogRead(sensor.RECV);

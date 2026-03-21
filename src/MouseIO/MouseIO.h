@@ -24,6 +24,7 @@ struct MouseIO {
   virtual std::array<WorldCoord, 4> getAverageSensorState() { return {}; };
   virtual void setGyroOffset(double offset) {};
   virtual void setWorldCoord(WorldCoord c) {};
+  virtual void resetPIDs() {};
 
   virtual void update(MouseState &mouseState) {};
 

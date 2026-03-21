@@ -24,16 +24,22 @@ struct SequentialAction : Action {
 
   void run(MouseState &s, MouseIO &io) override {
     if (index >= actions.size()) {
-      return;
-    }
-    if (actions[index]->completed()) {
-      actions[index]->end(s, io);
-      index++;
-    }
-    if (index == actions.size()) {
       canceled = true;
       return;
     }
+
+    if (actions[index]->completed()) {
+      actions[index]->end(s, io);
+      index++;
+      Serial.println("NEXT!!!");
+      return;
+    }
+
+    if (index >= actions.size()) {
+      canceled = true;
+      return;
+    }
+
     actions[index]->run(s, io);
   }
   void end(MouseState &s, MouseIO &io) override {}

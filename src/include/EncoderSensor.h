@@ -19,7 +19,7 @@ struct EncoderSensor {
 
   double getPosition() {
     long counts = flipped ? -encoder.read() : encoder.read();
-    return ((counts / COUNTS_PER_REVOLUTION) * 2 * M_PI * WHEEL_RADIUS_M) /
-           DRIVE_GEAR_RATIO;
+    // Serial.println(encoder.read());
+    return counts * (2.0 * M_PI * WHEEL_RADIUS_M / COUNTS_PER_WHEEL_REV);
   }
 };

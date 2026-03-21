@@ -13,18 +13,22 @@ FastPathSolver fastPath{};
 Solver noop = Solver{};
 EmptyAction empty = EmptyAction{};
 SequentialAction square = SequentialAction::make(
-    YawPIDAction(0), DriveTimeAction(1, 0.5), YawPIDAction(PI / 2),
-    DriveTimeAction(1, 0.5), YawPIDAction(PI), DriveTimeAction(1, 0.5),
-    YawPIDAction(1.5 * PI / 2), DriveTimeAction(1, 0.5), YawPIDAction(0));
+    DelayAction(6), YawPIDAction(0), ProfiledDriveAction(0.3048, 0, 0.1),
+    ProfiledCurveAction(0.05, -PI / 2, 0.1),
+    ProfiledDriveAction(0.3048, -PI / 2, 0.4),
+    ProfiledCurveAction(0.05, -PI / 2, 0.1),
+    ProfiledDriveAction(0.3048, -PI, 0.4),
+    ProfiledCurveAction(0.05, -PI / 2, 0.1),
+    ProfiledDriveAction(0.3048, -1.5 * PI, 0), YawPIDAction(0));
 DriveTimeAction vroom = DriveTimeAction(1000, 0.1);
-YawPIDAction pid = YawPIDAction(0);
+ProfiledCurveAction pid = ProfiledCurveAction(1, 2 * PI, 0);
 SysIDRampAction ramp{};
 
-SequentialAction s = SequentialAction::make(
-    DelayAction(6), ProfiledDriveAction(0.3048, 0, 0, 0));
+SequentialAction s =
+    SequentialAction::make(DelayAction(6), ProfiledCurveAction(1, 0.5 * PI, 0));
 SequentialAction r =
-    SequentialAction::make(DelayAction(6), RampVelocityAction{0.5, 2});
-Action *a = &r;
+    SequentialAction::make(DelayAction(6), YawPIDAction(PI / 2));
+Action *a = &square;
 void switchState(GoalState state) {
   if (currentState == state) {
     return;

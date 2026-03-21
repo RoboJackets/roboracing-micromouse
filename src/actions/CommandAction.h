@@ -10,7 +10,6 @@
 #include "MMSIO.h"
 #include "SequentialAction.h"
 
-
 struct CommandAction : Action {
   std::vector<unsigned char> buf;
   size_t pc = 0;
@@ -63,18 +62,18 @@ struct CommandAction : Action {
 
       WorldCoord rel = io.getWorldCoord().gridRelativeCoords();
       double halfCell = CELL_SIZE_METERS / 2.0;
-      double dx =
-          v.x != 0 ? (v.x * arg * CELL_SIZE_METERS + halfCell - rel.x) : 0;
-      double dy =
-          v.y != 0 ? (v.y * arg * CELL_SIZE_METERS + halfCell - rel.y) : 0;
+      double dx = v.x != 0 ? (v.x * arg * CELL_SIZE_METERS + halfCell - rel.x -
+                              v.x * TURN_RADIUS)
+                           : 0;
+      double dy = v.y != 0 ? (v.y * arg * CELL_SIZE_METERS + halfCell - rel.y -
+                              v.y * TURN_RADIUS)
+                           : 0;
+
       double distance = std::sqrt(dx * dx + dy * dy);
-      double vForward =
-          (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
       double travelAngle =
           M_PI / 2.0 -
           goalAngle * M_PI / 4.0; // convert from 0 -> up to 0 -> right
-      double vRel = vForward * std::cos(rel.theta - travelAngle);
-      return std::make_unique<ProfiledDriveAction>(distance, travelAngle, vRel, 0.1);
+      return std::make_unique<ProfiledDriveAction>(distance, travelAngle, 0.1);
     }
     if (c == IPT180) {
       goalAngle += 4;
@@ -83,7 +82,7 @@ struct CommandAction : Action {
       double theta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
       return std::make_unique<SequentialAction>(SequentialAction::make(
           YawPIDAction{theta},
-          ProfiledDriveAction{CELL_SIZE_METERS, theta, 0, 0.1}));
+          ProfiledDriveAction{CELL_SIZE_METERS, theta, 0.1}));
     }
     if (cls == EX_ST0) {
       if (c == EX_ST45L) {
@@ -103,8 +102,6 @@ struct CommandAction : Action {
       double currentTheta = io.getWorldCoord().theta;
       double turnAngle = std::atan2(std::sin(targetTheta - currentTheta),
                                     std::cos(targetTheta - currentTheta));
-      double vForward =
-          (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
 
       // Might need to be adjusted so it takes position into consideration,
       // not just angle.
@@ -114,8 +111,7 @@ struct CommandAction : Action {
       GridCoord v = angleToVector(goalAngle);
       goal.x += v.x;
       goal.y += v.y;
-      return std::make_unique<ProfiledCurveAction>(
-          CELL_SIZE_METERS / 2.0, turnAngle, vForward, 0.1);
+      return std::make_unique<ProfiledCurveAction>(TURN_RADIUS, turnAngle, 0.1);
     }
     return std::make_unique<EmptyAction>();
   }
