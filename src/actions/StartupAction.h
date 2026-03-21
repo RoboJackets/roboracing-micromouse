@@ -20,3 +20,19 @@ struct StartupAction : Action {
   }
   void end(MouseState &s, MouseIO &io) override {}
 };
+struct DelayAction : Action {
+  bool canceled = false;
+  void cancel() override { canceled = true; }
+  bool completed() const override { return canceled; }
+  double time = 0;
+  double runTime;
+  DelayAction(double runTime) : runTime(runTime) {}
+  void run(MouseState &s, MouseIO &io) override {
+    time += io.getDt();
+    Serial.println(time);
+    if (runTime <= time) {
+      cancel();
+      return;
+    }
+  }
+};

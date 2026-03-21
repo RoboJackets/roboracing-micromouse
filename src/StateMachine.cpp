@@ -13,12 +13,22 @@ FastPathSolver fastPath{};
 Solver noop = Solver{};
 EmptyAction empty = EmptyAction{};
 SequentialAction square = SequentialAction::make(
-    YawPIDAction(0), DriveTimeAction(1, 0.5), YawPIDAction(PI / 2),
-    DriveTimeAction(1, 0.5), YawPIDAction(PI), DriveTimeAction(1, 0.5),
-    YawPIDAction(1.5 * PI / 2), DriveTimeAction(1, 0.5), YawPIDAction(0));
+    DelayAction(6), YawPIDAction(0), ProfiledDriveAction(0.3048, 0, 0.1),
+    ProfiledCurveAction(0.05, -PI / 2, 0.1),
+    ProfiledDriveAction(0.3048, -PI / 2, 0.4),
+    ProfiledCurveAction(0.05, -PI / 2, 0.1),
+    ProfiledDriveAction(0.3048, -PI, 0.4),
+    ProfiledCurveAction(0.05, -PI / 2, 0.1),
+    ProfiledDriveAction(0.3048, -1.5 * PI, 0), YawPIDAction(0));
 DriveTimeAction vroom = DriveTimeAction(1000, 0.1);
-YawPIDAction pid = YawPIDAction(0);
-Action *a = &empty;
+ProfiledCurveAction pid = ProfiledCurveAction(1, 2 * PI, 0);
+SysIDRampAction ramp{};
+
+SequentialAction s =
+    SequentialAction::make(DelayAction(6), ProfiledCurveAction(1, 0.5 * PI, 0));
+SequentialAction r =
+    SequentialAction::make(DelayAction(6), YawPIDAction(PI / 2));
+Action *a = &square;
 void switchState(GoalState state) {
   if (currentState == state) {
     return;
@@ -42,9 +52,9 @@ void switchState(GoalState state) {
     break;
   }
   currentState = state;
-  if (a && !a->completed())
+  if (a && !a->completed()) {
     a->cancel();
-  a = &empty;
+  }
   solver->init(mouseState, goal);
 }
 void updateState() {
@@ -92,7 +102,8 @@ void tick(MouseIO *io) {
   updateState();          // determine overall goal (solver)
   if (a->completed()) {
     a->end(mouseState, *io);
-    a = solver->run(mouseState, goal); // determine action
+    // a = solver->run(mouseState, goal); // determine action
+    a = &empty;
   }
   a->run(mouseState, *io); // run action
 }

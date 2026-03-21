@@ -14,10 +14,10 @@ constexpr uint8_t RECV_2 = 41;
 constexpr uint8_t RECV_3 = 38;
 constexpr uint8_t RECV_4 = 27;
 
-constexpr uint8_t AIN1 = 28;
-constexpr uint8_t AIN2 = 22;
+constexpr uint8_t AIN1 = 29;
+constexpr uint8_t AIN2 = 28;
 
-constexpr uint8_t BIN1 = 29;
+constexpr uint8_t BIN1 = 22;
 constexpr uint8_t BIN2 = 23;
 
 constexpr uint8_t STBY = 20;

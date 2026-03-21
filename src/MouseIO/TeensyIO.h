@@ -1,6 +1,7 @@
 #pragma once
 #include <Arduino.h>
 
+#include <array>
 #include <cmath>
 
 #include "Constants.h"
@@ -30,25 +31,24 @@ struct TeensyIO : MouseIO {
   std::vector<IRSensor> sensors{
       IRSensor{{}, EMIT_1, RECV_1}, IRSensor{{}, EMIT_4, RECV_4},
       IRSensor{{}, EMIT_2, RECV_2}, IRSensor{{}, EMIT_3, RECV_3}};
-  std::vector<EncoderSensor> encoders{EncoderSensor{ACODER_a, ACODER_b, 0},
-                                      EncoderSensor{BCODER_a, BCODER_b, 0}};
-  std::vector<WorldCoord> readings{};
-  std::vector<WorldCoord> readingsAverage{};
-
-  static TeensyIO *instance;
-  static void isr0() { instance->encoders[0].updateEncoder(); }
-  static void isr1() { instance->encoders[1].updateEncoder(); }
+  EncoderSensor encoderLeft{ACODER_a, ACODER_b, 0, true};
+  EncoderSensor encoderRight{BCODER_a, BCODER_b, 0, false};
+  std::array<WorldCoord, 4> readings{};
+  std::array<WorldCoord, 4> readingsAverage{};
   double gyroOffset = 0;
+
+  double filteredSpeedLeft = 0;
+  double filteredSpeedRight = 0;
 
   Gyro gyro{};
   PID velocityPIDRight{velocityPIDConstants};
   PID velocityPIDLeft{velocityPIDConstants};
 
-  MotorFeedForward leftff{0, 0, 0};
-  MotorFeedForward rightff{0, 0, 0};
+  MotorFeedForward leftff{0.35, 0.7, 0};
+  MotorFeedForward rightff{0.35, 0.7, 0};
 
-  DRV8833Motor mA = DRV8833Motor(AIN1, AIN2, -1, STBY);
-  DRV8833Motor mB = DRV8833Motor(BIN1, BIN2, 1, STBY);
+  DRV8833Motor mLeft = DRV8833Motor(AIN1, AIN2, 1, STBY);
+  DRV8833Motor mRight = DRV8833Motor(BIN1, BIN2, 1, STBY);
 
   GridCoord getGridCoord() override {
     int gx = std::lround(w.x / CELL_SIZE_METERS);
@@ -56,6 +56,11 @@ struct TeensyIO : MouseIO {
     unsigned char dir = getGridDir(w.theta);
     // TODO: update gyro
     return GridCoord{gx, gy, dir};
+  }
+
+  void resetPIDs() override {
+    velocityPIDLeft.resetAccum();
+    velocityPIDRight.resetAccum();
   }
 
   unsigned char getGridDir(double angle) {
@@ -77,16 +82,17 @@ struct TeensyIO : MouseIO {
     double deltaRight = getDrivePosRight() - lastRightPosition;
     double wheelDelta = ((deltaLeft + deltaRight) / 2);
 
-    if (readings.size() >= 2 && readings.at(0).hypot() < 0.18 &&
-        readings.at(1).hypot() < 0.18) {
-      double deltaR = readingsAverage.at(0).y - readingsAverage.at(1).y;
-      double sensorYaw = std::atan2(deltaR, FRONT_SENSOR_SEP);
-      double currentHeading = gyroYaw - gyroOffset;
-      double nearestCardinal =
-          std::round(currentHeading / (M_PI / 2.0)) * (M_PI / 2.0);
-      double sensorOffset = gyroYaw - nearestCardinal - sensorYaw;
-      gyroOffset = GYRO_ALPHA * gyroOffset + (1.0 - GYRO_ALPHA) * sensorOffset;
-    }
+    // if (readings.size() >= 2 && readings.at(0).hypot() < 0.18 &&
+    //     readings.at(1).hypot() < 0.18) {
+    //   double deltaR = readingsAverage.at(0).y - readingsAverage.at(1).y;
+    //   double sensorYaw = std::atan2(deltaR, FRONT_SENSOR_SEP);
+    //   double currentHeading = gyroYaw - gyroOffset;
+    //   double nearestCardinal =
+    //       std::round(currentHeading / (M_PI / 2.0)) * (M_PI / 2.0);
+    //   double sensorOffset = gyroYaw - nearestCardinal - sensorYaw;
+    //   gyroOffset = GYRO_ALPHA * gyroOffset + (1.0 - GYRO_ALPHA) *
+    //   sensorOffset;
+    // }
     double theta = getGyroYaw() - gyroOffset;
     double deltaX = wheelDelta * std::cos(theta);
     double deltaY = wheelDelta * std::sin(theta);
@@ -96,22 +102,41 @@ struct TeensyIO : MouseIO {
   void updateEncoders() {
     lastLeftPosition = leftPosition;
     lastRightPosition = rightPosition;
-    leftPosition = encoders[0].getPosition();
-    rightPosition = encoders[1].getPosition();
+    leftPosition = encoderLeft.getPosition();
+    rightPosition = encoderRight.getPosition();
+
+    double dt = getDt();
+    double rawLeft = (leftPosition - lastLeftPosition) / dt;
+    double rawRight = (rightPosition - lastRightPosition) / dt;
+
+    constexpr double alpha = 0.4;
+    filteredSpeedLeft += alpha * (rawLeft - filteredSpeedLeft);
+    filteredSpeedRight += alpha * (rawRight - filteredSpeedRight);
   }
   unsigned char getGridDir() override { return dir; }
 
   void driveVoltage(double left, double right) override {
     double l = std::clamp(left, -1.0, 1.0);
     double r = std::clamp(right, -1.0, 1.0);
-    mA.drive((int)(r * 255));
-    mB.drive((int)(l * 255));
+    if (l == 0.0 && r == 0.0) {
+      mLeft.brake();
+      mRight.brake();
+      Serial.println("BRAKE!!");
+    } else {
+      mLeft.drive((int)(l * 255));
+      mRight.drive((int)(r * 255));
+    }
   }
   void setGyroOffset(double offset) { gyroOffset = offset; }
 
   void setWorldCoord(WorldCoord c) { w = c; }
 
   void driveVelocity(double left, double right) override {
+    // Serial.printf("LEFT ERROR: %0.2f\n", getDriveSpeedLeft() - left);
+    if (left > 0.1) {
+      Serial.printf("LEFT: %0.2f, RIGHT: %0.2f, LA: %0.2f, RA: %0.2f\n", left,
+                    right, getDriveSpeedLeft(), getDriveSpeedRight());
+    }
     driveVoltage(
         leftff.calculate(left, getDt()) +
             velocityPIDLeft.calculate(getDriveSpeedLeft(), left, getDt()),
@@ -119,35 +144,29 @@ struct TeensyIO : MouseIO {
             velocityPIDRight.calculate(getDriveSpeedRight(), right, getDt()));
   }
 
-  double getDriveSpeedLeft() override {
-    return (getDrivePosLeft() - lastLeftPosition) / getDt();
-  };
-  double getDriveSpeedRight() override {
-    return (getDrivePosRight() - lastRightPosition) / getDt();
-  };
+  double getDriveSpeedLeft() override { return filteredSpeedLeft; }
+  double getDriveSpeedRight() override { return filteredSpeedRight; };
 
   double getDrivePosLeft() override { return leftPosition; };
   double getDrivePosRight() override { return rightPosition; };
   double getGyroYaw() override { return gyroYaw; };
 
-  std::vector<WorldCoord> getSensorState() override { return readings; };
-  std::vector<WorldCoord> getAverageSensorState() override {
+  std::array<WorldCoord, 4> getSensorState() override { return readings; };
+  std::array<WorldCoord, 4> getAverageSensorState() override {
     return readingsAverage;
   };
   void updateDt() {
     uint32_t now = micros();
     uint32_t deltaMicros = now - lastMicros;
     lastMicros = now;
-    cachedDt = deltaMicros * 1e-6;
+    cachedDt = std::max(deltaMicros * 1e-6, 1e-6);
   }
 
   double getDt() override { return cachedDt; }
 
   void updateSensorState() {
-    readings.clear();
-    readingsAverage.clear();
     for (int i = 0; i < sensors.size(); i++) {
-      IRSensor sensor = sensors.at(i);
+      IRSensor &sensor = sensors.at(i);
       digitalWrite(sensor.EMIT, HIGH);
       delayMicroseconds(EMIT_RECV_DELAY_US);
       int post = analogRead(sensor.RECV);
@@ -155,18 +174,27 @@ struct TeensyIO : MouseIO {
       // relative to mouse in m
       double dist = post < 4 ? std::numeric_limits<double>::infinity()
                              : 0.647426 / pow(max(post, 1), 0.516999);
-      readings.push_back(sensor.getReading(dist));
-      readingsAverage.push_back(sensor.getAverage());
+      readings[i] = sensor.getReading(dist);
+      readingsAverage[i] = sensor.getAverage();
+      // Serial.print(i);
+      // Serial.print(": ");
+      // Serial.print(post);
+      // Serial.print("     ");
     }
+    // Serial.print("GYRO: ");
+    // Serial.print(w.theta);
+    // Serial.print("    ");
+    // Serial.printf("X: %0.2f Y: %0.2f\n", w.x, w.y);
     gyro.update();
     gyroYaw = gyro.ypr[0];
-    // Serial.println(readings.at(0).hypot());
   }
 
   void updateMazeState(MouseState &mouseState) {
     WorldCoord gridRelative = w.gridRelativeCoords();
     int gx = getGridCoord().x;
     int gy = getGridCoord().y;
+    if (gx < 0 || gx >= N || gy < 0 || gy >= N)
+      return;
     for (int i = 0; i < sensors.size(); i++) {
       if (gridRelative.x + readings.at(i).x < CELL_SIZE_METERS &&
           gridRelative.y + readings.at(i).y < CELL_SIZE_METERS) {
@@ -177,9 +205,13 @@ struct TeensyIO : MouseIO {
                  (std::cos(angle) < 0 ? -1 : 1);
         int cy = ((std::abs(std::sin(angle)) > sqrt(2) / 2) ? 1 : 0) *
                  (std::sin(angle) < 0 ? -1 : 1);
-        unsigned char oppositeWall =
-            ((sensedWall >> 2) | (sensedWall << 2)) & 0x0F;
-        mouseState.walls[gx + cx][gy + cy] |= oppositeWall;
+        int nx = gx + cx;
+        int ny = gy + cy;
+        if (nx >= 0 && nx < N && ny >= 0 && ny < N) {
+          unsigned char oppositeWall =
+              ((sensedWall >> 2) | (sensedWall << 2)) & 0x0F;
+          mouseState.walls[nx][ny] |= oppositeWall;
+        }
       }
     }
   }
@@ -190,34 +222,27 @@ struct TeensyIO : MouseIO {
     updateEncoders();
     updateWorldCoord();
     updateMazeState(mouseState);
-    Logger::tick();
   }
 
   void init() override {
-    instance = this;
-    Logger::init();
+    // Logger::init();
     lastMicros = micros();
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(EMIT_1, OUTPUT);
-    pinMode(ACODER_a, INPUT);
-    pinMode(ACODER_b, INPUT);
-    attachInterrupt(digitalPinToInterrupt(ACODER_a), isr0, CHANGE);
-    pinMode(BCODER_a, INPUT);
-    pinMode(BCODER_b, INPUT);
-    attachInterrupt(digitalPinToInterrupt(BCODER_a), isr1, CHANGE);
-    // pinMode(EMIT_2, OUTPUT);
-    // pinMode(EMIT_3, OUTPUT);
-    // pinMode(EMIT_4, OUTPUT);
+    pinMode(EMIT_2, OUTPUT);
+    pinMode(EMIT_3, OUTPUT);
+    pinMode(EMIT_4, OUTPUT);
 
     pinMode(RECV_1, INPUT);
-    // pinMode(RECV_2, INPUT);
-    // pinMode(RECV_3, INPUT);
-    // pinMode(RECV_4, INPUT);
+    pinMode(RECV_2, INPUT);
+    pinMode(RECV_3, INPUT);
+    pinMode(RECV_4, INPUT);
 
     gyro.initalizeGyro();
+
+    mLeft.begin();
+    mRight.begin();
 
     Serial.begin(9600);
   };
 };
-
-TeensyIO *TeensyIO::instance = nullptr;

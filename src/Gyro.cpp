@@ -16,6 +16,7 @@ struct Gyro {
     void initalizeGyro() {
         Wire.begin();
         Wire.setClock(400000);
+        Wire.setTimeout(3000);
 
         mpu.initialize();
         devStatus = mpu.dmpInitialize();

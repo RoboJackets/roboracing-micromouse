@@ -10,19 +10,19 @@ void turningPenalty(MouseState &state, const Goals *goal,
     }
   }
 
-  if (!(state.walls[state.y][state.x] & TOP)) {
+  if (!(state.walls[state.y][state.x] & TOP) && state.y + 1 < N) {
     destinationArray[state.y + 1][state.x] +=
         goal->turnPenalty * dirToDist(state.dir, TOP);
   }
-  if (!(state.walls[state.y][state.x] & LEFT)) {
+  if (!(state.walls[state.y][state.x] & LEFT) && state.x - 1 >= 0) {
     destinationArray[state.y][state.x - 1] +=
         goal->turnPenalty * dirToDist(state.dir, LEFT);
   }
-  if (!(state.walls[state.y][state.x] & DOWN)) {
+  if (!(state.walls[state.y][state.x] & DOWN) && state.y - 1 >= 0) {
     destinationArray[state.y - 1][state.x] +=
         goal->turnPenalty * dirToDist(state.dir, DOWN);
   }
-  if (!(state.walls[state.y][state.x] & RIGHT)) {
+  if (!(state.walls[state.y][state.x] & RIGHT) && state.x + 1 < N) {
     destinationArray[state.y][state.x + 1] +=
         goal->turnPenalty * dirToDist(state.dir, RIGHT);
   }
@@ -50,22 +50,26 @@ void floodFill(MouseState &state, const Goals *goal) {
     const int dist = state.dists[c.y][c.x];
 
     // left
-    if (!(wall & LEFT) && dist + 1 < state.dists[c.y][c.x - 1]) {
+    if (c.x - 1 >= 0 && !(wall & LEFT) &&
+        dist + 1 < state.dists[c.y][c.x - 1]) {
       state.dists[c.y][c.x - 1] = dist + 1;
       queue.push({c.x - 1, c.y});
     }
     // right
-    if (!(wall & RIGHT) && dist + 1 < state.dists[c.y][c.x + 1]) {
+    if (c.x + 1 < N && !(wall & RIGHT) &&
+        dist + 1 < state.dists[c.y][c.x + 1]) {
       state.dists[c.y][c.x + 1] = dist + 1;
       queue.push({c.x + 1, c.y});
     }
     // down
-    if (!(wall & DOWN) && dist + 1 < state.dists[c.y - 1][c.x]) {
+    if (c.y - 1 >= 0 && !(wall & DOWN) &&
+        dist + 1 < state.dists[c.y - 1][c.x]) {
       state.dists[c.y - 1][c.x] = dist + 1;
       queue.push({c.x, c.y - 1});
     }
     // up
-    if (!(wall & TOP) && dist + 1 < state.dists[c.y + 1][c.x]) {
+    if (c.y + 1 < N && !(wall & TOP) &&
+        dist + 1 < state.dists[c.y + 1][c.x]) {
       state.dists[c.y + 1][c.x] = dist + 1;
       queue.push({c.x, c.y + 1});
     }
@@ -88,13 +92,13 @@ unsigned char traverse(MouseState &state, const Goals *goal) {
   auto fillNeighborCosts = [&](int out[4], int destination[N][N]) {
     out[0] = out[1] = out[2] = out[3] = INF + 200;
     const unsigned char here = state.walls[state.y][state.x];
-    if (!(here & TOP))
+    if (!(here & TOP) && state.y + 1 < N)
       out[0] = destination[state.y + 1][state.x];
-    if (!(here & LEFT))
+    if (!(here & LEFT) && state.x - 1 >= 0)
       out[1] = destination[state.y][state.x - 1];
-    if (!(here & DOWN))
+    if (!(here & DOWN) && state.y - 1 >= 0)
       out[2] = destination[state.y - 1][state.x];
-    if (!(here & RIGHT))
+    if (!(here & RIGHT) && state.x + 1 < N)
       out[3] = destination[state.y][state.x + 1];
   };
 
