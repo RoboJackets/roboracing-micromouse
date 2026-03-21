@@ -13,7 +13,12 @@ export default function StateTable({ csvData, currentTimeUs }) {
 
     if (!csvData) return null
 
-    const nonTimestamp = csvData.headers.filter((h) => h !== 'timestamp_us')
+    const nonTimestamp = csvData.headers.filter(
+        (h) =>
+            h !== 'timestamp_us' &&
+            !h.startsWith('walls[') &&
+            !h.startsWith('explored[')
+    )
 
     return (
         <div className="panel state-panel">

@@ -9,7 +9,6 @@
 #include <string>
 #include <vector>
 
-#include "Mouse.h" // MouseState
 #include "Types.h"
 
 class Logger {
@@ -164,29 +163,11 @@ public:
     log((k + "/theta").c_str(), c.theta);
   }
 
-  // Convenience: log a WorldCoord under the key "w" (pose shorthand used by
-  // TeensyIO)
-  static void log(const WorldCoord &c) { log("w", c); }
-
   static void log(const char *key, const GridCoord &c) {
     std::string k(key);
     log((k + "/x").c_str(), c.x);
     log((k + "/y").c_str(), c.y);
     log((k + "/dir").c_str(), c.dir);
-  }
-
-  // Log the full MouseState: pose, grid position, discovered walls, and
-  // explored flags. Column names:
-  //   state/x, state/y, state/dir          — current grid cell & heading
-  //   walls[i][j]                           — wall bitmask for each cell
-  //   (TOP=8,RIGHT=4,DOWN=2,LEFT=1) explored[i][j]                        — 1
-  //   if that cell has been visited
-  static void log(const MouseState &ms) {
-    log("state/x", ms.x);
-    log("state/y", ms.y);
-    log("state/dir", ms.dir);
-    log("walls", ms.walls);       // uses the 2-D array overload
-    log("explored", ms.explored); // uses the 2-D array overload
   }
 
   template <typename T>
@@ -266,8 +247,6 @@ public:
 
 #else
 
-#include "Mouse.h"
-
 // No-op logger for simulation builds
 class Logger {
 public:
@@ -275,8 +254,6 @@ public:
   static void log(const char *, ...) {}
   template <typename T> static void log(const char *, const T &) {}
   template <typename T> static void log(const char *, const std::vector<T> &) {}
-  static void log(const WorldCoord &) {}
-  static void log(const MouseState &) {}
   static void tick() {}
   static void close() {}
 };

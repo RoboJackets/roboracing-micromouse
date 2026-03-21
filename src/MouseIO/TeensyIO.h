@@ -91,9 +91,8 @@ struct TeensyIO : MouseIO {
     double deltaY = wheelDelta * std::sin(theta);
 
     w = WorldCoord{w.x + deltaX, w.y + deltaY, theta};
-    // Log only world X and Y (theta is derived from gyro separately)
-    Logger::log("w/x", w.x);
-    Logger::log("w/y", w.y);
+    // Logs w/x, w/y, w/theta — all three used by the UI
+    Logger::log("w", w);
   }
   void updateEncoders() {
     lastLeftPosition = leftPosition;
@@ -189,6 +188,23 @@ struct TeensyIO : MouseIO {
         mouseState.walls[gx + cx][gy + cy] |= oppositeWall;
       }
     }
+
+    // Sync current grid position into MouseState
+    mouseState.x = gx;
+    mouseState.y = gy;
+    mouseState.dir = getGridCoord().dir;
+
+    // Log current grid cell and heading
+    Logger::log("state/x", gx);
+    Logger::log("state/y", gy);
+    Logger::log(
+        "state/dir",
+        mouseState.dir); // unsigned char → log(const char*, unsigned char)
+
+    // Log full 16×16 wall bitmask array → produces walls[i][j] columns
+    Logger::log("walls", mouseState.walls);
+    // Log full 16×16 explored flag array → produces explored[i][j] columns
+    Logger::log("explored", mouseState.explored);
   }
 
   void update(MouseState &mouseState) override {
