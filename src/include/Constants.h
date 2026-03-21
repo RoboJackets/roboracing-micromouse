@@ -9,7 +9,7 @@ constexpr double WHEEL_RADIUS_M = (0.032 / 2);
 
 constexpr double COUNTS_PER_REVOLUTION = 12;
 
-constexpr double COUNTS_PER_WHEEL_REV = 616.4;
+constexpr double COUNTS_PER_WHEEL_REV = 617.3544;
 
 constexpr double ROBOT_LENGTH = 0.13;
 

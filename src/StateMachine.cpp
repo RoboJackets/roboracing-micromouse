@@ -25,10 +25,10 @@ ProfiledCurveAction pid = ProfiledCurveAction(1, 2 * PI, 0);
 SysIDRampAction ramp{};
 
 SequentialAction s =
-    SequentialAction::make(DelayAction(6), ProfiledCurveAction(1, 0.5 * PI, 0));
+    SequentialAction::make(DelayAction(6), ProfiledDriveAction(0.3048, 0, 0));
 SequentialAction r =
     SequentialAction::make(DelayAction(6), YawPIDAction(PI / 2));
-Action *a = &square;
+Action *a = &s;
 void switchState(GoalState state) {
   if (currentState == state) {
     return;

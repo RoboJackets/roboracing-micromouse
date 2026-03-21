@@ -44,8 +44,8 @@ struct TeensyIO : MouseIO {
   PID velocityPIDRight{velocityPIDConstants};
   PID velocityPIDLeft{velocityPIDConstants};
 
-  MotorFeedForward leftff{0.35, 0.7, 0};
-  MotorFeedForward rightff{0.35, 0.7, 0};
+  MotorFeedForward leftff{0.45, 0.7, 0};
+  MotorFeedForward rightff{0.45, 0.7, 0};
 
   DRV8833Motor mLeft = DRV8833Motor(AIN1, AIN2, 1, STBY);
   DRV8833Motor mRight = DRV8833Motor(BIN1, BIN2, 1, STBY);

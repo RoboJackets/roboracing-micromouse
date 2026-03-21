@@ -81,7 +81,7 @@ struct CommandAction : Action {
       io.driveVoltage(0, 0);
       double theta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
       return std::make_unique<SequentialAction>(SequentialAction::make(
-          YawPIDAction{theta},
+          ProfiledRotationAction{theta},
           ProfiledDriveAction{CELL_SIZE_METERS, theta, 0.1}));
     }
     if (cls == EX_ST0) {
