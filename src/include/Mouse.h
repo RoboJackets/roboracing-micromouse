@@ -4,7 +4,7 @@
 
 constexpr int centerGoals[][2] = {{7, 7}, {7, 8}, {8, 7}, {8, 8}};
 constexpr int startGoal[][2] = {{0, 0}};
-
+constexpr int testGoal[][2] = {{1, 2}};
 struct Goals {
   const int (*cells)[2];
   int count;
@@ -12,7 +12,8 @@ struct Goals {
   int turnPenalty = 0;
 };
 
-constexpr Goals CENTER_GOALS{centerGoals, 4, 0, 1};
+constexpr Goals CENTER_GOALS{centerGoals, 4, 0, 0};
+constexpr Goals TEST_GOALS{testGoal, 1, 0, 0};
 constexpr Goals START_GOALS{startGoal, 1, 3, 0};
 
 struct MouseState {
@@ -20,7 +21,7 @@ struct MouseState {
   WorldCoord worldCoord{};
   int dists[N][N]{};
   bool explored[N][N]{};
-  unsigned char walls[N][N]{};  // bitmask
+  unsigned char walls[N][N]{}; // bitmask
 
   // grid coords
   int y = 0;
@@ -28,10 +29,11 @@ struct MouseState {
   unsigned char dir = TOP;
 };
 
-inline bool atGoal(MouseState& state, const Goals* goal) {
+inline bool atGoal(MouseState &state, const Goals *goal) {
   for (int i = 0; i < goal->count; ++i) {
-    const int* g = goal->cells[i];
-    if (g[0] == state.y && g[1] == state.x) return true;
+    const int *g = goal->cells[i];
+    if (g[0] == state.y && g[1] == state.x)
+      return true;
   }
   return false;
 }

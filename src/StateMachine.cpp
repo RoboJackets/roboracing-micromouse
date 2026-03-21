@@ -6,12 +6,14 @@ GoalState currentState = GoalState::GOAL_SEARCH;
 MouseState mouseState{};
 
 Solver *solver = nullptr;
-const Goals *goal = &CENTER_GOALS;
+const Goals *goal = &TEST_GOALS;
 
 FloodFillSolver floodFill{};
 FastPathSolver fastPath{};
 Solver noop = Solver{};
 EmptyAction empty = EmptyAction{};
+SequentialAction startup =
+    SequentialAction::make(DelayAction(6), StartupAction{});
 SequentialAction square = SequentialAction::make(
     DelayAction(6), YawPIDAction(0), ProfiledDriveAction(0.3048, 0, 0.1),
     ProfiledCurveAction(0.05, -PI / 2, 0.1),
@@ -28,7 +30,7 @@ SequentialAction s =
     SequentialAction::make(DelayAction(6), ProfiledDriveAction(0.3048, 0, 0));
 SequentialAction r =
     SequentialAction::make(DelayAction(6), YawPIDAction(PI / 2));
-Action *a = &empty;
+Action *a = &startup;
 void switchState(GoalState state) {
   if (currentState == state) {
     return;
@@ -37,7 +39,7 @@ void switchState(GoalState state) {
   switch (state) {
   case GoalState::GOAL_SEARCH:
     solver = &floodFill;
-    goal = &CENTER_GOALS;
+    goal = &TEST_GOALS;
     break;
   case GoalState::RETURN:
     solver = &floodFill;
@@ -45,7 +47,7 @@ void switchState(GoalState state) {
     break;
   case GoalState::FAST_PATH:
     solver = &fastPath;
-    goal = &CENTER_GOALS;
+    goal = &TEST_GOALS;
     break;
   default:
     solver = &noop;
@@ -102,8 +104,8 @@ void tick(MouseIO *io) {
   updateState();          // determine overall goal (solver)
   if (a->completed()) {
     a->end(mouseState, *io);
-    // a = solver->run(mouseState, goal); // determine action
-    a = &empty;
+    a = solver->run(mouseState, goal); // determine action
+    // a = &empty;
   }
   a->run(mouseState, *io); // run action
 }

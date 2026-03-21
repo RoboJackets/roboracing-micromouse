@@ -29,8 +29,18 @@ struct TeensyIO : MouseIO {
   double gyroYaw = 0;
   // FL, FR, DL, DR
   std::vector<IRSensor> sensors{
-      IRSensor{{}, EMIT_1, RECV_1}, IRSensor{{}, EMIT_4, RECV_4},
-      IRSensor{{}, EMIT_2, RECV_2}, IRSensor{{}, EMIT_3, RECV_3}};
+      IRSensor{{-0.0473, 0.013, PI / 2}, EMIT_1, RECV_1, 0.791794, 0.451947},
+      IRSensor{{0.0473, 0.013, PI / 2}, EMIT_4, RECV_4, 1.19063, 0.515537},
+      IRSensor{{-0.021, 0.038, PI / 2 + PI / 4},
+               EMIT_2,
+               RECV_2,
+               0.991211012704,
+               0.483742247458},
+      IRSensor{{0.021, 0.038, PI / 2 - PI / 4},
+               EMIT_3,
+               RECV_3,
+               0.991211012704,
+               0.483742247458}};
   EncoderSensor encoderLeft{ACODER_a, ACODER_b, 0, true};
   EncoderSensor encoderRight{BCODER_a, BCODER_b, 0, false};
   std::array<WorldCoord, 4> readings{};
@@ -93,6 +103,7 @@ struct TeensyIO : MouseIO {
     //   gyroOffset = GYRO_ALPHA * gyroOffset + (1.0 - GYRO_ALPHA) *
     //   sensorOffset;
     // }
+    // Serial.printf("GYRO: %0.2f\n", w.theta);
     double theta = getGyroYaw() - gyroOffset;
     double deltaX = wheelDelta * std::cos(theta);
     double deltaY = wheelDelta * std::sin(theta);
@@ -133,10 +144,11 @@ struct TeensyIO : MouseIO {
 
   void driveVelocity(double left, double right) override {
     // Serial.printf("LEFT ERROR: %0.2f\n", getDriveSpeedLeft() - left);
-    if (left > 0.1) {
-      Serial.printf("LEFT: %0.2f, RIGHT: %0.2f, LA: %0.2f, RA: %0.2f\n", left,
-                    right, getDriveSpeedLeft(), getDriveSpeedRight());
-    }
+    // if (left > 0.1) {
+    //   Serial.printf("LEFT: %0.2f, RIGHT: %0.2f, LA: %0.2f, RA: %0.2f\n",
+    //   left,
+    //                 right, getDriveSpeedLeft(), getDriveSpeedRight());
+    // }
     driveVoltage(
         leftff.calculate(left, getDt()) +
             velocityPIDLeft.calculate(getDriveSpeedLeft(), left, getDt()),
@@ -174,18 +186,17 @@ struct TeensyIO : MouseIO {
       // relative to mouse in m
       readings[i] = sensor.getReading(post);
       readingsAverage[i] = sensor.getAverage();
-      Serial.print(i);
-      Serial.print(": ");
-      Serial.print(post);
-      Serial.print("     ");
+      // Serial.print(i);
+      // Serial.print(": ");
+      // Serial.printf("%0.2f, %0.2f", readings[i].x, readings[i].y);
+      // Serial.print("     ");
     }
-    Serial.println();
     // Serial.print("GYRO: ");
     // Serial.print(w.theta);
     // Serial.print("    ");
     // Serial.printf("X: %0.2f Y: %0.2f\n", w.x, w.y);
     gyro.update();
-    gyroYaw = gyro.ypr[0];
+    gyroYaw = -gyro.ypr[0];
   }
 
   void updateMazeState(MouseState &mouseState) {
@@ -195,9 +206,10 @@ struct TeensyIO : MouseIO {
     if (gx < 0 || gx >= N || gy < 0 || gy >= N)
       return;
     for (int i = 0; i < sensors.size(); i++) {
-      if (gridRelative.x + readings.at(i).x < CELL_SIZE_METERS &&
-          gridRelative.y + readings.at(i).y < CELL_SIZE_METERS) {
-        double angle = gridRelative.theta + sensors.at(i).pos_from_center.theta;
+      if (std::abs(readings.at(i).x) < 0.16 &&
+          std::abs(readings.at(i).y) < 0.16) {
+        double angle =
+            gridRelative.theta + sensors.at(i).pos_from_center.theta - PI / 2;
         unsigned char sensedWall = getGridDir(angle);
         mouseState.walls[gx][gy] |= sensedWall;
         int cx = ((std::abs(std::cos(angle)) > sqrt(2) / 2) ? 1 : 0) *
@@ -221,7 +233,13 @@ struct TeensyIO : MouseIO {
     updateEncoders();
     updateWorldCoord();
     updateMazeState(mouseState);
+    // Serial.printf("COORD: %d, %d  WORLD: %0.2f, %0.2f    WALLS: %d\n",
+    //               getGridCoord().x, getGridCoord().y, w.x, w.y,
+    //               mouseState.walls[getGridCoord().x][getGridCoord().y]);
+    // Serial.println(analogRead(B_FRONT));
   }
+
+  static void onButtonPress() { Serial.print("PRESSED"); }
 
   void init() override {
     // Logger::init();
@@ -236,6 +254,11 @@ struct TeensyIO : MouseIO {
     pinMode(RECV_2, INPUT);
     pinMode(RECV_3, INPUT);
     pinMode(RECV_4, INPUT);
+
+    pinMode(B_FRONT, INPUT);
+    pinMode(B_BACK, INPUT);
+
+    // attachInterrupt(digitalPinToInterrupt(B_FRONT), onButtonPress, RISING);
 
     gyro.initalizeGyro();
 

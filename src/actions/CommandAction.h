@@ -25,7 +25,9 @@ struct CommandAction : Action {
     curr.reset();
   }
   void cancel() override { canceled = true; }
-  bool completed() const override { return canceled || pc >= buf.size(); }
+  bool completed() const override {
+    return canceled || (pc >= buf.size() && !curr);
+  }
 
   void run(MouseState &s, MouseIO &io) override {
     if (completed())
@@ -35,6 +37,7 @@ struct CommandAction : Action {
       return;
     }
     if (!curr) {
+      // Serial.println("BANG");
       curr = determineAction(s, io);
     }
     curr->run(s, io);
@@ -42,6 +45,7 @@ struct CommandAction : Action {
       s.x = io.getGridCoord().x;
       s.y = io.getGridCoord().y;
       s.dir = io.getGridCoord().dir;
+      // Serial.println("MEOW");
       curr.reset();
     }
   }
@@ -73,7 +77,9 @@ struct CommandAction : Action {
       double travelAngle =
           M_PI / 2.0 -
           goalAngle * M_PI / 4.0; // convert from 0 -> up to 0 -> right
-      return std::make_unique<ProfiledDriveAction>(distance, travelAngle, 0.1);
+      Serial.printf("FWD%d    WALL: %d\n", arg,
+                    s.walls[io.getGridCoord().x][io.getGridCoord().y]);
+      return std::make_unique<ProfiledDriveAction>(distance, travelAngle, 0);
     }
     if (c == IPT180) {
       goalAngle += 4;
@@ -85,6 +91,8 @@ struct CommandAction : Action {
           ProfiledDriveAction{CELL_SIZE_METERS, theta, 0.1}));
     }
     if (cls == EX_ST0) {
+      Serial.printf("CURVE    WALL: %d\n",
+                    s.walls[io.getGridCoord().x][io.getGridCoord().y]);
       if (c == EX_ST45L) {
         goalAngle -= 1;
       } else if (c == EX_ST90L) {

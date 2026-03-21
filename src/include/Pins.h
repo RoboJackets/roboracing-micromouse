@@ -27,3 +27,6 @@ constexpr uint8_t ACODER_b = 37;
 
 constexpr uint8_t BCODER_a = 34;
 constexpr uint8_t BCODER_b = 35;
+
+constexpr uint8_t B_FRONT = 1;
+constexpr uint8_t B_BACK = 2;

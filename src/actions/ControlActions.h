@@ -85,10 +85,10 @@ struct SysIDRampAction : Action {
     io.driveVoltage(voltage, voltage);
 
     double speed = (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
-    Serial.print("VOLTS: ");
-    Serial.print(voltage, 4);
-    Serial.print(",SPEED: ");
-    Serial.println(speed, 4);
+    // Serial.print("VOLTS: ");
+    // Serial.print(voltage, 4);
+    // Serial.print(",SPEED: ");
+    // Serial.println(speed, 4);
   }
 
   void end(MouseState &s, MouseIO &io) override { io.driveVoltage(0.0, 0.0); }
@@ -113,7 +113,7 @@ struct RampVelocityAction : Action {
       return;
     }
     double velocity = totalTime * rampRate;
-    Serial.print(velocity);
+    // Serial.print(velocity);
     io.driveVelocity(velocity, velocity);
   }
 
@@ -133,7 +133,7 @@ struct ProfiledDriveAction : Action {
   static constexpr double VEL_TOL = 0.06;  // m/s
   double best = 0;
   ProfiledDriveAction(double setpoint, double angle, double finalVelocity)
-      : profile({1, MAX_ACCEL_M_S2, 0, finalVelocity,
+      : profile({0.1, MAX_ACCEL_M_S2 / 2, 0, finalVelocity,
                  profilePIDConstants, setpoint}),
         setpoint(setpoint), error(setpoint), angle(angle) {}
   bool canceled = false;
