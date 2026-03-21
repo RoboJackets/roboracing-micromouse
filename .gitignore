@@ -38,3 +38,5 @@
 !.vscode/settings.json
 !.vscode/extensions.json
 .pio/
+
+node_modules/
