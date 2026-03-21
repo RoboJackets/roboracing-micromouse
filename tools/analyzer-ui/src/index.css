@@ -1,23 +1,32 @@
 /* ── Reset & base ──────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg:        #0d1117;
-  --surface:   #161b22;
-  --surface2:  #1c2230;
-  --border:    rgba(255,255,255,0.08);
-  --text:      #d0dae8;
-  --text-dim:  #627280;
-  --accent:    #58a6ff;
-  --green:     #3fb950;
-  --red:       #ff6b6b;
-  --yellow:    #ffd93d;
-  --radius:    10px;
-  --font:      'Inter', system-ui, sans-serif;
-  --mono:      'JetBrains Mono', monospace;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-html, body { height: 100%; }
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2230;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #d0dae8;
+  --text-dim: #627280;
+  --accent: #58a6ff;
+  --green: #3fb950;
+  --red: #ff6b6b;
+  --yellow: #ffd93d;
+  --radius: 10px;
+  --font: 'Inter', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+html,
+body {
+  height: 100%;
+}
 
 body {
   font-family: var(--font);
@@ -59,7 +68,9 @@ body {
   gap: 10px;
 }
 
-.logo { font-size: 22px; }
+.logo {
+  font-size: 22px;
+}
 
 .app-header h1 {
   font-size: 15px;
@@ -69,9 +80,9 @@ body {
 }
 
 .badge {
-  background: rgba(88,166,255,0.12);
+  background: rgba(88, 166, 255, 0.12);
   color: var(--accent);
-  border: 1px solid rgba(88,166,255,0.25);
+  border: 1px solid rgba(88, 166, 255, 0.25);
   border-radius: 20px;
   padding: 2px 10px;
   font-size: 11px;
@@ -128,8 +139,16 @@ body {
   flex-shrink: 0;
 }
 
-.panel-title .icon { font-size: 14px; }
-.panel-title .subtitle { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text-dim); }
+.panel-title .icon {
+  font-size: 14px;
+}
+
+.panel-title .subtitle {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-dim);
+}
 
 /* Right panels fill their grid row */
 .grid-panel,
@@ -157,13 +176,16 @@ body {
   user-select: none;
 }
 
-.drop-zone:hover, .drop-zone.drag-over {
+.drop-zone:hover,
+.drop-zone.drag-over {
   border-color: var(--accent);
-  background: rgba(88,166,255,0.06);
+  background: rgba(88, 166, 255, 0.06);
   color: var(--text);
 }
 
-.drop-icon { font-size: 22px; }
+.drop-icon {
+  font-size: 22px;
+}
 
 /* ── Form rows ─────────────────────────────────────────────────── */
 .form-row {
@@ -199,7 +221,9 @@ select {
   padding-right: 28px;
 }
 
-select:focus { border-color: var(--accent); }
+select:focus {
+  border-color: var(--accent);
+}
 
 /* ── Slider ────────────────────────────────────────────────────── */
 .slider {
@@ -225,7 +249,9 @@ select:focus { border-color: var(--accent); }
   transition: transform 0.1s;
 }
 
-.slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
 
 /* ── Buttons ───────────────────────────────────────────────────── */
 .playback-row {
@@ -246,13 +272,29 @@ select:focus { border-color: var(--accent); }
   white-space: nowrap;
 }
 
-.btn:active { transform: scale(0.96); }
+.btn:active {
+  transform: scale(0.96);
+}
 
-.btn-play    { background: var(--green); color: #000; }
-.btn-pause   { background: var(--yellow); color: #000; }
-.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-play {
+  background: var(--green);
+  color: #000;
+}
 
-.btn:hover { opacity: 0.88; }
+.btn-pause {
+  background: var(--yellow);
+  color: #000;
+}
+
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn:hover {
+  opacity: 0.88;
+}
 
 .time-display {
   font-family: var(--mono);
@@ -263,7 +305,11 @@ select:focus { border-color: var(--accent); }
 }
 
 /* ── Separators / misc ─────────────────────────────────────────── */
-.separator { height: 1px; background: var(--border); margin: 2px 0; }
+.separator {
+  height: 1px;
+  background: var(--border);
+  margin: 2px 0;
+}
 
 .section-label {
   font-size: 11px;
@@ -288,6 +334,88 @@ select:focus { border-color: var(--accent); }
   padding: 20px;
 }
 
+/* ── Sensor toggles ────────────────────────────────────────────── */
+.graph-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.graph-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.graph-sel-btns {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sel-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.sel-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.sensor-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sensor-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 10px 3px 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.sensor-chip.active {
+  border-color: var(--chip-color);
+  color: var(--text);
+  background: color-mix(in srgb, var(--chip-color) 12%, var(--surface2));
+}
+
+.sensor-chip.inactive {
+  opacity: 0.45;
+}
+
+.sensor-chip:hover {
+  opacity: 1;
+}
+
+.chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--chip-color);
+  flex-shrink: 0;
+}
+
 /* ── Grid canvas ───────────────────────────────────────────────── */
 .grid-canvas {
   width: 100%;
@@ -299,7 +427,9 @@ select:focus { border-color: var(--accent); }
 }
 
 /* ── State table ───────────────────────────────────────────────── */
-.state-panel { flex: 0 0 auto; }
+.state-panel {
+  flex: 0 0 auto;
+}
 
 .state-table-wrap {
   overflow-y: auto;
@@ -330,11 +460,13 @@ select:focus { border-color: var(--accent); }
 }
 
 .state-table tbody tr {
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   transition: background 0.1s;
 }
 
-.state-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+.state-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
 
 .col-name {
   padding: 4px 10px;

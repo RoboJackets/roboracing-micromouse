@@ -16,7 +16,6 @@
 #include <DRV8833.h>
 #include <Gyro.cpp>
 
-
 struct TeensyIO : MouseIO {
   unsigned char dir = TOP;
   uint32_t lastMicros = 0;
@@ -92,6 +91,9 @@ struct TeensyIO : MouseIO {
     double deltaY = wheelDelta * std::sin(theta);
 
     w = WorldCoord{w.x + deltaX, w.y + deltaY, theta};
+    // Log only world X and Y (theta is derived from gyro separately)
+    Logger::log("w/x", w.x);
+    Logger::log("w/y", w.y);
   }
   void updateEncoders() {
     lastLeftPosition = leftPosition;
@@ -160,7 +162,12 @@ struct TeensyIO : MouseIO {
     }
     gyro.update();
     gyroYaw = gyro.ypr[0];
-    // Serial.println(readings.at(0).hypot());
+
+    // Log IR raw readings (one column per sensor: IR[0]..IR[N-1])
+    for (int i = 0; i < (int)readings.size(); i++) {
+      Logger::log(("IR[" + std::to_string(i) + "]").c_str(),
+                  readings[i].hypot());
+    }
   }
 
   void updateMazeState(MouseState &mouseState) {
