@@ -12,6 +12,9 @@ struct IRSensor {
   uint8_t EMIT;
   uint8_t RECV;
 
+  double a = 0.647426;
+  double b = 0.516999;
+
   WorldCoord buffer[IR_AVG_WINDOW]{};
   int buf_index = 0;
   int buf_count = 0;
@@ -32,7 +35,9 @@ struct IRSensor {
     return {sum_x / buf_count, sum_y / buf_count, pos_from_center.theta};
   }
 
-  WorldCoord getReading(double dist) {
+  WorldCoord getReading(int post) {
+    double dist = post < 4 ? std::numeric_limits<double>::infinity()
+                           : 0.647426 / pow(max(post, 1), 0.516999);
     WorldCoord coord = {
         std::cos(pos_from_center.theta) * dist - pos_from_center.x,
         std::sin(pos_from_center.theta) * dist - pos_from_center.y,

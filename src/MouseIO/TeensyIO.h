@@ -172,15 +172,14 @@ struct TeensyIO : MouseIO {
       int post = analogRead(sensor.RECV);
       digitalWrite(sensor.EMIT, LOW);
       // relative to mouse in m
-      double dist = post < 4 ? std::numeric_limits<double>::infinity()
-                             : 0.647426 / pow(max(post, 1), 0.516999);
-      readings[i] = sensor.getReading(dist);
+      readings[i] = sensor.getReading(post);
       readingsAverage[i] = sensor.getAverage();
-      // Serial.print(i);
-      // Serial.print(": ");
-      // Serial.print(post);
-      // Serial.print("     ");
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.print(post);
+      Serial.print("     ");
     }
+    Serial.println();
     // Serial.print("GYRO: ");
     // Serial.print(w.theta);
     // Serial.print("    ");

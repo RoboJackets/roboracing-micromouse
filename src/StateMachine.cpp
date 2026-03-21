@@ -28,7 +28,7 @@ SequentialAction s =
     SequentialAction::make(DelayAction(6), ProfiledDriveAction(0.3048, 0, 0));
 SequentialAction r =
     SequentialAction::make(DelayAction(6), YawPIDAction(PI / 2));
-Action *a = &s;
+Action *a = &empty;
 void switchState(GoalState state) {
   if (currentState == state) {
     return;
