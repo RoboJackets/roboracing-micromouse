@@ -105,6 +105,11 @@ unsigned char traverse(MouseState &state, const Goals *goal) {
   int bestDirArray[4];
   fillNeighborCosts(bestDirArray, state.dists);
 
+  Serial.print("TOP: "); Serial.print(bestDirArray[0]);
+  Serial.print(" LEFT: "); Serial.print(bestDirArray[1]);
+  Serial.print(" DOWN: "); Serial.print(bestDirArray[2]);
+  Serial.print(" RIGHT: "); Serial.println(bestDirArray[3]);
+
   int best = INF + 100;
   bool tie = false;
   int bestDirID = -1;

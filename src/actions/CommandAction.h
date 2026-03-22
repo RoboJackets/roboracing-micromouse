@@ -31,7 +31,7 @@ struct CommandAction : Action {
   }
 
   void run(MouseState &s, MouseIO &io) override {
-    Serial.println("running");
+    // Serial.println("running");
     if (completed())
       return;
     if (io.isMMS()) {

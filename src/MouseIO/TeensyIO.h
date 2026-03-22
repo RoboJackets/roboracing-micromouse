@@ -31,17 +31,17 @@ struct TeensyIO : MouseIO {
   // FL, FR, DL, DR
   std::vector<IRSensor> sensors{
       IRSensor{{-0.0473, 0.013, PI / 2}, EMIT_1, RECV_1, 0.791794, 0.451947},
-      IRSensor{{0.0473, 0.013, PI / 2}, EMIT_4, RECV_4, 1.19063, 0.515537},
-      IRSensor{{-0.021, 0.038, PI / 2 + PI / 4},
+      IRSensor{{0.0473, 0.013, PI / 2}, EMIT_4, RECV_4, 0.791794, 0.451947},
+      IRSensor{{-0.021, 0.038, PI / 2 + 30 * (PI / 180)},
                EMIT_2,
                RECV_2,
-               0.991211012704,
-               0.483742247458},
-      IRSensor{{0.021, 0.038, PI / 2 - PI / 4},
+               0.791794,
+               0.451947},
+      IRSensor{{0.021, 0.038, PI / 2 - 30 * (PI / 180)},
                EMIT_3,
                RECV_3,
-               0.991211012704,
-               0.483742247458}};
+               0.791794,
+               0.451947}};
   EncoderSensor encoderLeft{ACODER_a, ACODER_b, 0, true};
   EncoderSensor encoderRight{BCODER_a, BCODER_b, 0, false};
   std::array<WorldCoord, 4> readings{};
@@ -62,8 +62,8 @@ struct TeensyIO : MouseIO {
   DRV8833Motor mRight = DRV8833Motor(BIN1, BIN2, 1, STBY);
 
   GridCoord getGridCoord() override {
-    int gx = std::lround(w.x / CELL_SIZE_METERS);
-    int gy = std::lround(w.y / CELL_SIZE_METERS);
+    int gx = std::floor(w.x / CELL_SIZE_METERS);
+    int gy = std::floor(w.y / CELL_SIZE_METERS);
     unsigned char dir = getGridDir(w.theta);
     // TODO: update gyro
     return GridCoord{gx, gy, dir};
@@ -189,10 +189,10 @@ struct TeensyIO : MouseIO {
       // relative to mouse in m
       readings[i] = sensor.getReading(post);
       readingsAverage[i] = sensor.getAverage();
-      // Serial.print(i);
-      // Serial.print(": ");
-      // Serial.printf("%0.2f, %0.2f", readings[i].x, readings[i].y);
-      // Serial.print("     ");
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.printf("%0.2f, %0.2f", readings[i].x, readings[i].y);
+      Serial.print("     ");
     }
     // Serial.print("GYRO: ");
     // Serial.print(w.theta);
@@ -203,44 +203,79 @@ struct TeensyIO : MouseIO {
   }
 
   void updateMazeState(MouseState &mouseState) {
-    if (!mazeUpdate) {
+    if (!mazeUpdate)
       return;
-    }
-    // Serial.println("1");
-    WorldCoord gridRelative = w.gridRelativeCoords();
+
     int gx = getGridCoord().x;
     int gy = getGridCoord().y;
     if (gx < 0 || gx >= N || gy < 0 || gy >= N)
       return;
-    double rx = gridRelative.x;
-    double ry = gridRelative.y;
-    double heading = gridRelative.theta;
-    double dotTravel = rx * std::cos(heading) + ry * std::sin(heading);
-    bool inEntryHalf = dotTravel < 0;
-    for (int i = 0; i < sensors.size(); i++) {
-      // Use current reading to gate — average mixes readings from different
-      // robot orientations and can produce false positives from stale data.
-      if (readings[i].x != std::numeric_limits<double>::infinity() &&
-          std::abs(readings[i].x) < 0.18 && std::abs(readings[i].y) < 0.18 &&
-          inEntryHalf) {
-        double angle =
-            gridRelative.theta + sensors.at(i).pos_from_center.theta - PI / 2;
-        unsigned char sensedWall = getGridDir(angle);
-        mouseState.walls[gy][gx] |= sensedWall;
-        int cx = ((std::abs(std::cos(angle)) > sqrt(2) / 2) ? 1 : 0) *
-                 (std::cos(angle) < 0 ? -1 : 1);
-        int cy = ((std::abs(std::sin(angle)) > sqrt(2) / 2) ? 1 : 0) *
-                 (std::sin(angle) < 0 ? -1 : 1);
-        int nx = gx + cx;
-        int ny = gy + cy;
-        if (nx >= 0 && nx < N && ny >= 0 && ny < N) {
-          unsigned char oppositeWall =
-              ((sensedWall >> 2) | (sensedWall << 2)) & 0x0F;
-          mouseState.walls[ny][nx] |= oppositeWall;
-        }
-      }
+
+    double cosH = std::cos(w.theta);
+    double sinH = std::sin(w.theta);
+
+    // Current cell boundaries in world coordinates
+    double cellLeft = gx * CELL_SIZE_METERS;
+    double cellRight = (gx + 1) * CELL_SIZE_METERS;
+    double cellBottom = gy * CELL_SIZE_METERS;
+    double cellTop = (gy + 1) * CELL_SIZE_METERS;
+
+    // Only trust readings within this distance from robot center
+    constexpr double MAX_READING_DIST = 0.17;
+    // How close the point must be to an edge (perpendicular) to count as wall
+    constexpr double WALL_TOL = 0.035;
+    // How far past the cell the point can be along the wall direction
+    // (diagonal sensors hit side walls at a y that overshoots the cell)
+    constexpr double ALONG_MARGIN = 0.07;
+
+    for (int i = 0; i < (int)sensors.size(); i++) {
+      WorldCoord r = readingsAverage[i];
+      if (r.x == std::numeric_limits<double>::infinity())
+        continue;
+
+      if (r.hypot() > MAX_READING_DIST)
+        continue;
+
+      // Transform robot-relative reading to world coordinates
+      double wx = w.x + r.x * sinH + r.y * cosH;
+      double wy = w.y - r.x * cosH + r.y * sinH;
+
+      // Check each edge independently:
+      //   perpendicular axis must be within WALL_TOL of the edge,
+      //   parallel axis must be within the cell ± ALONG_MARGIN
+      unsigned char wall = 0;
+
+      if (std::abs(wx - cellRight) < WALL_TOL &&
+          wy >= cellBottom - ALONG_MARGIN && wy <= cellTop + ALONG_MARGIN)
+        wall |= RIGHT;
+
+      if (std::abs(wx - cellLeft) < WALL_TOL &&
+          wy >= cellBottom - ALONG_MARGIN && wy <= cellTop + ALONG_MARGIN)
+        wall |= LEFT;
+
+      if (std::abs(wy - cellTop) < WALL_TOL && wx >= cellLeft - ALONG_MARGIN &&
+          wx <= cellRight + ALONG_MARGIN)
+        wall |= TOP;
+
+      if (std::abs(wy - cellBottom) < WALL_TOL &&
+          wx >= cellLeft - ALONG_MARGIN && wx <= cellRight + ALONG_MARGIN)
+        wall |= DOWN;
+
+      if (wall == 0)
+        continue;
+
+      mouseState.walls[gy][gx] |= wall;
+
+      // Propagate opposite wall to neighbors
+      if ((wall & RIGHT) && gx + 1 < N)
+        mouseState.walls[gy][gx + 1] |= LEFT;
+      if ((wall & LEFT) && gx - 1 >= 0)
+        mouseState.walls[gy][gx - 1] |= RIGHT;
+      if ((wall & TOP) && gy + 1 < N)
+        mouseState.walls[gy + 1][gx] |= DOWN;
+      if ((wall & DOWN) && gy - 1 >= 0)
+        mouseState.walls[gy - 1][gx] |= TOP;
     }
-    Serial.println("1");
   }
 
   void update(MouseState &mouseState) override {
@@ -249,11 +284,11 @@ struct TeensyIO : MouseIO {
     updateEncoders();
     updateWorldCoord();
     updateMazeState(mouseState);
-    // Serial.printf(
-    //     "COORD: %d, %d  WORLD: %0.2f, %0.2f    WALLS: %d   REL: %0.2f,
-    //     %0.2f\n", getGridCoord().x, getGridCoord().y, w.x, w.y,
-    //     mouseState.walls[getGridCoord().y][getGridCoord().x],
-    //     w.gridRelativeCoords().x, w.gridRelativeCoords().y);
+    Serial.printf("COORD: %d, %d  WORLD: %0.2f, %0.2f    WALLS: %d   REL: "
+                  "%0.2f, %0.2f \n",
+                  getGridCoord().x, getGridCoord().y, w.x, w.y,
+                  mouseState.walls[getGridCoord().y][getGridCoord().x],
+                  w.gridRelativeCoords().x, w.gridRelativeCoords().y);
     // Serial.println(analogRead(B_FRONT));
   }
 

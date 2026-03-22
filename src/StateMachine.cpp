@@ -26,8 +26,8 @@ DriveTimeAction vroom = DriveTimeAction(1000, 0.1);
 ProfiledCurveAction pid = ProfiledCurveAction(1, 2 * PI, 0);
 SysIDRampAction ramp{};
 
-SequentialAction s =
-    SequentialAction::make(DelayAction(6), ProfiledDriveAction(0.3048, 0, 0));
+SequentialAction s = SequentialAction::make(
+    DelayAction(6), ProfiledCurveAction(0.01, PI / 2, 0));
 SequentialAction r =
     SequentialAction::make(DelayAction(6), YawPIDAction(PI / 2));
 Action *a = &startup;
@@ -83,9 +83,9 @@ void updateState() {
 }
 void init(MouseIO *io) {
   mouseState.explored[0][0] = true;
-  for (int i = 0; i < CENTER_GOALS.count; ++i) {
-    const int gx = CENTER_GOALS.cells[i][1];
-    const int gy = CENTER_GOALS.cells[i][0];
+  for (int i = 0; i < TEST_GOALS.count; ++i) {
+    const int gx = TEST_GOALS.cells[i][1];
+    const int gy = TEST_GOALS.cells[i][0];
     mouseState.explored[gy][gx] = true;
   }
   for (int i = 0; i < N; ++i) {
@@ -95,7 +95,7 @@ void init(MouseIO *io) {
     mouseState.walls[N - 1][i] |= TOP;
   }
   solver = &floodFill;
-  goal = &CENTER_GOALS;
+  goal = &TEST_GOALS;
   currentState = GoalState::GOAL_SEARCH;
   io->init();
 }

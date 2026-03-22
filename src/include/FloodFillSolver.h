@@ -6,7 +6,6 @@
 #include <queue>
 #include <string>
 
-
 class FloodFillSolver final : public Solver {
 public:
   CommandAction cmd{};

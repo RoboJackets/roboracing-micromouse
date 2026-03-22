@@ -305,9 +305,9 @@ struct ProfiledCurveAction : Action {
     // double c =
     //     std::isinf(irDelta) ? 0.0 : irPID.calculate(irDelta, 0, io.getDt());
     double c = 0;
-    double vOuter = v / outerRatio + c;
-    double vInner = v * outerRatio - c;
-    (setpoint < 0) ? io.driveVelocity(vInner, vOuter)
+    double vOuter = v * outerRatio + c;
+    double vInner = v / outerRatio - c;
+    (setpoint > 0) ? io.driveVelocity(vInner, vOuter)
                    : io.driveVelocity(vOuter, vInner);
   }
 
