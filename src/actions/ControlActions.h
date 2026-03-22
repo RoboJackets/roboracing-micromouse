@@ -141,7 +141,6 @@ struct ProfiledDriveAction : Action {
   PID gyroPID = PID{rot90PIDConstants};
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
-  double irDelta = 0;
   void run(MouseState &s, MouseIO &io) override {
     // if (io.getAverageSensorState()[0].hypot() < 0.1 ||
     //     io.getAverageSensorState()[1].hypot() < 0.1) {
@@ -166,8 +165,6 @@ struct ProfiledDriveAction : Action {
       profile.initalVelocity = vForward * std::cos(w.theta - angle);
       started = true;
     }
-    irDelta =
-        io.getSensorState().at(2).hypot() - io.getSensorState().at(3).hypot();
     double dx = w.x - prevCoord.x;
     double dy = w.y - prevCoord.y;
     measurement += dx * std::cos(angle) + dy * std::sin(angle);
@@ -180,13 +177,19 @@ struct ProfiledDriveAction : Action {
     double v = profile.calculate(io.getDt(), measurement);
     // bool hasBothIR = io.getSensorState().at(2).hypot() < 0.18 &&
     //                  io.getSensorState().at(3).hypot() < 0.18;
-    bool hasBothIR = false;
     double c;
     double gyroError = angle - w.theta;
     gyroError = std::atan2(std::sin(gyroError), std::cos(gyroError));
-    c = gyroPID.calculate(-gyroError, 0, io.getDt());
-    if (hasBothIR) {
-      c += irPID.calculate(irDelta, 0, io.getDt());
+    if (io.getSensorState().at(2).hypot() < 0.18 &&
+        io.getSensorState().at(3).hypot() < 0.18) {
+      c = irPID.calculate(-io.getSensorState().at(2).hypot(),
+                          io.getSensorState().at(3).hypot(), io.getDt());
+    } else if (io.getSensorState().at(2).hypot() < 0.18) {
+      c = irPID.calculate(io.getSensorState().at(2).hypot(), -0.09, io.getDt());
+    } else if (io.getSensorState().at(3).hypot() < 0.18) {
+      c = irPID.calculate(io.getSensorState().at(3).hypot(), 0.09, io.getDt());
+    } else {
+      c = gyroPID.calculate(-gyroError, 0, io.getDt());
     }
     // Serial.println(v);
     io.driveVelocity(v - c, v + c);
@@ -265,8 +268,8 @@ struct ProfiledCurveAction : Action {
   static constexpr double VEL_TOL = 0.06;  // m/s
 
   ProfiledCurveAction(double radius, double angle, double finalVelocity)
-      : profile({std::sqrt(COEF_FRICTION * 9.81 * radius),
-                 MAX_ACCEL_M_S2 * 0.5, 0, finalVelocity, profilePIDConstants,
+      : profile({std::sqrt(COEF_FRICTION * 9.81 * radius), MAX_ACCEL_M_S2 * 0.5,
+                 0, finalVelocity, profilePIDConstants,
                  radius * std::abs(angle)}),
         outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius),
         radius(radius), setpoint(radius * angle), error(setpoint) {}
