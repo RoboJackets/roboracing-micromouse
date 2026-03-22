@@ -16,7 +16,7 @@ inline PIDConstants rot90PIDConstants{0.5, 0, 0};
 inline PIDConstants velocityPIDConstants{1.1, 0.3, 0.0, 0.3};
 inline PIDConstants profilePIDConstants{4, 0, 0};
 inline PIDConstants profileYawConstants{5, 0, 0};
-inline PIDConstants IRadjust{0, 0, 0};
+inline PIDConstants IRadjust{1, 0, 0};
 
 class PID {
   double p = 0;

@@ -30,18 +30,10 @@ struct TeensyIO : MouseIO {
   bool mazeUpdate = false;
   // FL, FR, DL, DR
   std::vector<IRSensor> sensors{
-      IRSensor{{-0.0473, 0.013, PI / 2}, EMIT_1, RECV_1, 0.791794, 0.451947},
-      IRSensor{{0.0473, 0.013, PI / 2}, EMIT_4, RECV_4, 0.791794, 0.451947},
-      IRSensor{{-0.021, 0.038, PI / 2 + 30 * (PI / 180)},
-               EMIT_2,
-               RECV_2,
-               0.791794,
-               0.451947},
-      IRSensor{{0.021, 0.038, PI / 2 - 30 * (PI / 180)},
-               EMIT_3,
-               RECV_3,
-               0.791794,
-               0.451947}};
+      IRSensor{{-0.0473, 0.013, PI / 2}, EMIT_1, RECV_1, 0.968202, 0.500721},
+      IRSensor{{0.0473, 0.013, PI / 2}, EMIT_4, RECV_4, 1.30488, 0.547281},
+      IRSensor{{-0.021, 0.038, PI}, EMIT_2, RECV_2, 1.30488, 0.547281},
+      IRSensor{{0.021, 0.038, 0}, EMIT_3, RECV_3, 0.818039, 0.53409}};
   EncoderSensor encoderLeft{ACODER_a, ACODER_b, 0, true};
   EncoderSensor encoderRight{BCODER_a, BCODER_b, 0, false};
   std::array<WorldCoord, 4> readings{};
@@ -192,6 +184,7 @@ struct TeensyIO : MouseIO {
       Serial.print(i);
       Serial.print(": ");
       Serial.printf("%0.2f, %0.2f", readings[i].x, readings[i].y);
+      // Serial.print(post);
       Serial.print("     ");
     }
     // Serial.print("GYRO: ");
@@ -208,127 +201,82 @@ struct TeensyIO : MouseIO {
     if (!mazeUpdate)
       return;
 
-    int gx = getGridCoord().x;
-    int gy = getGridCoord().y;
-    if (gx < 0 || gx >= N || gy < 0 || gy >= N)
+    GridCoord gc = getGridCoord();
+    if (gc.x < 0 || gc.x >= N || gc.y < 0 || gc.y >= N)
       return;
 
-    unsigned char dir = getGridCoord().dir;
+    WorldCoord rel = w.gridRelativeCoords(gc);
 
-    double cosH = std::cos(w.theta);
-    double sinH = std::sin(w.theta);
+    unsigned char fwdDir, lftDir, rgtDir;
+    double fwdPos;
+    switch (gc.dir) {
+    case TOP:
+      fwdDir = TOP;
+      lftDir = LEFT;
+      rgtDir = RIGHT;
+      fwdPos = rel.y;
+      break;
+    case DOWN:
+      fwdDir = DOWN;
+      lftDir = RIGHT;
+      rgtDir = LEFT;
+      fwdPos = CELL_SIZE_METERS - rel.y;
+      break;
+    case RIGHT:
+      fwdDir = RIGHT;
+      lftDir = TOP;
+      rgtDir = DOWN;
+      fwdPos = rel.x;
+      break;
+    case LEFT:
+      fwdDir = LEFT;
+      lftDir = DOWN;
+      rgtDir = TOP;
+      fwdPos = CELL_SIZE_METERS - rel.x;
+      break;
+    default:
+      return;
+    }
 
-    double cellLeft = gx * CELL_SIZE_METERS;
-    double cellRight = (gx + 1) * CELL_SIZE_METERS;
-    double cellBottom = gy * CELL_SIZE_METERS;
-    double cellTop = (gy + 1) * CELL_SIZE_METERS;
+    double cosT = std::cos(w.theta);
+    double sinT = std::sin(w.theta);
 
-    constexpr double MAX_READING_DIST = 0.17;
+    auto addWall = [&](unsigned char wall) {
+      mouseState.walls[gc.y][gc.x] |= wall;
+      GridCoord adj = dirToVector(wall);
+      int nx = gc.x + adj.x;
+      int ny = gc.y + adj.y;
+      if (nx < 0 || nx >= N || ny < 0 || ny >= N)
+        return;
 
-    // diagonal sensors: looser sideways tolerance, very strict forward
-    // overshoot
-    constexpr double SIDE_TOL = 0.065;
-    constexpr double SIDE_FORWARD_MARGIN = 0.006;
-    constexpr double SIDE_BACK_MARGIN = 0.02;
-
-    // front sensors
-    constexpr double FRONT_TOL = 0.03;
-    constexpr double FRONT_SIDE_MARGIN = 0.03;
-
-    for (int i = 0; i < (int)sensors.size(); i++) {
-      WorldCoord r = readingsAverage[i];
-      if (!std::isfinite(r.x) || !std::isfinite(r.y))
-        continue;
-
-      if (r.hypot() > MAX_READING_DIST)
-        continue;
-
-      double wx = w.x + r.x * sinH + r.y * cosH;
-      double wy = w.y - r.x * cosH + r.y * sinH;
-
-      unsigned char wall = 0;
-
-      if (i == 3) { // right diagonal
-        if (dir == TOP) {
-          if (std::abs(wx - cellRight) < SIDE_TOL &&
-              wy >= cellBottom - SIDE_BACK_MARGIN &&
-              wy <= cellTop + SIDE_FORWARD_MARGIN)
-            wall = RIGHT;
-        } else if (dir == RIGHT) {
-          if (std::abs(wy - cellBottom) < SIDE_TOL &&
-              wx >= cellLeft - SIDE_BACK_MARGIN &&
-              wx <= cellRight + SIDE_FORWARD_MARGIN)
-            wall = DOWN;
-        } else if (dir == LEFT) {
-          if (std::abs(wy - cellTop) < SIDE_TOL &&
-              wx >= cellLeft - SIDE_FORWARD_MARGIN &&
-              wx <= cellRight + SIDE_BACK_MARGIN)
-            wall = TOP;
-        } else if (dir == DOWN) {
-          if (std::abs(wx - cellLeft) < SIDE_TOL &&
-              wy >= cellBottom - SIDE_FORWARD_MARGIN &&
-              wy <= cellTop + SIDE_BACK_MARGIN)
-            wall = LEFT;
-        }
-      } else if (i == 2) { // left diagonal
-        if (dir == TOP) {
-          if (std::abs(wx - cellLeft) < SIDE_TOL &&
-              wy >= cellBottom - SIDE_BACK_MARGIN &&
-              wy <= cellTop + SIDE_FORWARD_MARGIN)
-            wall = LEFT;
-        } else if (dir == RIGHT) {
-          if (std::abs(wy - cellTop) < SIDE_TOL &&
-              wx >= cellLeft - SIDE_BACK_MARGIN &&
-              wx <= cellRight + SIDE_FORWARD_MARGIN)
-            wall = TOP;
-        } else if (dir == LEFT) {
-          if (std::abs(wy - cellBottom) < SIDE_TOL &&
-              wx >= cellLeft - SIDE_FORWARD_MARGIN &&
-              wx <= cellRight + SIDE_BACK_MARGIN)
-            wall = DOWN;
-        } else if (dir == DOWN) {
-          if (std::abs(wx - cellRight) < SIDE_TOL &&
-              wy >= cellBottom - SIDE_FORWARD_MARGIN &&
-              wy <= cellTop + SIDE_BACK_MARGIN)
-            wall = RIGHT;
-        }
-      } else { // front sensors
-        if (dir == TOP) {
-          if (std::abs(wy - cellTop) < FRONT_TOL &&
-              wx >= cellLeft - FRONT_SIDE_MARGIN &&
-              wx <= cellRight + FRONT_SIDE_MARGIN)
-            wall = TOP;
-        } else if (dir == RIGHT) {
-          if (std::abs(wx - cellRight) < FRONT_TOL &&
-              wy >= cellBottom - FRONT_SIDE_MARGIN &&
-              wy <= cellTop + FRONT_SIDE_MARGIN)
-            wall = RIGHT;
-        } else if (dir == LEFT) {
-          if (std::abs(wx - cellLeft) < FRONT_TOL &&
-              wy >= cellBottom - FRONT_SIDE_MARGIN &&
-              wy <= cellTop + FRONT_SIDE_MARGIN)
-            wall = LEFT;
-        } else if (dir == DOWN) {
-          if (std::abs(wy - cellBottom) < FRONT_TOL &&
-              wx >= cellLeft - FRONT_SIDE_MARGIN &&
-              wx <= cellRight + FRONT_SIDE_MARGIN)
-            wall = DOWN;
-        }
+      unsigned char opp;
+      switch (wall) {
+      case TOP:
+        opp = DOWN;
+        break;
+      case DOWN:
+        opp = TOP;
+        break;
+      case LEFT:
+        opp = RIGHT;
+        break;
+      case RIGHT:
+        opp = LEFT;
+        break;
+      default:
+        return;
       }
+      mouseState.walls[ny][nx] |= opp;
+    };
 
-      if (wall == 0)
-        continue;
-
-      mouseState.walls[gy][gx] |= wall;
-
-      if ((wall & RIGHT) && gx + 1 < N)
-        mouseState.walls[gy][gx + 1] |= LEFT;
-      if ((wall & LEFT) && gx - 1 >= 0)
-        mouseState.walls[gy][gx - 1] |= RIGHT;
-      if ((wall & TOP) && gy + 1 < N)
-        mouseState.walls[gy + 1][gx] |= DOWN;
-      if ((wall & DOWN) && gy - 1 >= 0)
-        mouseState.walls[gy - 1][gx] |= TOP;
+    if (readings[0].y < 0.12) {
+      addWall(fwdDir);
+    }
+    if (-readings[2].x < 0.12) {
+      addWall(lftDir);
+    }
+    if (readings[3].x < 0.11) {
+      addWall(rgtDir);
     }
   }
 

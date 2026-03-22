@@ -4,7 +4,7 @@
 
 constexpr int centerGoals[][2] = {{7, 7}, {7, 8}, {8, 7}, {8, 8}};
 constexpr int startGoal[][2] = {{0, 0}};
-constexpr int testGoal[][2] = {{4, 3}};
+constexpr int testGoal[][2] = {{6, 6}};
 struct Goals {
   const int (*cells)[2];
   int count;

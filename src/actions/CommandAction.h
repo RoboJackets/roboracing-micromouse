@@ -70,10 +70,10 @@ struct CommandAction : Action {
       WorldCoord rel = io.getWorldCoord().gridRelativeCoords(io.getGridCoord());
       double halfCell = CELL_SIZE_METERS / 2.0;
       double dx =
-          v.x != 0 ? (v.x * arg * CELL_SIZE_METERS + halfCell - rel.x - v.x * 0)
+          v.x != 0 ? (v.x * arg * CELL_SIZE_METERS + halfCell - rel.x - v.x * 0.03)
                    : 0;
       double dy =
-          v.y != 0 ? (v.y * arg * CELL_SIZE_METERS + halfCell - rel.y - v.y * 0)
+          v.y != 0 ? (v.y * arg * CELL_SIZE_METERS + halfCell - rel.y - v.y * 0.03)
                    : 0;
 
       double distance = std::sqrt(dx * dx + dy * dy);
@@ -83,7 +83,7 @@ struct CommandAction : Action {
       Serial.printf("FWD%d    WALL: %d\n", arg,
                     s.walls[io.getGridCoord().x][io.getGridCoord().y]);
       return std::make_unique<SequentialAction>(SequentialAction::make(
-          ProfiledDriveAction{distance, travelAngle, 0}, DelayAction{1}));
+          ProfiledDriveAction{distance, travelAngle, 0.1}));
     }
     if (c == IPT180) {
       goalAngle += 4;
@@ -125,8 +125,8 @@ struct CommandAction : Action {
       goal.y += v.y;
       double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
       return std::make_unique<SequentialAction>(
-          SequentialAction::make(ProfiledCurveAction(0.01, turnAngle, 0),
-                                 ProfiledDriveAction{0.02, travelAngle, 0}));
+          SequentialAction::make(ProfiledCurveAction(0.03, turnAngle, 0.1),
+                                 ProfiledDriveAction{0.01, travelAngle, 0.1}));
     }
     return std::make_unique<EmptyAction>();
   }
