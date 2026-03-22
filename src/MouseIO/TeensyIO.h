@@ -203,6 +203,8 @@ struct TeensyIO : MouseIO {
   }
 
   void updateMazeState(MouseState &mouseState) {
+    if (std::abs(std::remainder(w.theta, PI / 2.0)) > 0.12)
+      return;
     if (!mazeUpdate)
       return;
 
@@ -211,62 +213,114 @@ struct TeensyIO : MouseIO {
     if (gx < 0 || gx >= N || gy < 0 || gy >= N)
       return;
 
+    unsigned char dir = getGridCoord().dir;
+
     double cosH = std::cos(w.theta);
     double sinH = std::sin(w.theta);
 
-    // Current cell boundaries in world coordinates
     double cellLeft = gx * CELL_SIZE_METERS;
     double cellRight = (gx + 1) * CELL_SIZE_METERS;
     double cellBottom = gy * CELL_SIZE_METERS;
     double cellTop = (gy + 1) * CELL_SIZE_METERS;
 
-    // Only trust readings within this distance from robot center
     constexpr double MAX_READING_DIST = 0.17;
-    // How close the point must be to an edge (perpendicular) to count as wall
-    constexpr double WALL_TOL = 0.035;
-    // How far past the cell the point can be along the wall direction
-    // (diagonal sensors hit side walls at a y that overshoots the cell)
-    constexpr double ALONG_MARGIN = 0.07;
+
+    // diagonal sensors: looser sideways tolerance, very strict forward
+    // overshoot
+    constexpr double SIDE_TOL = 0.065;
+    constexpr double SIDE_FORWARD_MARGIN = 0.006;
+    constexpr double SIDE_BACK_MARGIN = 0.02;
+
+    // front sensors
+    constexpr double FRONT_TOL = 0.03;
+    constexpr double FRONT_SIDE_MARGIN = 0.03;
 
     for (int i = 0; i < (int)sensors.size(); i++) {
       WorldCoord r = readingsAverage[i];
-      if (r.x == std::numeric_limits<double>::infinity())
+      if (!std::isfinite(r.x) || !std::isfinite(r.y))
         continue;
 
       if (r.hypot() > MAX_READING_DIST)
         continue;
 
-      // Transform robot-relative reading to world coordinates
       double wx = w.x + r.x * sinH + r.y * cosH;
       double wy = w.y - r.x * cosH + r.y * sinH;
 
-      // Check each edge independently:
-      //   perpendicular axis must be within WALL_TOL of the edge,
-      //   parallel axis must be within the cell ± ALONG_MARGIN
       unsigned char wall = 0;
 
-      if (std::abs(wx - cellRight) < WALL_TOL &&
-          wy >= cellBottom - ALONG_MARGIN && wy <= cellTop + ALONG_MARGIN)
-        wall |= RIGHT;
-
-      if (std::abs(wx - cellLeft) < WALL_TOL &&
-          wy >= cellBottom - ALONG_MARGIN && wy <= cellTop + ALONG_MARGIN)
-        wall |= LEFT;
-
-      if (std::abs(wy - cellTop) < WALL_TOL && wx >= cellLeft - ALONG_MARGIN &&
-          wx <= cellRight + ALONG_MARGIN)
-        wall |= TOP;
-
-      if (std::abs(wy - cellBottom) < WALL_TOL &&
-          wx >= cellLeft - ALONG_MARGIN && wx <= cellRight + ALONG_MARGIN)
-        wall |= DOWN;
+      if (i == 3) { // right diagonal
+        if (dir == TOP) {
+          if (std::abs(wx - cellRight) < SIDE_TOL &&
+              wy >= cellBottom - SIDE_BACK_MARGIN &&
+              wy <= cellTop + SIDE_FORWARD_MARGIN)
+            wall = RIGHT;
+        } else if (dir == RIGHT) {
+          if (std::abs(wy - cellBottom) < SIDE_TOL &&
+              wx >= cellLeft - SIDE_BACK_MARGIN &&
+              wx <= cellRight + SIDE_FORWARD_MARGIN)
+            wall = DOWN;
+        } else if (dir == LEFT) {
+          if (std::abs(wy - cellTop) < SIDE_TOL &&
+              wx >= cellLeft - SIDE_FORWARD_MARGIN &&
+              wx <= cellRight + SIDE_BACK_MARGIN)
+            wall = TOP;
+        } else if (dir == DOWN) {
+          if (std::abs(wx - cellLeft) < SIDE_TOL &&
+              wy >= cellBottom - SIDE_FORWARD_MARGIN &&
+              wy <= cellTop + SIDE_BACK_MARGIN)
+            wall = LEFT;
+        }
+      } else if (i == 2) { // left diagonal
+        if (dir == TOP) {
+          if (std::abs(wx - cellLeft) < SIDE_TOL &&
+              wy >= cellBottom - SIDE_BACK_MARGIN &&
+              wy <= cellTop + SIDE_FORWARD_MARGIN)
+            wall = LEFT;
+        } else if (dir == RIGHT) {
+          if (std::abs(wy - cellTop) < SIDE_TOL &&
+              wx >= cellLeft - SIDE_BACK_MARGIN &&
+              wx <= cellRight + SIDE_FORWARD_MARGIN)
+            wall = TOP;
+        } else if (dir == LEFT) {
+          if (std::abs(wy - cellBottom) < SIDE_TOL &&
+              wx >= cellLeft - SIDE_FORWARD_MARGIN &&
+              wx <= cellRight + SIDE_BACK_MARGIN)
+            wall = DOWN;
+        } else if (dir == DOWN) {
+          if (std::abs(wx - cellRight) < SIDE_TOL &&
+              wy >= cellBottom - SIDE_FORWARD_MARGIN &&
+              wy <= cellTop + SIDE_BACK_MARGIN)
+            wall = RIGHT;
+        }
+      } else { // front sensors
+        if (dir == TOP) {
+          if (std::abs(wy - cellTop) < FRONT_TOL &&
+              wx >= cellLeft - FRONT_SIDE_MARGIN &&
+              wx <= cellRight + FRONT_SIDE_MARGIN)
+            wall = TOP;
+        } else if (dir == RIGHT) {
+          if (std::abs(wx - cellRight) < FRONT_TOL &&
+              wy >= cellBottom - FRONT_SIDE_MARGIN &&
+              wy <= cellTop + FRONT_SIDE_MARGIN)
+            wall = RIGHT;
+        } else if (dir == LEFT) {
+          if (std::abs(wx - cellLeft) < FRONT_TOL &&
+              wy >= cellBottom - FRONT_SIDE_MARGIN &&
+              wy <= cellTop + FRONT_SIDE_MARGIN)
+            wall = LEFT;
+        } else if (dir == DOWN) {
+          if (std::abs(wy - cellBottom) < FRONT_TOL &&
+              wx >= cellLeft - FRONT_SIDE_MARGIN &&
+              wx <= cellRight + FRONT_SIDE_MARGIN)
+            wall = DOWN;
+        }
+      }
 
       if (wall == 0)
         continue;
 
       mouseState.walls[gy][gx] |= wall;
 
-      // Propagate opposite wall to neighbors
       if ((wall & RIGHT) && gx + 1 < N)
         mouseState.walls[gy][gx + 1] |= LEFT;
       if ((wall & LEFT) && gx - 1 >= 0)
@@ -288,7 +342,8 @@ struct TeensyIO : MouseIO {
                   "%0.2f, %0.2f \n",
                   getGridCoord().x, getGridCoord().y, w.x, w.y,
                   mouseState.walls[getGridCoord().y][getGridCoord().x],
-                  w.gridRelativeCoords().x, w.gridRelativeCoords().y);
+                  w.gridRelativeCoords(getGridCoord()).x,
+                  w.gridRelativeCoords(getGridCoord()).y);
     // Serial.println(analogRead(B_FRONT));
   }
 

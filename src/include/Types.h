@@ -1,6 +1,7 @@
 #pragma once
-#include <cmath>
 #include "Constants.h"
+#include <cmath>
+
 struct GridCoord {
   int x = 0;
   int y = 0;
@@ -12,10 +13,10 @@ struct WorldCoord {
   double y = 0;
   double theta = 0;
   double hypot() { return std::sqrt(x * x + y * y); }
-  struct WorldCoord gridRelativeCoords() {
-    double rx = std::remainder(x, CELL_SIZE_METERS);
-    double ry = std::remainder(y, CELL_SIZE_METERS);
-    return WorldCoord{rx, ry, theta};
+
+  struct WorldCoord gridRelativeCoords(const GridCoord &g) {
+    return WorldCoord{x - g.x * CELL_SIZE_METERS, y - g.y * CELL_SIZE_METERS,
+                      theta};
   }
 };
 

@@ -4,7 +4,7 @@
 
 #include "Types.h"
 
-constexpr int IR_AVG_WINDOW = 10;
+constexpr int IR_AVG_WINDOW = 3;
 
 struct IRSensor {
   // (x,y) is position from center, theta is angle of sensor.

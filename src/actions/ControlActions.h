@@ -265,7 +265,8 @@ struct ProfiledCurveAction : Action {
   static constexpr double VEL_TOL = 0.06;  // m/s
 
   ProfiledCurveAction(double radius, double angle, double finalVelocity)
-      : profile({0.05, MAX_ACCEL_M_S2, 0, finalVelocity, profilePIDConstants,
+      : profile({std::sqrt(COEF_FRICTION * 9.81 * radius),
+                 MAX_ACCEL_M_S2 * 0.5, 0, finalVelocity, profilePIDConstants,
                  radius * std::abs(angle)}),
         outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius),
         radius(radius), setpoint(radius * angle), error(setpoint) {}
@@ -304,11 +305,23 @@ struct ProfiledCurveAction : Action {
     double v = profile.calculate(io.getDt(), std::abs(measurement));
     // double c =
     //     std::isinf(irDelta) ? 0.0 : irPID.calculate(irDelta, 0, io.getDt());
+    double halfTrack = WHEEL_SEPERATION_M / 2.0;
+    double outerRatio = (radius + halfTrack) / radius;
+    double innerRatio = (radius - halfTrack) / radius;
     double c = 0;
+    // double thetaExpected = measurement / radius;
+    // double thetaError = thetaExpected - (w.theta - thetaStart);
+    // thetaError = atan2(sin(thetaError), cos(thetaError));
+    // double c = gyroPID.calculate(-thetaError, 0, io.getDt());
+
     double vOuter = v * outerRatio + c;
-    double vInner = v / outerRatio - c;
-    (setpoint > 0) ? io.driveVelocity(vInner, vOuter)
-                   : io.driveVelocity(vOuter, vInner);
+    double vInner = v * innerRatio - c;
+
+    if (setpoint > 0) {
+      io.driveVelocity(vInner, vOuter);
+    } else {
+      io.driveVelocity(vOuter, vInner);
+    }
   }
 
   void end(MouseState &s, MouseIO &io) override {
