@@ -142,8 +142,9 @@ struct ProfiledDriveAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
   void run(MouseState &s, MouseIO &io) override {
-    if (io.getAverageSensorState()[0].hypot() < 0.09 ||
-        io.getAverageSensorState()[1].hypot() < 0.09) {
+    if (io.getAverageSensorState()[0].hypot() < 0.06 ||
+        io.getAverageSensorState()[1].hypot() < 0.06) {
+      profile.finalVelocity = 0;
       canceled = true;
     }
     // Serial.printf("ERROR: %0.2f\n", error);
@@ -180,14 +181,14 @@ struct ProfiledDriveAction : Action {
     double c;
     double gyroError = angle - w.theta;
     gyroError = std::atan2(std::sin(gyroError), std::cos(gyroError));
-    if (io.getSensorState().at(2).x < 0.16 &&
+    if (std::abs(io.getSensorState().at(2).x) < 0.16 &&
         io.getSensorState().at(3).x < 0.16) {
-      c = irPID.calculate(-io.getSensorState().at(2).x,
-                          io.getSensorState().at(3).x, io.getDt());
-    } else if (io.getSensorState().at(2).x < 0.18) {
-      c = irPID.calculate(io.getSensorState().at(2).x, -0.07, io.getDt());
-    } else if (io.getSensorState().at(3).x < 0.18) {
-      c = irPID.calculate(io.getSensorState().at(3).x, 0.07, io.getDt());
+      c = irPID.calculate(io.getSensorState().at(3).x,
+                          -io.getSensorState().at(2).x, io.getDt());
+    } else if (std::abs(io.getSensorState().at(2).x) < 0.16) {
+      c = irPID.calculate(io.getSensorState().at(2).x, -0.09, io.getDt());
+    } else if (io.getSensorState().at(3).x < 0.16) {
+      c = irPID.calculate(io.getSensorState().at(3).x, 0.08, io.getDt());
     } else {
       c = gyroPID.calculate(-gyroError, 0, io.getDt());
     }
@@ -268,7 +269,7 @@ struct ProfiledCurveAction : Action {
   static constexpr double VEL_TOL = 0.06;  // m/s
 
   ProfiledCurveAction(double radius, double angle, double finalVelocity)
-      : profile({std::sqrt(COEF_FRICTION * 9.81 * radius) * 0.5,
+      : profile({std::sqrt(COEF_FRICTION * 9.81 * radius) * 0.3,
                  MAX_ACCEL_M_S2 * 0.5, 0, finalVelocity, profilePIDConstants,
                  radius * std::abs(angle)}),
         outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius),

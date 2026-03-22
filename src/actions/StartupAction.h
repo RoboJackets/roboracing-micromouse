@@ -15,7 +15,7 @@ struct StartupAction : Action {
     WorldCoord left = io.getSensorState().at(2);
     WorldCoord right = io.getSensorState().at(3);
     io.setGyroOffset(io.getGyroYaw() - M_PI / 2.0);
-    io.setWorldCoord(WorldCoord{-left.x, ROBOT_LENGTH / 2});
+    io.setWorldCoord(WorldCoord{0.09, ROBOT_LENGTH / 2});
     canceled = true;
     Serial.print("a");
     io.allowUpdates(true);
