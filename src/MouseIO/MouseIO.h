@@ -25,6 +25,7 @@ struct MouseIO {
   virtual void setGyroOffset(double offset) {};
   virtual void setWorldCoord(WorldCoord c) {};
   virtual void resetPIDs() {};
+  virtual void allowUpdates(bool x) {};
 
   virtual void update(MouseState &mouseState) {};
 

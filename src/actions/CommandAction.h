@@ -9,6 +9,7 @@
 #include "EmptyAction.h"
 #include "MMSIO.h"
 #include "SequentialAction.h"
+#include <StartupAction.h>
 
 struct CommandAction : Action {
   std::vector<unsigned char> buf;
@@ -30,6 +31,7 @@ struct CommandAction : Action {
   }
 
   void run(MouseState &s, MouseIO &io) override {
+    Serial.println("running");
     if (completed())
       return;
     if (io.isMMS()) {
@@ -42,6 +44,7 @@ struct CommandAction : Action {
     }
     curr->run(s, io);
     if (curr->completed()) {
+      curr->end(s, io);
       s.x = io.getGridCoord().x;
       s.y = io.getGridCoord().y;
       s.dir = io.getGridCoord().dir;
@@ -79,7 +82,9 @@ struct CommandAction : Action {
           goalAngle * M_PI / 4.0; // convert from 0 -> up to 0 -> right
       Serial.printf("FWD%d    WALL: %d\n", arg,
                     s.walls[io.getGridCoord().x][io.getGridCoord().y]);
-      return std::make_unique<ProfiledDriveAction>(distance, travelAngle, 0);
+      return std::make_unique<SequentialAction>(SequentialAction::make(
+          ProfiledDriveAction{CELL_SIZE_METERS, travelAngle, 0},
+          DelayAction{6}));
     }
     if (c == IPT180) {
       goalAngle += 4;
@@ -119,7 +124,7 @@ struct CommandAction : Action {
       GridCoord v = angleToVector(goalAngle);
       goal.x += v.x;
       goal.y += v.y;
-      return std::make_unique<ProfiledCurveAction>(TURN_RADIUS, turnAngle, 0.1);
+      return std::make_unique<ProfiledCurveAction>(TURN_RADIUS, turnAngle, 0);
     }
     return std::make_unique<EmptyAction>();
   }

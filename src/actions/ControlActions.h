@@ -53,7 +53,7 @@ struct YawPIDAction : Action {
     }
 
     double c = p.calculate(-error, 0, io.getDt());
-    io.driveVelocity(c, -c);
+    io.driveVelocity(-c, c);
   }
 
   void end(MouseState &s, MouseIO &io) override {
@@ -130,11 +130,11 @@ struct ProfiledDriveAction : Action {
   WorldCoord prevCoord;
 
   static constexpr double POS_TOL = 0.01; // 8 mm
-  static constexpr double VEL_TOL = 0.06;  // m/s
+  static constexpr double VEL_TOL = 0.06; // m/s
   double best = 0;
   ProfiledDriveAction(double setpoint, double angle, double finalVelocity)
-      : profile({0.1, MAX_ACCEL_M_S2 / 2, 0, finalVelocity,
-                 profilePIDConstants, setpoint}),
+      : profile({0.1, MAX_ACCEL_M_S2 / 2, 0, finalVelocity, profilePIDConstants,
+                 setpoint}),
         setpoint(setpoint), error(setpoint), angle(angle) {}
   bool canceled = false;
   PID irPID = PID{IRadjust};
@@ -161,7 +161,8 @@ struct ProfiledDriveAction : Action {
     WorldCoord w = io.getWorldCoord();
     if (!started) {
       prevCoord = w;
-      double vForward = (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
+      double vForward =
+          (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
       profile.initalVelocity = vForward * std::cos(w.theta - angle);
       started = true;
     }
@@ -188,7 +189,7 @@ struct ProfiledDriveAction : Action {
       c += irPID.calculate(irDelta, 0, io.getDt());
     }
     // Serial.println(v);
-    io.driveVelocity(v + c, v - c);
+    io.driveVelocity(v - c, v + c);
   }
   void end(MouseState &s, MouseIO &io) override {
     if (profile.finalVelocity == 0) {
@@ -241,7 +242,7 @@ struct ProfiledRotationAction : Action {
     error = setpoint - measurement;
     double omega = profile.calculate(io.getDt(), measurement);
     double wheelSpeed = omega * WHEEL_SEPERATION_M / 2.0;
-    io.driveVelocity(wheelSpeed, -wheelSpeed);
+    io.driveVelocity(-wheelSpeed, wheelSpeed);
   }
 
   void end(MouseState &s, MouseIO &io) override { io.driveVoltage(0, 0); }
@@ -264,8 +265,8 @@ struct ProfiledCurveAction : Action {
   static constexpr double VEL_TOL = 0.06;  // m/s
 
   ProfiledCurveAction(double radius, double angle, double finalVelocity)
-      : profile({0.2, MAX_ACCEL_M_S2, 0, finalVelocity,
-                 profilePIDConstants, radius * std::abs(angle)}),
+      : profile({0.05, MAX_ACCEL_M_S2, 0, finalVelocity, profilePIDConstants,
+                 radius * std::abs(angle)}),
         outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius),
         radius(radius), setpoint(radius * angle), error(setpoint) {}
 
@@ -290,7 +291,8 @@ struct ProfiledCurveAction : Action {
     WorldCoord w = io.getWorldCoord();
     if (!started) {
       prevTheta = w.theta;
-      double vForward = (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
+      double vForward =
+          (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
       profile.initalVelocity = vForward;
       started = true;
     }
@@ -303,8 +305,8 @@ struct ProfiledCurveAction : Action {
     // double c =
     //     std::isinf(irDelta) ? 0.0 : irPID.calculate(irDelta, 0, io.getDt());
     double c = 0;
-    double vOuter = v * outerRatio + c;
-    double vInner = v / outerRatio - c;
+    double vOuter = v / outerRatio + c;
+    double vInner = v * outerRatio - c;
     (setpoint < 0) ? io.driveVelocity(vInner, vOuter)
                    : io.driveVelocity(vOuter, vInner);
   }

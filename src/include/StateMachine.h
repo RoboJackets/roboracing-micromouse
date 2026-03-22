@@ -6,7 +6,9 @@
 #include "FloodFillSolver.h"
 #include "SequentialAction.h"
 #include "StartupAction.h"
+#include <Arduino.h>
 #include <string>
+
 
 enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
 namespace StateMachine {

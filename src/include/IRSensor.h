@@ -4,7 +4,7 @@
 
 #include "Types.h"
 
-constexpr int IR_AVG_WINDOW = 5;
+constexpr int IR_AVG_WINDOW = 10;
 
 struct IRSensor {
   // (x,y) is position from center, theta is angle of sensor.
@@ -41,12 +41,12 @@ struct IRSensor {
       return {std::numeric_limits<double>::infinity(),
               std::numeric_limits<double>::infinity(), pos_from_center.theta};
     }
-    return {sum_x / buf_count, sum_y / buf_count, pos_from_center.theta};
+    return {sum_x / found, sum_y / found, pos_from_center.theta};
   }
 
   WorldCoord getReading(int post) {
     WorldCoord coord;
-    if (post > 10) {
+    if (post > 20) {
       double dist = a / pow(max(post, 1), b);
       coord = {std::cos(pos_from_center.theta) * dist + pos_from_center.x,
                std::sin(pos_from_center.theta) * dist + pos_from_center.y,

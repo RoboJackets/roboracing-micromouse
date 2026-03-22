@@ -17,6 +17,9 @@ struct StartupAction : Action {
     io.setGyroOffset(io.getGyroYaw() - M_PI / 2.0);
     io.setWorldCoord(WorldCoord{-left.x, ROBOT_LENGTH / 2});
     canceled = true;
+    Serial.print("a");
+    io.allowUpdates(true);
+    Serial.print("b");
   }
   void end(MouseState &s, MouseIO &io) override {}
 };
@@ -29,7 +32,7 @@ struct DelayAction : Action {
   DelayAction(double runTime) : runTime(runTime) {}
   void run(MouseState &s, MouseIO &io) override {
     time += io.getDt();
-    Serial.println(time);
+    // Serial.println(time);
     if (runTime <= time) {
       cancel();
       return;
