@@ -19,6 +19,7 @@ struct MouseIO {
   virtual double getDrivePosLeft() { return 0; };
   virtual double getDrivePosRight() { return 0; };
   virtual double getGyroYaw() { return 0; };
+  virtual double getRotationRate() { return 0; };
   virtual void setState(IdealState state) {};
   virtual std::array<WorldCoord, 4> getSensorState() { return {}; };
   virtual std::array<WorldCoord, 4> getAverageSensorState() { return {}; };

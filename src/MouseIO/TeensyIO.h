@@ -42,6 +42,8 @@ struct TeensyIO : MouseIO {
 
   double filteredSpeedLeft = 0;
   double filteredSpeedRight = 0;
+  double filteredRotationRate = 0;
+  double lastGyroYaw = 0;
 
   Gyro gyro{};
   PID velocityPIDRight{velocityPIDConstants};
@@ -151,6 +153,7 @@ struct TeensyIO : MouseIO {
 
   double getDriveSpeedLeft() override { return filteredSpeedLeft; }
   double getDriveSpeedRight() override { return filteredSpeedRight; };
+  double getRotationRate() override { return filteredRotationRate; };
 
   double getDrivePosLeft() override { return leftPosition; };
   double getDrivePosRight() override { return rightPosition; };
@@ -192,12 +195,20 @@ struct TeensyIO : MouseIO {
     // Serial.print("    ");
     // Serial.printf("X: %0.2f Y: %0.2f\n", w.x, w.y);
     gyro.update();
+    double prevYaw = gyroYaw;
     gyroYaw = gyro.ypr[0];
+
+    double rawRotationRate = (gyroYaw - prevYaw) / getDt();
+    constexpr double rotAlpha = 0.4;
+    filteredRotationRate += rotAlpha * (rawRotationRate - filteredRotationRate);
   }
 
   void updateMazeState(MouseState &mouseState) {
-    if (std::abs(std::remainder(w.theta, PI / 2.0)) > 0.12)
+    if (std::abs(std::remainder(w.theta, PI / 2.0)) > 0.2)
       return;
+    if (std::abs(getRotationRate()) > 0.15) {
+      return;
+    }
     if (!mazeUpdate)
       return;
 
@@ -269,7 +280,7 @@ struct TeensyIO : MouseIO {
       mouseState.walls[ny][nx] |= opp;
     };
 
-    if (readings[0].y < 0.09) {
+    if (readings[0].y < 0.08) {
       addWall(fwdDir);
     }
     if (-readings[2].x < 0.12) {
@@ -287,12 +298,13 @@ struct TeensyIO : MouseIO {
     updateWorldCoord();
     updateMazeState(mouseState);
     Serial.printf("COORD: %d, %d  WORLD: %0.2f, %0.2f    WALLS: %d   REL: "
-                  "%0.2f, %0.2f \n",
+                  "%0.2f, %0.2f\n",
                   getGridCoord().x, getGridCoord().y, w.x, w.y,
                   mouseState.walls[getGridCoord().y][getGridCoord().x],
                   w.gridRelativeCoords(getGridCoord()).x,
                   w.gridRelativeCoords(getGridCoord()).y);
-    // Serial.println(analogRead(B_FRONT));
+    // Serial.printf(" BFRONT: %d   BBACK: %d\n", analogRead(B_FRONT),
+    //               analogRead(B_BACK));
   }
 
   static void onButtonPress() { Serial.print("PRESSED"); }

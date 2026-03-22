@@ -1,7 +1,8 @@
 #include "CommandGenerator.h"
 
 State transition(State currentState, char c,
-                 std::vector<unsigned char> &commands) {
+                 std::vector<unsigned char> &commands,
+                 bool diagonals = true) {
   unsigned char x = currentState.x;
   unsigned char y = currentState.y;
 
@@ -44,8 +45,13 @@ State transition(State currentState, char c,
       commands.push_back(ST90L);
       return {ORTHO_L};
     } else if (c == 'R') {
-      commands.push_back(ST45L);
-      return {DIAG_LR, 0, 1};
+      if (diagonals) {
+        commands.push_back(ST45L);
+        return {DIAG_LR, 0, 1};
+      } else {
+        commands.push_back(ST90L);
+        return {ORTHO_R};
+      }
     }
     break;
   case ORTHO_R:
@@ -53,8 +59,13 @@ State transition(State currentState, char c,
       commands.push_back(ST90R);
       return {ORTHO_F, 1, 0};
     } else if (c == 'L') {
-      commands.push_back(ST45R);
-      return {DIAG_RL, 0, 1};
+      if (diagonals) {
+        commands.push_back(ST45R);
+        return {DIAG_RL, 0, 1};
+      } else {
+        commands.push_back(ST90R);
+        return {ORTHO_L};
+      }
     } else if (c == 'R') {
       commands.push_back(ST90R);
       return {ORTHO_R};
@@ -186,12 +197,13 @@ std::string commandString(const std::vector<unsigned char> &commands) {
 }
 
 std::vector<unsigned char> parse(
-    std::string s) { // assumes no motion on 45 degree turns (diagonals) but on
-                     // a 90/135 degree turn assumes one cell of motion as well.
+    std::string s,
+    bool diagonals) { // assumes no motion on 45 degree turns (diagonals) but on
+                      // a 90/135 degree turn assumes one cell of motion as well.
   State current{};
   std::vector<unsigned char> commands{};
   for (int i = 0; i < s.length(); i++) {
-    current = transition(current, s[i], commands);
+    current = transition(current, s[i], commands, diagonals);
   }
   std::vector<unsigned char> newCommands = commands;
   return newCommands;

@@ -28,6 +28,6 @@ struct State {
   unsigned char y = 0;
 };
 
-std::vector<unsigned char> parse(std::string s);
+std::vector<unsigned char> parse(std::string s, bool diagonals = true);
 std::string commandString(const std::vector<unsigned char> &commands);
 double computeWeight(std::vector<unsigned char> cmds);

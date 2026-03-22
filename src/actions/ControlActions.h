@@ -142,8 +142,8 @@ struct ProfiledDriveAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
   void run(MouseState &s, MouseIO &io) override {
-    if (io.getAverageSensorState()[0].hypot() < 0.06 ||
-        io.getAverageSensorState()[1].hypot() < 0.06) {
+    io.allowUpdates(true);
+    if (io.getAverageSensorState()[0].hypot() < 0.075) {
       profile.finalVelocity = 0;
       canceled = true;
     }
@@ -178,20 +178,19 @@ struct ProfiledDriveAction : Action {
     double v = profile.calculate(io.getDt(), measurement);
     // bool hasBothIR = io.getSensorState().at(2).hypot() < 0.18 &&
     //                  io.getSensorState().at(3).hypot() < 0.18;
-    double c;
+    double c = 0;
     double gyroError = angle - w.theta;
     gyroError = std::atan2(std::sin(gyroError), std::cos(gyroError));
     if (std::abs(io.getSensorState().at(2).x) < 0.16 &&
         io.getSensorState().at(3).x < 0.16) {
       c = irPID.calculate(io.getSensorState().at(3).x,
-                          -io.getSensorState().at(2).x, io.getDt());
+                          -io.getSensorState().at(2).x - 0.005, io.getDt());
     } else if (std::abs(io.getSensorState().at(2).x) < 0.16) {
-      c = irPID.calculate(io.getSensorState().at(2).x, -0.09, io.getDt());
+      c = irPID.calculate(io.getSensorState().at(2).x, -0.08, io.getDt());
     } else if (io.getSensorState().at(3).x < 0.16) {
-      c = irPID.calculate(io.getSensorState().at(3).x, 0.08, io.getDt());
-    } else {
-      c = gyroPID.calculate(-gyroError, 0, io.getDt());
+      c = irPID.calculate(io.getSensorState().at(3).x, 0.095, io.getDt());
     }
+    c += gyroPID.calculate(-gyroError, 0, io.getDt());
     // Serial.println(v);
     io.driveVelocity(v - c, v + c);
   }
@@ -216,14 +215,14 @@ struct ProfiledRotationAction : Action {
   static constexpr double VEL_TOL = 0.06; // m/s
 
   ProfiledRotationAction(double angle)
-      : profile({MAX_ROT_SPEED_RAD_S, MAX_ROT_SPEED_RAD_S2, 0, 0,
-                 profilePIDConstants, angle}),
-        setpoint(angle), error(angle) {}
+      : profile({3, 20, 0, 0, rot90PIDConstants, angle}), setpoint(angle),
+        error(angle) {}
 
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
 
   void run(MouseState &s, MouseIO &io) override {
+    io.allowUpdates(false);
     double avgSpeed = 0.5 * (std::abs(io.getDriveSpeedLeft()) +
                              std::abs(io.getDriveSpeedRight()));
     bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
@@ -245,11 +244,14 @@ struct ProfiledRotationAction : Action {
     prevTheta = w.theta;
     error = setpoint - measurement;
     double omega = profile.calculate(io.getDt(), measurement);
-    double wheelSpeed = omega * WHEEL_SEPERATION_M / 2.0;
+    double wheelSpeed = omega * WHEEL_SEPERATION_M / 2;
     io.driveVelocity(-wheelSpeed, wheelSpeed);
   }
 
-  void end(MouseState &s, MouseIO &io) override { io.driveVoltage(0, 0); }
+  void end(MouseState &s, MouseIO &io) override {
+    io.driveVoltage(0, 0);
+    // io.allowUpdates(true);
+  }
 };
 
 struct ProfiledCurveAction : Action {
