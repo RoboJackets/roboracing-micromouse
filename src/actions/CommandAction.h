@@ -69,12 +69,12 @@ struct CommandAction : Action {
 
       WorldCoord rel = io.getWorldCoord().gridRelativeCoords(io.getGridCoord());
       double halfCell = CELL_SIZE_METERS / 2.0;
-      double dx = v.x != 0 ? (v.x * arg * CELL_SIZE_METERS + halfCell - rel.x -
-                              v.x * TURN_RADIUS)
-                           : 0;
-      double dy = v.y != 0 ? (v.y * arg * CELL_SIZE_METERS + halfCell - rel.y -
-                              v.y * TURN_RADIUS)
-                           : 0;
+      double dx =
+          v.x != 0 ? (v.x * arg * CELL_SIZE_METERS + halfCell - rel.x - v.x * 0)
+                   : 0;
+      double dy =
+          v.y != 0 ? (v.y * arg * CELL_SIZE_METERS + halfCell - rel.y - v.y * 0)
+                   : 0;
 
       double distance = std::sqrt(dx * dx + dy * dy);
       double travelAngle =
@@ -92,7 +92,7 @@ struct CommandAction : Action {
       double theta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
       return std::make_unique<SequentialAction>(SequentialAction::make(
           ProfiledRotationAction{theta},
-          ProfiledDriveAction{CELL_SIZE_METERS - 0.05, theta, 0.1}));
+          ProfiledDriveAction{CELL_SIZE_METERS, theta, 0.1}));
     }
     if (cls == EX_ST0) {
       Serial.printf("CURVE    WALL: %d\n",
@@ -125,9 +125,8 @@ struct CommandAction : Action {
       goal.y += v.y;
       double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
       return std::make_unique<SequentialAction>(
-          SequentialAction::make(
-              ProfiledCurveAction(TURN_RADIUS, turnAngle, 0),
-          ProfiledDriveAction{0.02, travelAngle, 0}));
+          SequentialAction::make(ProfiledCurveAction(0.01, turnAngle, 0),
+                                 ProfiledDriveAction{0.02, travelAngle, 0}));
     }
     return std::make_unique<EmptyAction>();
   }
