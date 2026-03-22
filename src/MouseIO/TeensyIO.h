@@ -72,50 +72,21 @@ struct TeensyIO : MouseIO {
   // IR stuff under here
 
   WorldCoord deriveLocalOffsetFromIR() {
-    double lateralY = 0;
-    int validPairs = 0;
-
-    auto accumulateLateralError = [&](int iLeft, int iRight) {
-      if (readings.size() <= std::max(iLeft, iRight))
-        return;
-
-      WorldCoord leftRead = readings[iLeft];
-      WorldCoord rightRead = readings[iRight];
-
-      bool leftValid = std::isfinite(leftRead.hypot()) &&
-                       leftRead.hypot() > 0 &&
-                       leftRead.hypot() < CELL_SIZE_METERS;
-      bool rightValid = std::isfinite(rightRead.hypot()) &&
-                        rightRead.hypot() > 0 &&
-                        rightRead.hypot() < CELL_SIZE_METERS;
-
-      if (leftValid && rightValid) {
-          lateralY += (leftRead.y - rightRead.y) / 2.0;
-          validPairs++;
-
-          double avgX = (leftRead.x + rightRead.x) / 2.0;
-          forwardX += (CELL_SIZE_METERS / 2.0) - avgX;
-          validForward++; 
-      } else if (leftValid && !rightValid) {
-          lateralY += (CELL_SIZE_METERS / 2.0) - leftRead.y;
-          validPairs++;
-      } else if (!leftValid && rightValid) {
-          lateralY += rightRead.y - (CELL_SIZE_METERS / 2.0);
-          validPairs++;
+    double sumX = 0;
+    double sumY = 0;
+    double sumTheta = 0;
+    int count = 0;
+    for (int i = 0; i < readings.size(); i++) {
+      WorldCoord reading = readings[i];
+      if (std::isfinite(reading.hypot()) && reading.hypot() > 0 &&
+          reading.hypot() < CELL_SIZE_METERS) {
+        sumX += reading.x;
+        sumY += reading.y;
+        sumTheta += reading.theta;
+        count++;
       }
-    };
-
-    // Assuming index 0 is Left, 2 is Right
-    accumulateLateralError(0, 2);
-    // Assuming index 1 is Top-Left, 3 is Top-Right
-    accumulateLateralError(1, 3);
-
-    if (validPairs > 0) {
-      lateralY /=
-          validPairs; // Average the errors if both pairs report valid walls
     }
-
-    return WorldCoord{ validForward > 0 ? forwardX / validForward : 0, validPairs   > 0 ? lateralY / validPairs   : 0, 0 };
+    return WorldCoord{sumX / count, sumY / count, sumTheta / count};
   }
 
   WorldCoord correct() {
@@ -130,8 +101,6 @@ struct TeensyIO : MouseIO {
 
     return {w.x + globalDeltaX, w.y + globalDeltaY, w.theta};
 }
-
-  double getError() { return deriveLocalOffsetFromIR().hypot(); }
 
   WorldCoord getWorldCoord() override { return w; }
   void updateWorldCoord() override {
