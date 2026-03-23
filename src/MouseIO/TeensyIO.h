@@ -184,11 +184,11 @@ struct TeensyIO : MouseIO {
       // relative to mouse in m
       readings[i] = sensor.getReading(post);
       readingsAverage[i] = sensor.getAverage();
-      Serial.print(i);
-      Serial.print(": ");
-      Serial.printf("%0.2f, %0.2f", readings[i].x, readings[i].y);
-      Serial.print(post);
-      Serial.print("     ");
+      // Serial.print(i);
+      // Serial.print(": ");
+      // Serial.printf("%0.2f, %0.2f", readings[i].x, readings[i].y);
+      // Serial.print(post);
+      // Serial.print("     ");
     }
     // Serial.print("GYRO: ");
     // Serial.print(w.theta);
@@ -306,12 +306,12 @@ struct TeensyIO : MouseIO {
     updateEncoders();
     updateWorldCoord();
     updateMazeState(mouseState);
-    Serial.printf("COORD: %d, %d  WORLD: %0.2f, %0.2f    WALLS: %d   REL: "
-                  "%0.2f, %0.2f\n",
-                  getGridCoord().x, getGridCoord().y, w.x, w.y,
-                  mouseState.walls[getGridCoord().y][getGridCoord().x],
-                  w.gridRelativeCoords(getGridCoord()).x,
-                  w.gridRelativeCoords(getGridCoord()).y);
+    // Serial.printf("COORD: %d, %d  WORLD: %0.2f, %0.2f    WALLS: %d   REL: "
+    //               "%0.2f, %0.2f\n",
+    //               getGridCoord().x, getGridCoord().y, w.x, w.y,
+    //               mouseState.walls[getGridCoord().y][getGridCoord().x],
+    //               w.gridRelativeCoords(getGridCoord()).x,
+    //               w.gridRelativeCoords(getGridCoord()).y);
     // Serial.printf(" BFRONT: %d   BBACK: %d\n", analogRead(B_FRONT),
     //               analogRead(B_BACK));
   }
