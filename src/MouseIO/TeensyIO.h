@@ -281,13 +281,13 @@ struct TeensyIO : MouseIO {
       mouseState.walls[ny][nx] |= opp;
     };
 
-    if (gc.dir == TOP && rel.y > 0.08)
+    if (gc.dir == TOP && rel.y > 0.09)
       return;
-    if (gc.dir == DOWN && rel.y < 0.1)
+    if (gc.dir == DOWN && rel.y < 0.09)
       return;
-    if (gc.dir == LEFT && rel.x < 0.1)
+    if (gc.dir == LEFT && rel.x < 0.09)
       return;
-    if (gc.dir == RIGHT && rel.x > 0.08)
+    if (gc.dir == RIGHT && rel.x > 0.09)
       return;
     if (readings[0].y < 0.075) {
       addWall(fwdDir);
