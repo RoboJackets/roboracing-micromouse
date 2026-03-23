@@ -19,8 +19,8 @@ struct SpeedProfile {
   double curveTrailDistance;
 };
 
-inline constexpr SpeedProfile EXPLORE_SPEED{0.1, 0.1, 0.03, 0.1, 0.03};
-inline constexpr SpeedProfile FAST_SPEED{0.2, 0.2, 0.03, 0.2, 0.04};
+inline constexpr SpeedProfile EXPLORE_SPEED{0.25, 0.25, 0.04, 0.2, 0.03};
+inline constexpr SpeedProfile FAST_SPEED{0.6, 0.2, 0.04, 0.2, 0.04};
 
 struct CommandAction : Action {
   std::vector<unsigned char> buf;
