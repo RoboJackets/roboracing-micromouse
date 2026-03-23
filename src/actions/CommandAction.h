@@ -20,7 +20,7 @@ struct SpeedProfile {
 };
 
 inline constexpr SpeedProfile EXPLORE_SPEED{0.25, 0.25, 0.04, 0.2, 0.03};
-inline constexpr SpeedProfile FAST_SPEED{0.6, 0.2, 0.04, 0.2, 0.04};
+inline constexpr SpeedProfile FAST_SPEED{0.25, 0.25, 0.04, 0.2, 0.03};
 
 struct CommandAction : Action {
   std::vector<unsigned char> buf;
@@ -145,8 +145,8 @@ struct CommandAction : Action {
       //               s.walls[io.getGridCoord().x][io.getGridCoord().y]);
       return std::make_unique<SequentialAction>(SequentialAction::make(
           ProfiledRotationAction{turnAngle}, DelayAction{0},
-          ProfiledDriveAction{CELL_SIZE_METERS - 0.01, theta, EXPLORE_SPEED.maxSpeed,
-                              EXPLORE_SPEED.maxSpeed}));
+          ProfiledDriveAction{CELL_SIZE_METERS - 0.01, theta,
+                              EXPLORE_SPEED.maxSpeed, EXPLORE_SPEED.maxSpeed}));
     }
     // Explore (slow) variants
     if (cls == EX_FWD0) {

@@ -186,7 +186,7 @@ struct ProfiledDriveAction : Action {
       c = irPID.calculate(io.getSensorState().at(3).x,
                           -io.getSensorState().at(2).x - 0.005, io.getDt());
     } else if (std::abs(io.getSensorState().at(2).x) < 0.16) {
-      c = irPID.calculate(io.getSensorState().at(2).x, -0.08, io.getDt());
+      c = irPID.calculate(io.getSensorState().at(2).x, -0.09, io.getDt());
     } else if (io.getSensorState().at(3).x < 0.16) {
       c = irPID.calculate(io.getSensorState().at(3).x, 0.07, io.getDt());
     }
