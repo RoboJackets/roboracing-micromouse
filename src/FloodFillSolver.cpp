@@ -28,7 +28,7 @@ void turningPenalty(MouseState &state, const Goals *goal,
   }
 }
 
-void floodFill(MouseState &state, const Goals *goal) {
+void floodFill(MouseState &state, const Goals *goal, bool fast = false) {
   for (int x = 0; x < N; ++x) {
     for (int y = 0; y < N; ++y) {
       state.dists[y][x] = INF;
@@ -51,24 +51,28 @@ void floodFill(MouseState &state, const Goals *goal) {
 
     // left
     if (c.x - 1 >= 0 && !(wall & LEFT) &&
+        (!fast || state.explored[c.y][c.x - 1]) &&
         dist + 1 < state.dists[c.y][c.x - 1]) {
       state.dists[c.y][c.x - 1] = dist + 1;
       queue.push({c.x - 1, c.y});
     }
     // right
     if (c.x + 1 < N && !(wall & RIGHT) &&
+        (!fast || state.explored[c.y][c.x + 1]) &&
         dist + 1 < state.dists[c.y][c.x + 1]) {
       state.dists[c.y][c.x + 1] = dist + 1;
       queue.push({c.x + 1, c.y});
     }
     // down
     if (c.y - 1 >= 0 && !(wall & DOWN) &&
+        (!fast || state.explored[c.y - 1][c.x]) &&
         dist + 1 < state.dists[c.y - 1][c.x]) {
       state.dists[c.y - 1][c.x] = dist + 1;
       queue.push({c.x, c.y - 1});
     }
     // up
     if (c.y + 1 < N && !(wall & TOP) &&
+        (!fast || state.explored[c.y + 1][c.x]) &&
         dist + 1 < state.dists[c.y + 1][c.x]) {
       state.dists[c.y + 1][c.x] = dist + 1;
       queue.push({c.x, c.y + 1});
@@ -200,7 +204,7 @@ Action *FloodFillSolver::run(MouseState &state, const Goals *goal) {
     cmd.load({STOP});
     return &cmd;
   }
-  floodFill(state, goal);
+  floodFill(state, goal, fast);
   unsigned char dir = traverse(state, goal);
   unsigned char c = stepInstr(state.dir, dir, fast);
   cmd.load({c});
