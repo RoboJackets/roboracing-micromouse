@@ -143,7 +143,7 @@ struct ProfiledDriveAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
   void run(MouseState &s, MouseIO &io) override {
-    if (io.getAverageSensorState()[0].hypot() < 0.08) {
+    if (io.getAverageSensorState()[0].hypot() < 0.06) {
       profile.finalVelocity = 0;
       canceled = true;
     }
@@ -188,7 +188,7 @@ struct ProfiledDriveAction : Action {
     } else if (std::abs(io.getSensorState().at(2).x) < 0.16) {
       c = irPID.calculate(io.getSensorState().at(2).x, -0.08, io.getDt());
     } else if (io.getSensorState().at(3).x < 0.16) {
-      c = irPID.calculate(io.getSensorState().at(3).x, 0.095, io.getDt());
+      c = irPID.calculate(io.getSensorState().at(3).x, 0.07, io.getDt());
     }
     c += gyroPID.calculate(-gyroError, 0, io.getDt());
     // Serial.println(v);
