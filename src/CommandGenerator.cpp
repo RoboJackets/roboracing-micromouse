@@ -205,8 +205,10 @@ std::vector<unsigned char> parse(
   for (int i = 0; i < s.length(); i++) {
     current = transition(current, s[i], commands, diagonals);
   }
-  std::vector<unsigned char> newCommands = commands;
-  return newCommands;
+  if (commands.empty() || commands.back() != STOP) {
+    commands.push_back(STOP);
+  }
+  return commands;
 }
 double computeWeight(std::vector<unsigned char> cmds) {
   double weight = 0;

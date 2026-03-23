@@ -31,7 +31,7 @@ struct SequentialAction : Action {
     if (actions[index]->completed()) {
       actions[index]->end(s, io);
       index++;
-      Serial.println("NEXT!!!");
+      // Serial.println("NEXT!!!");
       return;
     }
 
@@ -42,5 +42,8 @@ struct SequentialAction : Action {
 
     actions[index]->run(s, io);
   }
-  void end(MouseState &s, MouseIO &io) override {}
+  void end(MouseState &s, MouseIO &io) override {
+    index = 0;
+    canceled = false;
+  }
 };

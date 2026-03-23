@@ -8,11 +8,12 @@
 #include <stack>
 #include <string>
 #include <unordered_set>
+#include <Arduino.h>
 
 
 namespace CellSelection {
 Path pathBFS(MouseState &state, const Goals *goal);
 Path weightedAStar(MouseState &state, const Goals *goal);
-void search_all(const MouseState &state);
+void search_all(const MouseState &state, const Goals *goal);
 std::vector<unsigned char> getCmds();
 } // namespace CellSelection

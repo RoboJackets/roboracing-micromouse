@@ -21,7 +21,7 @@ struct StartupAction : Action {
     io.allowUpdates(true);
     Serial.print("b");
   }
-  void end(MouseState &s, MouseIO &io) override {}
+  void end(MouseState &s, MouseIO &io) override { canceled = false; }
 };
 struct DelayAction : Action {
   bool canceled = false;
@@ -37,5 +37,9 @@ struct DelayAction : Action {
       cancel();
       return;
     }
+  }
+  void end(MouseState &s, MouseIO &io) override {
+    time = 0;
+    canceled = false;
   }
 };

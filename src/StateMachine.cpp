@@ -31,9 +31,14 @@ SequentialAction s = SequentialAction::make(
 SequentialAction r =
     SequentialAction::make(DelayAction(6), YawPIDAction(PI / 2));
 Action *a = &startup;
-void switchState(GoalState state) {
+void switchState(GoalState state, MouseIO *io) {
+  // Serial.print("1");
   if (currentState == state) {
+    // Serial.print("2");
     return;
+  }
+  if (a && !a->completed()) {
+    a->cancel();
   }
   solver->onFinished(mouseState, goal);
   switch (state) {
@@ -44,42 +49,47 @@ void switchState(GoalState state) {
   case GoalState::RETURN:
     solver = &floodFill;
     goal = &START_GOALS;
+    io->allowUpdates(true);
     break;
   case GoalState::FAST_PATH:
+    // Serial.print("3");
     solver = &fastPath;
     goal = &TEST_GOALS;
+    io->allowUpdates(false);
+    a = &startup;
     break;
   default:
     solver = &noop;
     break;
   }
   currentState = state;
-  if (a && !a->completed()) {
-    a->cancel();
-  }
   solver->init(mouseState, goal);
 }
-void updateState() {
+void updateState(MouseIO *io) {
   switch (currentState) {
   case GoalState::GOAL_SEARCH:
     if (solver->end(mouseState, goal))
-      switchState(GoalState::RETURN);
+      switchState(GoalState::RETURN, io);
     break;
   case GoalState::RETURN:
+    // Serial.print("R");
     // std::cerr <<
     // std::to_string(mouseState.explored[mouseState.y][mouseState.x])
     //           << std::endl;
     if (solver->end(mouseState, goal)) {
-      switchState(GoalState::FAST_PATH);
+      // Serial.print("0");
+      switchState(GoalState::FAST_PATH, io);
     }
     break;
   case GoalState::FAST_PATH:
+    // Serial.print("F");
     if (solver->end(mouseState, goal))
-      switchState(GoalState::RETURN);
+      switchState(GoalState::RETURN, io);
     break;
   default:
     break;
   }
+  // Serial.println("!");
 }
 void init(MouseIO *io) {
   mouseState.explored[0][0] = true;
@@ -101,7 +111,7 @@ void init(MouseIO *io) {
 }
 void tick(MouseIO *io) {
   io->update(mouseState); // update input states
-  updateState();          // determine overall goal (solver)
+  updateState(io);        // determine overall goal (solver)
   if (a->completed()) {
     a->end(mouseState, *io);
     a = solver->run(mouseState, goal); // determine action

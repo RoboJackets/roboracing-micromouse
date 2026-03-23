@@ -12,14 +12,15 @@
 #include <StartupAction.h>
 
 struct SpeedProfile {
+  double maxSpeed;
   double driveFinalVelocity;
   double curveRadius;
   double curveFinalVelocity;
   double curveTrailDistance;
 };
 
-inline constexpr SpeedProfile EXPLORE_SPEED{0.1, 0.03, 0.1, 0.03};
-inline constexpr SpeedProfile FAST_SPEED{0.25, 0.04, 0.2, 0.03};
+inline constexpr SpeedProfile EXPLORE_SPEED{0.1, 0.1, 0.03, 0.1, 0.03};
+inline constexpr SpeedProfile FAST_SPEED{0.2, 0.2, 0.03, 0.2, 0.06};
 
 struct CommandAction : Action {
   std::vector<unsigned char> buf;
@@ -63,19 +64,22 @@ struct CommandAction : Action {
   static int turnAmount(unsigned char arg) {
     // arg encodes direction and magnitude in lower 5 bits
     // bit 4 = right(1)/left(0), bits 0-2 = 45*n degrees
-    if (arg == 0) return 0;
+    if (arg == 0)
+      return 0;
     int magnitude = 0;
     unsigned char lower = arg & 0b00000111;
-    if (lower == 1) magnitude = 1;       // 45
-    else if (lower == 2) magnitude = 2;  // 90
-    else if (lower == 4) magnitude = 3;  // 135
+    if (lower == 1)
+      magnitude = 1; // 45
+    else if (lower == 2)
+      magnitude = 2; // 90
+    else if (lower == 4)
+      magnitude = 3; // 135
     bool right = (arg & 0b00010000) != 0;
     return right ? magnitude : -magnitude;
   }
 
   std::unique_ptr<Action> makeFwdAction(unsigned char arg, MouseIO &io,
-                                        MouseState &s,
-                                        const SpeedProfile &sp) {
+                                        MouseState &s, const SpeedProfile &sp) {
     GridCoord v = angleToVector(goalAngle);
     goal.x += v.x * arg;
     goal.y += v.y * arg;
@@ -93,17 +97,18 @@ struct CommandAction : Action {
 
     double distance = std::sqrt(dx * dx + dy * dy);
     double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
-    Serial.printf("FWD%d    WALL: %d\n", arg,
-                  s.walls[io.getGridCoord().x][io.getGridCoord().y]);
-    return std::make_unique<SequentialAction>(SequentialAction::make(
-        ProfiledDriveAction{distance, travelAngle, sp.driveFinalVelocity}));
+    // Serial.printf("FWD%d    WALL: %d\n", arg,
+    //               s.walls[io.getGridCoord().x][io.getGridCoord().y]);
+    return std::make_unique<SequentialAction>(
+        SequentialAction::make(ProfiledDriveAction{
+            distance, travelAngle, sp.driveFinalVelocity, sp.maxSpeed}));
   }
 
   std::unique_ptr<Action> makeCurveAction(unsigned char arg, MouseIO &io,
                                           MouseState &s,
                                           const SpeedProfile &sp) {
-    Serial.printf("CURVE    WALL: %d\n",
-                  s.walls[io.getGridCoord().x][io.getGridCoord().y]);
+    // Serial.printf("CURVE    WALL: %d\n",
+    //               s.walls[io.getGridCoord().x][io.getGridCoord().y]);
     goalAngle += turnAmount(arg);
     double targetTheta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
     double currentTheta = io.getWorldCoord().theta;
@@ -117,9 +122,10 @@ struct CommandAction : Action {
     goal.y += v.y;
     double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
     return std::make_unique<SequentialAction>(SequentialAction::make(
-        ProfiledCurveAction(sp.curveRadius, turnAngle, sp.curveFinalVelocity),
+        ProfiledCurveAction(sp.curveRadius, turnAngle, sp.curveFinalVelocity,
+                            sp.maxSpeed),
         ProfiledDriveAction{sp.curveTrailDistance, travelAngle,
-                            sp.driveFinalVelocity}));
+                            sp.driveFinalVelocity, sp.maxSpeed}));
   }
 
   std::unique_ptr<Action> determineAction(MouseState &s, MouseIO &io) {
@@ -137,9 +143,15 @@ struct CommandAction : Action {
       goalAngle = (goalAngle + 8) % 8;
       io.driveVoltage(0, 0);
       double theta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
+      double currentTheta = io.getWorldCoord().theta;
+      double turnAngle = std::atan2(std::sin(theta - currentTheta),
+                                    std::cos(theta - currentTheta));
+      // Serial.printf("IPT%d    WALL: %d\n", arg,
+      //               s.walls[io.getGridCoord().x][io.getGridCoord().y]);
       return std::make_unique<SequentialAction>(SequentialAction::make(
-          ProfiledRotationAction{theta}, DelayAction{0.5},
-          ProfiledDriveAction{CELL_SIZE_METERS - 0.02, theta, 0.1}));
+          ProfiledRotationAction{turnAngle}, DelayAction{0},
+          ProfiledDriveAction{CELL_SIZE_METERS - 0.03, theta, EXPLORE_SPEED.maxSpeed,
+                              EXPLORE_SPEED.maxSpeed}));
     }
     // Explore (slow) variants
     if (cls == EX_FWD0) {

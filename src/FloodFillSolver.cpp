@@ -105,10 +105,10 @@ unsigned char traverse(MouseState &state, const Goals *goal) {
   int bestDirArray[4];
   fillNeighborCosts(bestDirArray, state.dists);
 
-  Serial.print("TOP: "); Serial.print(bestDirArray[0]);
-  Serial.print(" LEFT: "); Serial.print(bestDirArray[1]);
-  Serial.print(" DOWN: "); Serial.print(bestDirArray[2]);
-  Serial.print(" RIGHT: "); Serial.println(bestDirArray[3]);
+  // Serial.print("TOP: "); Serial.print(bestDirArray[0]);
+  // Serial.print(" LEFT: "); Serial.print(bestDirArray[1]);
+  // Serial.print(" DOWN: "); Serial.print(bestDirArray[2]);
+  // Serial.print(" RIGHT: "); Serial.println(bestDirArray[3]);
 
   int best = INF + 100;
   bool tie = false;
@@ -182,6 +182,10 @@ static unsigned char stepInstr(unsigned char cur, unsigned char tgt) {
 }
 
 Action *FloodFillSolver::run(MouseState &state, const Goals *goal) {
+  if (atGoal(state, goal)) {
+    cmd.load({STOP});
+    return &cmd;
+  }
   floodFill(state, goal);
   unsigned char dir = traverse(state, goal);
   unsigned char c = stepInstr(state.dir, dir);

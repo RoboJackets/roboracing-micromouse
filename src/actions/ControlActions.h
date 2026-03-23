@@ -57,7 +57,7 @@ struct YawPIDAction : Action {
   }
 
   void end(MouseState &s, MouseIO &io) override {
-    Serial.print("ENDED!!!");
+    // Serial.print("ENDED!!!");
     io.driveVoltage(0.0, 0.0);
     io.resetPIDs();
     p.resetAccum();
@@ -132,9 +132,10 @@ struct ProfiledDriveAction : Action {
   static constexpr double POS_TOL = 0.01; // 8 mm
   static constexpr double VEL_TOL = 0.06; // m/s
   double best = 0;
-  ProfiledDriveAction(double setpoint, double angle, double finalVelocity)
-      : profile({0.1, MAX_ACCEL_M_S2 / 2, 0, finalVelocity, profilePIDConstants,
-                 setpoint}),
+  ProfiledDriveAction(double setpoint, double angle, double finalVelocity,
+                      double maxSpeed = 0.1)
+      : profile({maxSpeed, MAX_ACCEL_M_S2 / 2, 0, finalVelocity,
+                 profilePIDConstants, setpoint}),
         setpoint(setpoint), error(setpoint), angle(angle) {}
   bool canceled = false;
   PID irPID = PID{IRadjust};
@@ -143,7 +144,7 @@ struct ProfiledDriveAction : Action {
   bool completed() const override { return canceled; }
   void run(MouseState &s, MouseIO &io) override {
     io.allowUpdates(true);
-    if (io.getAverageSensorState()[0].hypot() < 0.075) {
+    if (io.getAverageSensorState()[0].hypot() < 0.08) {
       profile.finalVelocity = 0;
       canceled = true;
     }
@@ -215,8 +216,9 @@ struct ProfiledRotationAction : Action {
   static constexpr double VEL_TOL = 0.06; // m/s
 
   ProfiledRotationAction(double angle)
-      : profile({3, 20, 0, 0, rot90PIDConstants, angle}), setpoint(angle),
-        error(angle) {}
+      : profile({MAX_ROT_SPEED_RAD_S * 0.1, MAX_ROT_SPEED_RAD_S2 * 0.5, 0, 0,
+                 profilePIDConstants, angle}),
+        setpoint(angle), error(angle) {}
 
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
@@ -270,8 +272,10 @@ struct ProfiledCurveAction : Action {
   static constexpr double POS_TOL = 0.008; // m (arc length)
   static constexpr double VEL_TOL = 0.06;  // m/s
 
-  ProfiledCurveAction(double radius, double angle, double finalVelocity)
-      : profile({std::sqrt(COEF_FRICTION * 9.81 * radius) * 0.3,
+  ProfiledCurveAction(double radius, double angle, double finalVelocity,
+                      double maxSpeed = 0.0)
+      : profile({maxSpeed > 0 ? maxSpeed
+                               : std::sqrt(COEF_FRICTION * 9.81 * radius) * 0.3,
                  MAX_ACCEL_M_S2 * 0.5, 0, finalVelocity, profilePIDConstants,
                  radius * std::abs(angle)}),
         outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius),

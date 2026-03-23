@@ -3,6 +3,7 @@
 #include "CommandAction.h"
 #include "CommandGenerator.h"
 #include "Solver.h"
+#include <vector>
 
 class FastPathSolver final : public Solver {
 public:

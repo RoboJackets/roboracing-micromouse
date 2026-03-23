@@ -22,26 +22,26 @@ void floodFill(MouseState &state, const Goals *goal, int (&dists)[N][N]) {
     const int dist = dists[c.y][c.x];
 
     // left
-    if (c.x - 1 >= 0 && !(wall & LEFT) &&
-        state.explored[c.y][c.x - 1] && dist + 1 < dists[c.y][c.x - 1]) {
+    if (c.x - 1 >= 0 && !(wall & LEFT) && state.explored[c.y][c.x - 1] &&
+        dist + 1 < dists[c.y][c.x - 1]) {
       dists[c.y][c.x - 1] = dist + 1;
       queue.push({c.x - 1, c.y});
     }
     // right
-    if (c.x + 1 < N && !(wall & RIGHT) &&
-        state.explored[c.y][c.x + 1] && dist + 1 < dists[c.y][c.x + 1]) {
+    if (c.x + 1 < N && !(wall & RIGHT) && state.explored[c.y][c.x + 1] &&
+        dist + 1 < dists[c.y][c.x + 1]) {
       dists[c.y][c.x + 1] = dist + 1;
       queue.push({c.x + 1, c.y});
     }
     // down
-    if (c.y - 1 >= 0 && !(wall & DOWN) &&
-        state.explored[c.y - 1][c.x] && dist + 1 < dists[c.y - 1][c.x]) {
+    if (c.y - 1 >= 0 && !(wall & DOWN) && state.explored[c.y - 1][c.x] &&
+        dist + 1 < dists[c.y - 1][c.x]) {
       dists[c.y - 1][c.x] = dist + 1;
       queue.push({c.x, c.y - 1});
     }
     // up
-    if (c.y + 1 < N && !(wall & TOP) &&
-        state.explored[c.y + 1][c.x] && dist + 1 < dists[c.y + 1][c.x]) {
+    if (c.y + 1 < N && !(wall & TOP) && state.explored[c.y + 1][c.x] &&
+        dist + 1 < dists[c.y + 1][c.x]) {
       dists[c.y + 1][c.x] = dist + 1;
       queue.push({c.x, c.y + 1});
     }
@@ -120,11 +120,12 @@ inline bool blocked(const MouseState &s, int x, int y, int nx, int ny) {
   return true;
 }
 
-inline bool at_goal(IntPair pos) {
-  return (pos.first == centerGoals[0][0] && pos.second == centerGoals[0][1]) ||
-         (pos.first == centerGoals[1][0] && pos.second == centerGoals[1][1]) ||
-         (pos.first == centerGoals[2][0] && pos.second == centerGoals[2][1]) ||
-         (pos.first == centerGoals[3][0] && pos.second == centerGoals[3][1]);
+inline bool at_goal(IntPair pos, const Goals *goal) {
+  for (int i = 0; i < goal->count; ++i) {
+    if (pos.first == goal->cells[i][1] && pos.second == goal->cells[i][0])
+      return true;
+  }
+  return false;
 }
 
 int dirs[][2] = {
@@ -134,10 +135,11 @@ int dirs[][2] = {
     {-1, 0},
 };
 
-void dfs(const MouseState &state, IntPair curr, std::vector<IntPair> &current,
+void dfs(const MouseState &state, const Goals *goal, IntPair curr,
+         std::vector<IntPair> &current,
          std::unordered_set<IntPair, pair_hash> &visited,
          std::vector<std::vector<IntPair>> &solutions) {
-  if (at_goal(curr)) {
+  if (at_goal(curr, goal)) {
     solutions.push_back(current);
     return;
   }
@@ -159,7 +161,7 @@ void dfs(const MouseState &state, IntPair curr, std::vector<IntPair> &current,
       continue;
 
     current.push_back(adj);
-    dfs(state, adj, current, visited, solutions);
+    dfs(state, goal, adj, current, visited, solutions);
     current.pop_back();
   }
 
@@ -198,14 +200,15 @@ std::string path_to_instruct(const std::vector<IntPair> &path) {
   return ss.str();
 }
 std::vector<unsigned char> cmds;
-void search_all(const MouseState &state) {
+void search_all(const MouseState &state, const Goals *goal) {
   std::vector<IntPair> temp{};
   std::unordered_set<IntPair, pair_hash> visited{};
   std::vector<std::vector<IntPair>> solutions{};
+  Serial.println(state.dists[0][0]);
 
   IntPair start{0, 0};
   temp.push_back(start);
-  dfs(state, start, temp, visited, solutions);
+  dfs(state, goal, start, temp, visited, solutions);
 
   double bestWeight = 9999999999999.0;
   std::vector<unsigned char> bestVec{};
@@ -215,6 +218,7 @@ void search_all(const MouseState &state) {
     // std::cerr << s << std::endl;
     std::vector<unsigned char> v = std::move(parse(s, false));
     double w = computeWeight(v);
+    Serial.println(w);
     if (w < bestWeight) {
       bestWeight = w;
       bestVec = std::move(v);
