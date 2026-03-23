@@ -3,6 +3,7 @@
 #include "ControlAlgorithms.h"
 #include <Constants.h>
 #include <IRSensor.h>
+#include <Pins.h>
 
 struct StartupAction : Action {
   IRSensor left;
@@ -27,9 +28,15 @@ struct DelayAction : Action {
   bool completed() const override { return canceled; }
   double time = 0;
   double runTime;
+  bool go = false;
   DelayAction(double runTime) : runTime(runTime) {}
   void run(MouseState &s, MouseIO &io) override {
-    time += io.getDt();
+    if (digitalRead(B_FRONT) || digitalRead(B_BACK)) {
+      go = true;
+    }
+    if (go) {
+      time += io.getDt();
+    }
     // Serial.println(time);
     if (runTime <= time) {
       cancel();
@@ -39,5 +46,6 @@ struct DelayAction : Action {
   void end(MouseState &s, MouseIO &io) override {
     time = 0;
     canceled = false;
+    go = false;
   }
 };

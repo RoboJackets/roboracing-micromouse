@@ -13,7 +13,7 @@ struct Goals {
 };
 
 constexpr Goals CENTER_GOALS{centerGoals, 4, 0, 0};
-constexpr Goals TEST_GOALS{testGoal, 1, 0, 0};
+constexpr Goals TEST_GOALS{testGoal, 1, -10000, 0};
 constexpr Goals START_GOALS{startGoal, 1, 0, 0};
 
 struct MouseState {

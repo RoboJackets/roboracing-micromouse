@@ -31,7 +31,7 @@ SysIDRampAction ramp{};
 SequentialAction s = SequentialAction::make(
     DelayAction(6), ProfiledCurveAction(0.01, PI / 2, 0));
 SequentialAction r =
-    SequentialAction::make(DelayAction(6), YawPIDAction(PI / 2));
+    SequentialAction::make(DelayAction(3), YawPIDAction(PI / 2));
 Action *a = &startup;
 void switchState(GoalState state, MouseIO *io) {
   // Serial.print("1");
