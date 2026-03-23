@@ -143,10 +143,10 @@ struct ProfiledDriveAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
   void run(MouseState &s, MouseIO &io) override {
-    // if (io.getAverageSensorState()[0].hypot() < 0.08) {
-    //   profile.finalVelocity = 0;
-    //   canceled = true;
-    // }
+    if (io.getAverageSensorState()[0].hypot() < 0.08) {
+      profile.finalVelocity = 0;
+      canceled = true;
+    }
     // Serial.printf("ERROR: %0.2f\n", error);
     double avgSpeed = 0.5 * (std::abs(io.getDriveSpeedLeft()) +
                              std::abs(io.getDriveSpeedRight()));
@@ -273,7 +273,7 @@ struct ProfiledCurveAction : Action {
   ProfiledCurveAction(double radius, double angle, double finalVelocity,
                       double maxSpeed = 0.0)
       : profile({maxSpeed > 0 ? maxSpeed
-                               : std::sqrt(COEF_FRICTION * 9.81 * radius) * 0.3,
+                              : std::sqrt(COEF_FRICTION * 9.81 * radius) * 0.3,
                  MAX_ACCEL_M_S2 * 0.5, 0, finalVelocity, profilePIDConstants,
                  radius * std::abs(angle)}),
         outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius),
