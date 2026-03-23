@@ -19,7 +19,7 @@ struct SpeedProfile {
   double curveTrailDistance;
 };
 
-inline constexpr SpeedProfile EXPLORE_SPEED{0.25, 0.25, 0.04, 0.2, 0.03};
+inline constexpr SpeedProfile EXPLORE_SPEED{0.25, 0.25, 0.04, 0.2, 0.06};
 inline constexpr SpeedProfile FAST_SPEED{0.25, 0.25, 0.04, 0.2, 0.03};
 
 struct CommandAction : Action {
