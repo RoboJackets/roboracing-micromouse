@@ -12,14 +12,12 @@ struct StartupAction : Action {
   bool completed() const override { return canceled; }
   PID p = PID{IRadjust};
   void run(MouseState &s, MouseIO &io) override {
-    WorldCoord left = io.getSensorState().at(2);
-    WorldCoord right = io.getSensorState().at(3);
     io.setGyroOffset(io.getGyroYaw() - M_PI / 2.0);
     io.setWorldCoord(WorldCoord{0.09, ROBOT_LENGTH / 2});
+    s.x = 0;
+    s.y = 0;
+    s.dir = TOP;
     canceled = true;
-    Serial.print("a");
-    io.allowUpdates(true);
-    Serial.print("b");
   }
   void end(MouseState &s, MouseIO &io) override { canceled = false; }
 };

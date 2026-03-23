@@ -13,6 +13,7 @@ FloodFillSolver floodFill{};
 FloodFillSolver fastFloodFill{};
 Solver noop = Solver{};
 EmptyAction empty = EmptyAction{};
+bool enableUpdatesAfterStartup = true;
 SequentialAction startup =
     SequentialAction::make(DelayAction(6), StartupAction{});
 SequentialAction square = SequentialAction::make(
@@ -42,21 +43,23 @@ void switchState(GoalState state, MouseIO *io) {
     a->cancel();
   }
   solver->onFinished(mouseState, goal);
+  io->allowUpdates(false);
   switch (state) {
   case GoalState::GOAL_SEARCH:
     solver = &floodFill;
     goal = &TEST_GOALS;
+    enableUpdatesAfterStartup = true;
+    a = &startup;
     break;
   case GoalState::RETURN:
     solver = &floodFill;
     goal = &START_GOALS;
-    io->allowUpdates(true);
     break;
   case GoalState::FAST_PATH:
     // Serial.print("3");
     solver = &fastFloodFill;
     goal = &TEST_GOALS;
-    io->allowUpdates(false);
+    enableUpdatesAfterStartup = false;
     a = &startup;
     break;
   default:
@@ -116,6 +119,9 @@ void tick(MouseIO *io) {
   updateState(io);        // determine overall goal (solver)
   if (a->completed()) {
     a->end(mouseState, *io);
+    if (enableUpdatesAfterStartup) {
+      io->allowUpdates(true);
+    }
     a = solver->run(mouseState, goal); // determine action
     // a = &empty;
   }
