@@ -143,7 +143,6 @@ struct ProfiledDriveAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
   void run(MouseState &s, MouseIO &io) override {
-    io.allowUpdates(true);
     if (io.getAverageSensorState()[0].hypot() < 0.08) {
       profile.finalVelocity = 0;
       canceled = true;
@@ -224,7 +223,6 @@ struct ProfiledRotationAction : Action {
   bool completed() const override { return canceled; }
 
   void run(MouseState &s, MouseIO &io) override {
-    io.allowUpdates(false);
     double avgSpeed = 0.5 * (std::abs(io.getDriveSpeedLeft()) +
                              std::abs(io.getDriveSpeedRight()));
     bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
