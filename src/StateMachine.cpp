@@ -15,7 +15,7 @@ Solver noop = Solver{};
 EmptyAction empty = EmptyAction{};
 bool enableUpdatesAfterStartup = true;
 SequentialAction startup =
-    SequentialAction::make(DelayAction(6), StartupAction{});
+    SequentialAction::make(DelayAction(3), StartupAction{});
 SequentialAction square = SequentialAction::make(
     DelayAction(6), YawPIDAction(0), ProfiledDriveAction(0.3048, 0, 0.1),
     ProfiledCurveAction(0.05, -PI / 2, 0.1),
@@ -48,8 +48,6 @@ void switchState(GoalState state, MouseIO *io) {
   case GoalState::GOAL_SEARCH:
     solver = &floodFill;
     goal = &TEST_GOALS;
-    enableUpdatesAfterStartup = true;
-    a = &startup;
     break;
   case GoalState::RETURN:
     solver = &floodFill;
