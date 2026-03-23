@@ -223,6 +223,7 @@ struct ProfiledRotationAction : Action {
   bool completed() const override { return canceled; }
 
   void run(MouseState &s, MouseIO &io) override {
+    io.allowUpdates(false);
     double avgSpeed = 0.5 * (std::abs(io.getDriveSpeedLeft()) +
                              std::abs(io.getDriveSpeedRight()));
     bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
