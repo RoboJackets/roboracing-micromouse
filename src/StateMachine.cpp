@@ -58,6 +58,7 @@ void switchState(GoalState state, MouseIO *io) {
     solver = &fastFloodFill;
     goal = &TEST_GOALS;
     enableUpdatesAfterStartup = false;
+    io->driveVoltage(0, 0);
     a = &startup;
     break;
   default:
