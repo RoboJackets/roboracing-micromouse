@@ -123,9 +123,10 @@ struct CommandAction : Action {
     double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
     return std::make_unique<SequentialAction>(SequentialAction::make(
         ProfiledCurveAction(sp.curveRadius, turnAngle, sp.curveFinalVelocity,
-                            sp.maxSpeed),
+                            0),
+        DelayAction{1},
         ProfiledDriveAction{sp.curveTrailDistance, travelAngle,
-                            sp.driveFinalVelocity, sp.maxSpeed}));
+                            sp.driveFinalVelocity, 0}));
   }
 
   std::unique_ptr<Action> determineAction(MouseState &s, MouseIO &io) {
@@ -150,8 +151,8 @@ struct CommandAction : Action {
       //               s.walls[io.getGridCoord().x][io.getGridCoord().y]);
       return std::make_unique<SequentialAction>(SequentialAction::make(
           ProfiledRotationAction{turnAngle}, DelayAction{0},
-          ProfiledDriveAction{CELL_SIZE_METERS - 0.01, theta, EXPLORE_SPEED.maxSpeed,
-                              EXPLORE_SPEED.maxSpeed}));
+          ProfiledDriveAction{CELL_SIZE_METERS - 0.01, theta,
+                              EXPLORE_SPEED.maxSpeed, EXPLORE_SPEED.maxSpeed}));
     }
     // Explore (slow) variants
     if (cls == EX_FWD0) {
