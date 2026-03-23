@@ -143,10 +143,10 @@ struct ProfiledDriveAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
   void run(MouseState &s, MouseIO &io) override {
-    if (io.getAverageSensorState()[0].hypot() < 0.08) {
-      profile.finalVelocity = 0;
-      canceled = true;
-    }
+    // if (io.getAverageSensorState()[0].hypot() < 0.08) {
+    //   profile.finalVelocity = 0;
+    //   canceled = true;
+    // }
     // Serial.printf("ERROR: %0.2f\n", error);
     double avgSpeed = 0.5 * (std::abs(io.getDriveSpeedLeft()) +
                              std::abs(io.getDriveSpeedRight()));
