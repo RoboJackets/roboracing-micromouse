@@ -159,7 +159,7 @@ unsigned char traverse(MouseState &state, const Goals *goal) {
   return bestDir;
 }
 }; // namespace
-static unsigned char stepInstr(unsigned char cur, unsigned char tgt) {
+static unsigned char stepInstr(unsigned char cur, unsigned char tgt, bool fast) {
   unsigned char localTgt = tgt;
   if (cur == LEFT)
     localTgt = RCIRC4(tgt);
@@ -167,6 +167,20 @@ static unsigned char stepInstr(unsigned char cur, unsigned char tgt) {
     localTgt = LCIRC4(tgt);
   if (cur == DOWN)
     localTgt = LCIRC4(LCIRC4(tgt));
+  if (fast) {
+    switch (localTgt) {
+    case TOP:
+      return FWD0 + 1;
+    case LEFT:
+      return ST90L;
+    case RIGHT:
+      return ST90R;
+    case DOWN:
+      return IPT180;
+    default:
+      return FWD0;
+    }
+  }
   switch (localTgt) {
   case TOP:
     return EX_FWD0 + 1;
@@ -188,7 +202,7 @@ Action *FloodFillSolver::run(MouseState &state, const Goals *goal) {
   }
   floodFill(state, goal);
   unsigned char dir = traverse(state, goal);
-  unsigned char c = stepInstr(state.dir, dir);
+  unsigned char c = stepInstr(state.dir, dir, fast);
   cmd.load({c});
   return &cmd;
 }

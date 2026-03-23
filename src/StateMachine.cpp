@@ -9,7 +9,8 @@ Solver *solver = nullptr;
 const Goals *goal = &TEST_GOALS;
 
 FloodFillSolver floodFill{};
-FastPathSolver fastPath{};
+// FastPathSolver fastPath{};
+FloodFillSolver fastFloodFill{};
 Solver noop = Solver{};
 EmptyAction empty = EmptyAction{};
 SequentialAction startup =
@@ -53,7 +54,7 @@ void switchState(GoalState state, MouseIO *io) {
     break;
   case GoalState::FAST_PATH:
     // Serial.print("3");
-    solver = &fastPath;
+    solver = &fastFloodFill;
     goal = &TEST_GOALS;
     io->allowUpdates(false);
     a = &startup;
@@ -92,6 +93,7 @@ void updateState(MouseIO *io) {
   // Serial.println("!");
 }
 void init(MouseIO *io) {
+  fastFloodFill.fast = true;
   mouseState.explored[0][0] = true;
   for (int i = 0; i < TEST_GOALS.count; ++i) {
     const int gx = TEST_GOALS.cells[i][1];

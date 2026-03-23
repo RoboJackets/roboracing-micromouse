@@ -20,7 +20,7 @@ struct SpeedProfile {
 };
 
 inline constexpr SpeedProfile EXPLORE_SPEED{0.1, 0.1, 0.03, 0.1, 0.03};
-inline constexpr SpeedProfile FAST_SPEED{0.2, 0.2, 0.03, 0.2, 0.06};
+inline constexpr SpeedProfile FAST_SPEED{0.2, 0.2, 0.03, 0.2, 0.04};
 
 struct CommandAction : Action {
   std::vector<unsigned char> buf;
