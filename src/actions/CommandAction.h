@@ -19,7 +19,7 @@ struct SpeedProfile {
   double curveTrailDistance;
 };
 
-inline constexpr SpeedProfile EXPLORE_SPEED{0.25, 0.25, 0.04, 0.2, 0.03};
+inline constexpr SpeedProfile EXPLORE_SPEED{0.1, 0.1, 0.04, 0.1, 0.03};
 inline constexpr SpeedProfile FAST_SPEED{0.25, 0.25, 0.04, 0.2, 0.03};
 
 struct CommandAction : Action {
@@ -133,6 +133,11 @@ struct CommandAction : Action {
 
     unsigned char cls = c & 0b11100000;
     unsigned char arg = c & 0b00011111;
+    if (c == STOP) {
+      io.driveVoltage(0, 0);
+      canceled = true;
+      return std::make_unique<EmptyAction>();
+    }
     if (c == IPT180) {
       goalAngle += 4;
       goalAngle = (goalAngle + 8) % 8;

@@ -184,11 +184,11 @@ struct ProfiledDriveAction : Action {
     if (std::abs(io.getSensorState().at(2).x) < 0.16 &&
         io.getSensorState().at(3).x < 0.16) {
       c = irPID.calculate(io.getSensorState().at(3).x,
-                          -io.getSensorState().at(2).x - 0.005, io.getDt());
+                          -io.getSensorState().at(2).x - 0.01, io.getDt());
     } else if (std::abs(io.getSensorState().at(2).x) < 0.16) {
-      c = irPID.calculate(io.getSensorState().at(2).x, -0.09, io.getDt());
+      c = irPID.calculate(io.getSensorState().at(2).x, -0.085, io.getDt());
     } else if (io.getSensorState().at(3).x < 0.16) {
-      c = irPID.calculate(io.getSensorState().at(3).x, 0.07, io.getDt());
+      c = irPID.calculate(io.getSensorState().at(3).x, 0.075, io.getDt());
     }
     c += gyroPID.calculate(-gyroError, 0, io.getDt());
     // Serial.println(v);
