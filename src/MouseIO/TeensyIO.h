@@ -184,11 +184,11 @@ struct TeensyIO : MouseIO {
       // relative to mouse in m
       readings[i] = sensor.getReading(post);
       readingsAverage[i] = sensor.getAverage();
-      // Serial.print(i);
-      // Serial.print(": ");
-      // Serial.printf("%0.2f, %0.2f", readings[i].x, readings[i].y);
-      // Serial.print(post);
-      // Serial.print("     ");
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.printf("%0.2f, %0.2f", readings[i].x, readings[i].y);
+      Serial.print(post);
+      Serial.print("     ");
     }
     // Serial.print("GYRO: ");
     // Serial.print(w.theta);
@@ -281,13 +281,13 @@ struct TeensyIO : MouseIO {
       mouseState.walls[ny][nx] |= opp;
     };
 
-    if (gc.dir == TOP && rel.y > 0.09)
+    if (gc.dir == TOP && rel.y > 0.11)
       return;
-    if (gc.dir == DOWN && rel.y < 0.09)
+    if (gc.dir == DOWN && rel.y < 0.07)
       return;
-    if (gc.dir == LEFT && rel.x < 0.09)
+    if (gc.dir == LEFT && rel.x < 0.07)
       return;
-    if (gc.dir == RIGHT && rel.x > 0.09)
+    if (gc.dir == RIGHT && rel.x > 0.11)
       return;
     if (readings[0].y < 0.075) {
       addWall(fwdDir);
@@ -306,12 +306,12 @@ struct TeensyIO : MouseIO {
     updateEncoders();
     updateWorldCoord();
     updateMazeState(mouseState);
-    // Serial.printf("COORD: %d, %d  WORLD: %0.2f, %0.2f    WALLS: %d   REL: "
-    //               "%0.2f, %0.2f\n",
-    //               getGridCoord().x, getGridCoord().y, w.x, w.y,
-    //               mouseState.walls[getGridCoord().y][getGridCoord().x],
-    //               w.gridRelativeCoords(getGridCoord()).x,
-    //               w.gridRelativeCoords(getGridCoord()).y);
+    Serial.printf("COORD: %d, %d  WORLD: %0.2f, %0.2f    WALLS: %d   REL: "
+                  "%0.2f, %0.2f\n",
+                  getGridCoord().x, getGridCoord().y, w.x, w.y,
+                  mouseState.walls[getGridCoord().y][getGridCoord().x],
+                  w.gridRelativeCoords(getGridCoord()).x,
+                  w.gridRelativeCoords(getGridCoord()).y);
     // Serial.printf(" BFRONT: %d   BBACK: %d\n", analogRead(B_FRONT),
     //               analogRead(B_BACK));
   }
