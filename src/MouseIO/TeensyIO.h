@@ -206,7 +206,7 @@ struct TeensyIO : MouseIO {
   void updateMazeState(MouseState &mouseState) {
     GridCoord gc = getGridCoord();
     mouseState.explored[gc.y][gc.x] = true;
-    if (std::abs(std::remainder(w.theta, PI / 2.0)) > 0.2)
+    if (std::abs(std::remainder(w.theta, PI / 2.0)) > 0.1)
       return;
     if (std::abs(getRotationRate()) > 0.15) {
       return;
@@ -281,13 +281,13 @@ struct TeensyIO : MouseIO {
       mouseState.walls[ny][nx] |= opp;
     };
 
-    if (gc.dir == TOP && rel.y > 0.09)
+    if (gc.dir == TOP && rel.y > 0.1)
       return;
-    if (gc.dir == DOWN && rel.y < 0.09)
+    if (gc.dir == DOWN && rel.y < 0.08)
       return;
-    if (gc.dir == LEFT && rel.x < 0.09)
+    if (gc.dir == LEFT && rel.x < 0.08)
       return;
-    if (gc.dir == RIGHT && rel.x > 0.09)
+    if (gc.dir == RIGHT && rel.x > 0.1)
       return;
     if (readings[0].y < 0.075) {
       addWall(fwdDir);
