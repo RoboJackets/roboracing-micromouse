@@ -31,7 +31,7 @@ struct DelayAction : Action {
   bool go = false;
   DelayAction(double runTime) : runTime(runTime) {}
   void run(MouseState &s, MouseIO &io) override {
-    if (digitalRead(B_FRONT) || digitalRead(B_BACK)) {
+    if (!digitalRead(B_FRONT) || !digitalRead(B_BACK)) {
       go = true;
     }
     if (go) {
