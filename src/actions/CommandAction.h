@@ -150,7 +150,7 @@ struct CommandAction : Action {
       //               s.walls[io.getGridCoord().x][io.getGridCoord().y]);
       return std::make_unique<SequentialAction>(SequentialAction::make(
           ProfiledRotationAction{turnAngle}, DelayAction{0},
-          ProfiledDriveAction{CELL_SIZE_METERS - 0.03, theta, EXPLORE_SPEED.maxSpeed,
+          ProfiledDriveAction{CELL_SIZE_METERS - 0.01, theta, EXPLORE_SPEED.maxSpeed,
                               EXPLORE_SPEED.maxSpeed}));
     }
     // Explore (slow) variants
