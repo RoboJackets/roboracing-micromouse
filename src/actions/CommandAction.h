@@ -133,11 +133,6 @@ struct CommandAction : Action {
 
     unsigned char cls = c & 0b11100000;
     unsigned char arg = c & 0b00011111;
-    if (c == STOP) {
-      io.driveVoltage(0, 0);
-      canceled = true;
-      return std::make_unique<EmptyAction>();
-    }
     if (c == IPT180) {
       goalAngle += 4;
       goalAngle = (goalAngle + 8) % 8;
