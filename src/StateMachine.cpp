@@ -74,17 +74,17 @@ void updateState(MouseIO *io) {
       switchState(GoalState::RETURN, io);
     break;
   case GoalState::RETURN:
-    Serial.print("R");
+    // Serial.print("R");
     // std::cerr <<
     // std::to_string(mouseState.explored[mouseState.y][mouseState.x])
     //           << std::endl;
     if (solver->end(mouseState, goal)) {
-      Serial.print("0");
+      // Serial.print("0");
       switchState(GoalState::FAST_PATH, io);
     }
     break;
   case GoalState::FAST_PATH:
-    Serial.print("F");
+    // Serial.print("F");
     if (solver->end(mouseState, goal))
       switchState(GoalState::RETURN, io);
     break;

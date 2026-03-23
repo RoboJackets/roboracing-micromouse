@@ -34,6 +34,7 @@ struct DelayAction : Action {
     if (!digitalRead(B_FRONT) || !digitalRead(B_BACK)) {
       go = true;
     }
+    Serial.println(go);
     if (go) {
       time += io.getDt();
     }
