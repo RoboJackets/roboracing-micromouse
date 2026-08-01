@@ -27,6 +27,7 @@ struct MouseIO {
   virtual void setWorldCoord(WorldCoord c) {};
   virtual void resetPIDs() {};
   virtual void allowUpdates(bool x) {};
+  virtual void updateMazeState(MouseState &mouseState) {};
 
   virtual void update(MouseState &mouseState) {};
 

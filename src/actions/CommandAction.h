@@ -53,6 +53,7 @@ struct CommandAction : Action {
     }
     curr->run(s, io);
     if (curr->completed()) {
+      io.updateMazeState(s);
       curr->end(s, io);
       s.x = io.getGridCoord().x;
       s.y = io.getGridCoord().y;
@@ -150,8 +151,8 @@ struct CommandAction : Action {
       //               s.walls[io.getGridCoord().x][io.getGridCoord().y]);
       return std::make_unique<SequentialAction>(SequentialAction::make(
           ProfiledRotationAction{turnAngle}, DelayAction{0},
-          ProfiledDriveAction{CELL_SIZE_METERS - 0.01, theta, EXPLORE_SPEED.maxSpeed,
-                              EXPLORE_SPEED.maxSpeed}));
+          ProfiledDriveAction{CELL_SIZE_METERS - 0.01, theta,
+                              EXPLORE_SPEED.maxSpeed, EXPLORE_SPEED.maxSpeed}));
     }
     // Explore (slow) variants
     if (cls == EX_FWD0) {

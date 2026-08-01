@@ -203,7 +203,7 @@ struct TeensyIO : MouseIO {
     filteredRotationRate += rotAlpha * (rawRotationRate - filteredRotationRate);
   }
 
-  void updateMazeState(MouseState &mouseState) {
+  void updateMazeState(MouseState &mouseState) override {
     GridCoord gc = getGridCoord();
     mouseState.explored[gc.y][gc.x] = true;
     if (std::abs(std::remainder(w.theta, PI / 2.0)) > 0.2)
@@ -305,7 +305,7 @@ struct TeensyIO : MouseIO {
     updateSensorState();
     updateEncoders();
     updateWorldCoord();
-    updateMazeState(mouseState);
+    // updateMazeState(mouseState);
     Serial.printf("COORD: %d, %d  WORLD: %0.2f, %0.2f    WALLS: %d   REL: "
                   "%0.2f, %0.2f\n",
                   getGridCoord().x, getGridCoord().y, w.x, w.y,
