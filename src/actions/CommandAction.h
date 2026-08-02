@@ -7,7 +7,6 @@
 #include "Commands.h"
 #include "ControlActions.h"
 #include "EmptyAction.h"
-#include "MMSIO.h"
 #include "SequentialAction.h"
 #include <StartupAction.h>
 
@@ -44,10 +43,6 @@ struct CommandAction : Action {
   void run(MouseState &s, MouseIO &io) override {
     if (completed())
       return;
-    if (io.isMMS()) {
-      runMMS(s, io);
-      return;
-    }
     if (!curr) {
       curr = determineAction(s, io);
     }
@@ -169,48 +164,5 @@ struct CommandAction : Action {
       return makeCurveAction(arg, io, s, FAST_SPEED);
     }
     return std::make_unique<EmptyAction>();
-  }
-
-  void runMMS(MouseState &s, MouseIO &io) {
-    io.update(s);
-    unsigned char c = buf[pc++];
-
-    unsigned char cls = c & 0b11100000;
-    unsigned char arg = c & 0b00011111;
-    if (c == STOP) {
-      canceled = true;
-      return;
-    }
-
-    if (cls == EX_FWD0 || cls == FWD0) {
-      for (int i = 0; i < arg; ++i) {
-        GridCoord v = dirToVector(s.dir);
-        IdealState next{GridCoord{s.x + v.x, s.y + v.y}};
-        io.setState(next);
-      }
-      return;
-    }
-    if (c == EX_ST90L || c == ST90L) {
-      GridCoord v = dirToVector((unsigned char)LCIRC4(s.dir));
-      IdealState next{GridCoord{s.x + v.x, s.y + v.y}};
-      io.setState(next);
-      return;
-    }
-    if (c == IPT180) {
-      GridCoord v = dirToVector((unsigned char)LCIRC4(LCIRC4(s.dir)));
-      IdealState next{GridCoord{s.x + v.x, s.y + v.y}};
-      io.setState(next);
-      return;
-    }
-    if (c == EX_ST90R || c == ST90R) {
-      GridCoord v = dirToVector((unsigned char)RCIRC4(s.dir));
-      IdealState next{GridCoord{s.x + v.x, s.y + v.y}};
-      io.setState(next);
-      return;
-    }
-
-    if (cls == DFWD0) {
-      return;
-    }
   }
 };

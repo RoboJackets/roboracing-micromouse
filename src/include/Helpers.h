@@ -77,14 +77,6 @@ inline unsigned char dirToChar(int dir) {
       return TOP;
   }
 }
-inline unsigned char vectorToDir(const GridCoord& vec) {
-  if (vec.x == -1 && vec.y == 0) return LEFT;
-  if (vec.x == 1 && vec.y == 0) return RIGHT;
-  if (vec.x == 0 && vec.y == -1) return DOWN;
-  if (vec.x == 0 && vec.y == 1) return TOP;
-  return 0;
-}
-
 inline GridCoord angleToVector(int angle) {
   switch (angle & 7) {
     case 0: return {0, 1};    // N

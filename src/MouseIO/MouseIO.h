@@ -2,11 +2,9 @@
 #include <array>
 #include <vector>
 
-#include "IdealState.h"
 #include "Mouse.h"
 #include "Types.h"
 struct MouseIO {
-  virtual bool isMMS() const { return false; }
   virtual GridCoord getGridCoord() { return GridCoord{}; };
   virtual unsigned char getGridDir() { return 0; };
   virtual WorldCoord getWorldCoord() { return WorldCoord{}; };
@@ -20,7 +18,6 @@ struct MouseIO {
   virtual double getDrivePosRight() { return 0; };
   virtual double getGyroYaw() { return 0; };
   virtual double getRotationRate() { return 0; };
-  virtual void setState(IdealState state) {};
   virtual std::array<WorldCoord, 4> getSensorState() { return {}; };
   virtual std::array<WorldCoord, 4> getAverageSensorState() { return {}; };
   virtual void setGyroOffset(double offset) {};

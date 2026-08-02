@@ -8,11 +8,9 @@
 #include "ControlAlgorithms.h"
 #include "EncoderSensor.h"
 #include "IRSensor.h"
-#include "IdealState.h"
 #include "Mouse.h"
 #include "MouseIO.h"
 #include "Pins.h"
-#include "SDLogger.h"
 #include "Types.h"
 #include <DRV8833.h>
 #include <Gyro.cpp>
@@ -319,7 +317,6 @@ struct TeensyIO : MouseIO {
   static void onButtonPress() { Serial.print("PRESSED"); }
 
   void init() override {
-    // Logger::init();
     lastMicros = micros();
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(EMIT_1, OUTPUT);
