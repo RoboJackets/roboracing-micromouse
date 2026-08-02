@@ -4,7 +4,6 @@
 
 constexpr int centerGoals[][2] = {{7, 7}, {7, 8}, {8, 7}, {8, 8}};
 constexpr int startGoal[][2] = {{0, 0}};
-constexpr int testGoal[][2] = {{3, 3}};
 struct Goals {
   const int (*cells)[2];
   int count;
@@ -13,12 +12,10 @@ struct Goals {
 };
 
 constexpr Goals CENTER_GOALS{centerGoals, 4, 0, 0};
-constexpr Goals TEST_GOALS{centerGoals, 1, 0, 0};
 constexpr Goals START_GOALS{startGoal, 1, 0, 0};
 
 struct MouseState {
   // 0,0 is bottom left, in line with mm rulebook
-  WorldCoord worldCoord{};
   int dists[N][N]{};
   bool explored[N][N]{};
   unsigned char walls[N][N]{}; // bitmask

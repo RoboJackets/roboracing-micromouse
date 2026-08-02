@@ -314,8 +314,6 @@ struct TeensyIO : MouseIO {
     //               analogRead(B_BACK));
   }
 
-  static void onButtonPress() { Serial.print("PRESSED"); }
-
   void init() override {
     lastMicros = micros();
     pinMode(LED_BUILTIN, OUTPUT);
@@ -331,8 +329,6 @@ struct TeensyIO : MouseIO {
 
     pinMode(B_FRONT, INPUT);
     pinMode(B_BACK, INPUT);
-
-    // attachInterrupt(digitalPinToInterrupt(B_FRONT), onButtonPress, RISING);
 
     gyro.initalizeGyro();
 

@@ -1,13 +1,10 @@
 #pragma once
-#include <iostream>
 #include <string>
 #include <vector>
 
 #include "Types.h"
 #define RCIRC4(x) (((x) & 1) ? (0b1000 | (x) >> 1) : (x) >> 1)
 #define LCIRC4(x) (((x) & 0b1000) ? (0b0001 | ((x) & ~0b1000) << 1) : (x) << 1)
-
-inline void log(const std::string& text) { std::cerr << text << '\n'; }
 
 constexpr int N = 16;
 constexpr int INF = 300;
@@ -34,21 +31,6 @@ inline int dirToDist(unsigned char dir1, unsigned char dir2) {
   return (rot2 == LEFT || rot2 == RIGHT) ? 1 : 2;
 }
 
-inline char convertDir(unsigned char dir) {
-  switch (dir) {
-    case TOP:
-      return 'n';
-    case LEFT:
-      return 'w';
-    case RIGHT:
-      return 'e';
-    case DOWN:
-      return 's';
-    default:
-      return 'x';
-  }
-}
-
 inline GridCoord dirToVector(int dir) {
   switch (dir) {
     case 0:
@@ -61,20 +43,6 @@ inline GridCoord dirToVector(int dir) {
       return {0, 1};
     default:
       return {0, 0};
-  }
-}
-inline unsigned char dirToChar(int dir) {
-  switch (dir) {
-    case 0:
-      return LEFT;
-    case 1:
-      return RIGHT;
-    case 2:
-      return DOWN;
-    case 3:
-      return TOP;
-    default:
-      return TOP;
   }
 }
 inline GridCoord angleToVector(int angle) {

@@ -11,15 +11,10 @@ public:
 
   void drive(int speed, uint32_t durationMs);
   void brake();
-  void coast();
-  void standby();
-  void wake();
-  void setOffset(int8_t offset);
 
 private:
   uint8_t _in1, _in2, _stby;
   int8_t _offset;
 
   void setStandbyHigh_();
-  void setStandbyLow_();
 };

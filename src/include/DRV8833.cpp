@@ -1,12 +1,5 @@
 #include "DRV8833.h"
 #include "cmath"
-static inline int clamp255(int v) {
-  if (v > 255)
-    return 255;
-  if (v < -255)
-    return -255;
-  return v;
-}
 
 DRV8833Motor::DRV8833Motor(uint8_t in1Pin, uint8_t in2Pin, int8_t offset,
                            uint8_t stbyPin)
@@ -24,12 +17,7 @@ void DRV8833Motor::begin() {
   digitalWrite(_in2, LOW);
 }
 
-void DRV8833Motor::setOffset(int8_t offset) {
-  _offset = (offset >= 0) ? 1 : -1;
-}
-
 void DRV8833Motor::setStandbyHigh_() { digitalWrite(_stby, HIGH); }
-void DRV8833Motor::setStandbyLow_() { digitalWrite(_stby, LOW); }
 
 void DRV8833Motor::drive(int speed) {
   setStandbyHigh_();
@@ -54,12 +42,6 @@ void DRV8833Motor::drive(int speed) {
 void DRV8833Motor::drive(int speed, uint32_t durationMs) {
   drive(speed);
   delay(durationMs);
-}
-
-void DRV8833Motor::coast() {
-  setStandbyHigh_();
-  digitalWrite(_in1, LOW);
-  digitalWrite(_in2, LOW);
 }
 
 void DRV8833Motor::brake() {

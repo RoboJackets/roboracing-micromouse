@@ -1,9 +1,6 @@
 #pragma once
-#include <Action.h>
 #include <Arduino.h>
 #include <cmath>
-#include <tuple>
-#include <vector>
 
 struct PIDConstants {
   double p = 0;
@@ -15,7 +12,6 @@ struct PIDConstants {
 inline PIDConstants rot90PIDConstants{0.5, 0, 0};
 inline PIDConstants velocityPIDConstants{1.1, 0.3, 0.0, 0.3};
 inline PIDConstants profilePIDConstants{4, 0, 0};
-inline PIDConstants profileYawConstants{5, 0, 0};
 inline PIDConstants IRadjust{0.3, 0, 0};
 
 class PID {
@@ -193,59 +189,3 @@ struct MotorFeedForward {
     return voltage;
   }
 };
-
-// struct SysIDAction : Action {
-//   bool canceled = false;
-//   double quasistaticTime, dynamicTime;
-//   double voltAccel, voltDynamic;
-
-//   std::vector<std::tuple<double, double>> quasiForward = {};
-//   std::vector<std::tuple<double, double>> quasiBackward = {};
-//   std::vector<std::tuple<double, double>> dynamicForward = {};
-//   std::vector<std::tuple<double, double>> dynamicBackward = {};
-
-//   double totalTime = 0;
-
-//   SysIDAction(double quasistaticTime, double dynamicTime)
-//       : quasistaticTime(quasistaticTime), dynamicTime(dynamicTime) {}
-//   void cancel() override { canceled = true; }
-//   bool completed() const override { return canceled; }
-//   void run(MouseState &s, MouseIO &io) override {
-//     double t0 = totalTime + quasistaticTime;
-//     double t1 = t0 + 3;
-//     double t2 = t1 + quasistaticTime;
-//     double t3 = t2 + 3;
-//     double t4 = t3 + dynamicTime;
-//     double t5 = t4 + 3;
-//     double t6 = t5 + dynamicTime;
-//     if (totalTime <= t0) {
-//       quasiForward.push_back(
-//           {totalTime, (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) /
-//           2});
-//       io.driveVoltage(totalTime * voltAccel, totalTime * voltAccel);
-//     } else if (totalTime >= t1 && totalTime <= t2) {
-//       quasiBackward.push_back(
-//           {totalTime, (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) /
-//           2});
-//       io.driveVoltage(-(totalTime - t1) * voltAccel,
-//                       -(totalTime - t1) * voltAccel);
-//     } else if (totalTime >= t3 && totalTime <= t4) {
-//       dynamicForward.push_back(
-//           {totalTime, (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) /
-//           2});
-//       io.driveVoltage(voltDynamic, voltDynamic);
-//     } else if (totalTime >= t5 && totalTime <= t6) {
-//       dynamicBackward.push_back(
-//           {totalTime, (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) /
-//           2});
-//       io.driveVoltage(-voltDynamic, -voltDynamic);
-//     } else if (totalTime > t6 + 1) {
-//       cancel();
-//     } else {
-//       io.driveVoltage(0, 0);
-//     }
-//     totalTime += io.getDt();
-//   }
-//   void end(MouseState &s, MouseIO &io) override { io.driveVoltage(0.0, 0.0);
-//   }
-// };
