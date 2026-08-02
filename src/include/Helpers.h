@@ -3,8 +3,15 @@
 #include <vector>
 
 #include "Types.h"
-#define RCIRC4(x) (((x) & 1) ? (0b1000 | (x) >> 1) : (x) >> 1)
-#define LCIRC4(x) (((x) & 0b1000) ? (0b0001 | ((x) & ~0b1000) << 1) : (x) << 1)
+
+constexpr unsigned char RCIRC4(unsigned char x) {
+  return (x & 1) ? static_cast<unsigned char>(0b1000 | (x >> 1))
+                 : static_cast<unsigned char>(x >> 1);
+}
+constexpr unsigned char LCIRC4(unsigned char x) {
+  return (x & 0b1000) ? static_cast<unsigned char>(0b0001 | ((x & ~0b1000) << 1))
+                      : static_cast<unsigned char>(x << 1);
+}
 
 constexpr int N = 16;
 constexpr int INF = 300;
@@ -31,20 +38,6 @@ inline int dirToDist(unsigned char dir1, unsigned char dir2) {
   return (rot2 == LEFT || rot2 == RIGHT) ? 1 : 2;
 }
 
-inline GridCoord dirToVector(int dir) {
-  switch (dir) {
-    case 0:
-      return {-1, 0};
-    case 1:
-      return {1, 0};
-    case 2:
-      return {0, -1};
-    case 3:
-      return {0, 1};
-    default:
-      return {0, 0};
-  }
-}
 inline GridCoord angleToVector(int angle) {
   switch (angle & 7) {
     case 0: return {0, 1};    // N

@@ -2,10 +2,15 @@
 #include "Constants.h"
 #include <cmath>
 
+constexpr unsigned char TOP{0b1000};
+constexpr unsigned char RIGHT{0b0100};
+constexpr unsigned char DOWN{0b0010};
+constexpr unsigned char LEFT{0b0001};
+
 struct GridCoord {
   int x = 0;
   int y = 0;
-  unsigned char dir;
+  unsigned char dir = TOP;
 };
 // theta = 0 is to the right, rotates counterclockwise. in radians.
 struct WorldCoord {
@@ -19,8 +24,3 @@ struct WorldCoord {
                       theta};
   }
 };
-
-constexpr unsigned char TOP{0b1000};
-constexpr unsigned char RIGHT{0b0100};
-constexpr unsigned char DOWN{0b0010};
-constexpr unsigned char LEFT{0b0001};

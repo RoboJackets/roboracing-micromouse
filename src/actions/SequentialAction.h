@@ -31,12 +31,6 @@ struct SequentialAction : Action {
     if (actions[index]->completed()) {
       actions[index]->end(s, io);
       index++;
-      // Serial.println("NEXT!!!");
-      return;
-    }
-
-    if (index >= actions.size()) {
-      canceled = true;
       return;
     }
 

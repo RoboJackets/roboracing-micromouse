@@ -8,7 +8,6 @@
 #include <stack>
 #include <string>
 #include <unordered_set>
-#include <Arduino.h>
 
 
 namespace CellSelection {

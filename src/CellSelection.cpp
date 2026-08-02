@@ -204,7 +204,6 @@ void search_all(const MouseState &state, const Goals *goal) {
   std::vector<IntPair> temp{};
   std::unordered_set<IntPair, pair_hash> visited{};
   std::vector<std::vector<IntPair>> solutions{};
-  Serial.println(state.dists[0][0]);
 
   IntPair start{0, 0};
   temp.push_back(start);
@@ -218,7 +217,6 @@ void search_all(const MouseState &state, const Goals *goal) {
     // std::cerr << s << std::endl;
     std::vector<unsigned char> v = std::move(parse(s, false));
     double w = computeWeight(v);
-    Serial.println(w);
     if (w < bestWeight) {
       bestWeight = w;
       bestVec = std::move(v);
