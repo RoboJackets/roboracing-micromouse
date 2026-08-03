@@ -1,7 +1,6 @@
 #pragma once
-#include "CommandAction.h"
-#include "CommandGenerator.h"
 #include "Solver.h"
+#include "actions/CommandAction.h"
 #include <queue>
 #include <string>
 

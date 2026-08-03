@@ -1,4 +1,4 @@
-#include "CellSelection.h"
+#include "CellSearch.h"
 
 void floodFill(MouseState &state, const Goals *goal, int (&dists)[N][N]) {
   for (int x = 0; x < N; ++x) {

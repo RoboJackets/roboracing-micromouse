@@ -1,6 +1,6 @@
 #pragma once
-#include "Action.h"
 #include "Mouse.h"
+#include "actions/Action.h"
 
 class Solver {
  public:

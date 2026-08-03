@@ -1,11 +1,9 @@
 #pragma once
-#include "CellSelection.h"
-#include "ControlActions.h"
-#include "EmptyAction.h"
-#include "FastPathSolver.h"
-#include "FloodFillSolver.h"
-#include "SequentialAction.h"
-#include "StartupAction.h"
+#include "actions/ControlActions.h"
+#include "actions/EmptyAction.h"
+#include "actions/SequentialAction.h"
+#include "actions/StartupAction.h"
+#include "maze/FloodFillSolver.h"
 
 
 enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };

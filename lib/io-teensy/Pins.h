@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Arduino.h>
-
 #include <cstdint>
 
 constexpr uint8_t EMIT_1 = 25;

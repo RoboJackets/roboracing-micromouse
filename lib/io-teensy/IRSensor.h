@@ -1,6 +1,7 @@
 #pragma once
 #include <cmath>
 #include <cstdint>
+#include <limits>
 
 #include "Types.h"
 
@@ -47,7 +48,7 @@ struct IRSensor {
   WorldCoord getReading(int post) {
     WorldCoord coord;
     if (post > 20) {
-      double dist = a / pow(max(post, 1), b);
+      double dist = a / std::pow(post, b);
       coord = {std::cos(pos_from_center.theta) * dist + pos_from_center.x,
                std::sin(pos_from_center.theta) * dist + pos_from_center.y,
                pos_from_center.theta};
