@@ -1,30 +1,9 @@
 #include "TeensyIO.h"
 #include <Arduino.h>
 
-GridCoord TeensyIO::getGridCoord() {
-  int gx = std::floor(w.x / CELL_SIZE_METERS);
-  int gy = std::floor(w.y / CELL_SIZE_METERS);
-  unsigned char dir = getGridDir(w.theta);
-  // TODO: update gyro
-  return GridCoord{gx, gy, dir};
-}
-
 void TeensyIO::resetPIDs() {
   velocityPIDLeft.resetAccum();
   velocityPIDRight.resetAccum();
-}
-
-unsigned char TeensyIO::getGridDir(double angle) {
-  double deg = std::fmod(angle * 180.0 / M_PI, 360.0);
-  if (deg < 0)
-    deg += 360;
-  if (deg >= 315 || deg < 45)
-    return RIGHT;
-  if (deg < 135)
-    return TOP;
-  if (deg < 225)
-    return LEFT;
-  return DOWN;
 }
 
 void TeensyIO::updateWorldCoord() {
@@ -99,7 +78,7 @@ void TeensyIO::updateSensorState() {
     delayMicroseconds(EMIT_RECV_DELAY_US);
     int post = analogRead(sensor.RECV);
     digitalWrite(sensor.EMIT, LOW);
-    // relative to mouse in m
+    
     readings[i] = sensor.getReading(post);
     readingsAverage[i] = sensor.getAverage();
     Serial.print(i);
@@ -117,114 +96,16 @@ void TeensyIO::updateSensorState() {
   filteredRotationRate += rotAlpha * (rawRotationRate - filteredRotationRate);
 }
 
-void TeensyIO::updateMazeState(MouseState &mouseState) {
-  GridCoord gc = getGridCoord();
-  mouseState.explored[gc.y][gc.x] = true;
-  if (std::abs(std::remainder(w.theta, M_PI / 2.0)) > 0.2)
-    return;
-  if (std::abs(getRotationRate()) > 0.15) {
-    return;
-  }
-  if (!mazeUpdate)
-    return;
-
-  if (gc.x < 0 || gc.x >= N || gc.y < 0 || gc.y >= N)
-    return;
-
-  WorldCoord rel = w.gridRelativeCoords(gc);
-
-  unsigned char fwdDir, lftDir, rgtDir;
-  double fwdPos;
-  switch (gc.dir) {
-  case TOP:
-    fwdDir = TOP;
-    lftDir = LEFT;
-    rgtDir = RIGHT;
-    fwdPos = rel.y;
-    break;
-  case DOWN:
-    fwdDir = DOWN;
-    lftDir = RIGHT;
-    rgtDir = LEFT;
-    fwdPos = CELL_SIZE_METERS - rel.y;
-    break;
-  case RIGHT:
-    fwdDir = RIGHT;
-    lftDir = TOP;
-    rgtDir = DOWN;
-    fwdPos = rel.x;
-    break;
-  case LEFT:
-    fwdDir = LEFT;
-    lftDir = DOWN;
-    rgtDir = TOP;
-    fwdPos = CELL_SIZE_METERS - rel.x;
-    break;
-  default:
-    return;
-  }
-
-  double cosT = std::cos(w.theta);
-  double sinT = std::sin(w.theta);
-
-  auto addWall = [&](unsigned char wall) {
-    mouseState.walls[gc.y][gc.x] |= wall;
-    GridCoord adj = dirToVector(wall);
-    int nx = gc.x + adj.x;
-    int ny = gc.y + adj.y;
-    if (nx < 0 || nx >= N || ny < 0 || ny >= N)
-      return;
-
-    unsigned char opp;
-    switch (wall) {
-    case TOP:
-      opp = DOWN;
-      break;
-    case DOWN:
-      opp = TOP;
-      break;
-    case LEFT:
-      opp = RIGHT;
-      break;
-    case RIGHT:
-      opp = LEFT;
-      break;
-    default:
-      return;
-    }
-    mouseState.walls[ny][nx] |= opp;
-  };
-
-  if (gc.dir == TOP && rel.y > 0.1)
-    return;
-  if (gc.dir == DOWN && rel.y < 0.1)
-    return;
-  if (gc.dir == LEFT && rel.x < 0.1)
-    return;
-  if (gc.dir == RIGHT && rel.x > 0.1)
-    return;
-  if (readings[0].y < 0.075) {
-    addWall(fwdDir);
-  }
-  if (-readings[2].x < 0.12) {
-    addWall(lftDir);
-  }
-  if (readings[3].x < 0.11) {
-    addWall(rgtDir);
-  }
-}
-
-void TeensyIO::update(MouseState &mouseState) {
+void TeensyIO::update() {
   updateDt();
   updateSensorState();
   updateEncoders();
   updateWorldCoord();
-  Serial.printf("COORD: %d, %d  WORLD: %0.2f, %0.2f    WALLS: %d   REL: "
-                "%0.2f, %0.2f\n",
-                getGridCoord().x, getGridCoord().y, w.x, w.y,
-                mouseState.walls[getGridCoord().y][getGridCoord().x],
-                w.gridRelativeCoords(getGridCoord()).x,
-                w.gridRelativeCoords(getGridCoord()).y);
+  Serial.printf("WORLD: %0.2f, %0.2f  THETA: %0.2f\n", w.x, w.y, w.theta);
+}
+
+bool TeensyIO::buttonPressed() {
+  return !digitalRead(B_FRONT) || !digitalRead(B_BACK);
 }
 
 void TeensyIO::init() {

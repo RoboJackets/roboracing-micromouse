@@ -1,12 +1,11 @@
 #pragma once
-#include "Mouse.h"
 #include "MouseIO.h"
-#include "Types.h"
-struct Action
-{
+#include "maze/MazeMap.h"
+
+struct Action {
   virtual ~Action() = default;
-  virtual void run(MouseState &state, MouseIO &io) {};
+  virtual void run(MazeMap &map, MouseIO &io) {};
   virtual void cancel() {};
   virtual bool completed() const { return true; };
-  virtual void end(MouseState &s, MouseIO &io) {};
+  virtual void end(MazeMap &map, MouseIO &io) {};
 };

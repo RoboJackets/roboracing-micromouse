@@ -9,13 +9,11 @@
 #include "EncoderSensor.h"
 #include "Gyro.h"
 #include "IRSensor.h"
-#include "Mouse.h"
 #include "MouseIO.h"
 #include "Pins.h"
 #include "Types.h"
 
 struct TeensyIO : MouseIO {
-  unsigned char dir = TOP;
   uint32_t lastMicros = 0;
   double cachedDt = 0;
   WorldCoord w = WorldCoord{};
@@ -24,7 +22,6 @@ struct TeensyIO : MouseIO {
   double leftPosition = 0;
   double rightPosition = 0;
   double gyroYaw = 0;
-  bool mazeUpdate = false;
   // FL, FR, DL, DR
   std::vector<IRSensor> sensors{
       IRSensor{{-0.0473, 0.013, M_PI / 2}, EMIT_1, RECV_1, 0.968202, 0.500721},
@@ -52,10 +49,6 @@ struct TeensyIO : MouseIO {
   DRV8833Motor mLeft = DRV8833Motor(AIN1, AIN2, 1, STBY);
   DRV8833Motor mRight = DRV8833Motor(BIN1, BIN2, 1, STBY);
 
-  GridCoord getGridCoord() override;
-  unsigned char getGridDir(double angle);
-  unsigned char getGridDir() override { return dir; }
-
   void resetPIDs() override;
 
   WorldCoord getWorldCoord() override { return w; }
@@ -81,13 +74,12 @@ struct TeensyIO : MouseIO {
     return readingsAverage;
   }
 
+  bool buttonPressed() override;
+
   void updateDt();
   double getDt() override { return cachedDt; }
 
-  void allowUpdates(bool x) override { mazeUpdate = x; }
-
   void updateSensorState();
-  void updateMazeState(MouseState &mouseState) override;
-  void update(MouseState &mouseState) override;
+  void update() override;
   void init() override;
 };

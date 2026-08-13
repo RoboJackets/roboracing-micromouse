@@ -7,19 +7,16 @@ void CommandAction::load(std::vector<unsigned char> b) {
   curr.reset();
 }
 
-void CommandAction::run(MouseState &s, MouseIO &io) {
+void CommandAction::run(MazeMap &map, MouseIO &io) {
   if (completed())
     return;
   if (!curr) {
-    curr = determineAction(s, io);
+    curr = determineAction(io);
   }
-  curr->run(s, io);
+  curr->run(map, io);
   if (curr->completed()) {
-    io.updateMazeState(s);
-    curr->end(s, io);
-    s.x = io.getGridCoord().x;
-    s.y = io.getGridCoord().y;
-    s.dir = io.getGridCoord().dir;
+    map.observe(io.getWorldCoord(), io.getRotationRate(), io.getSensorState());
+    curr->end(map, io);
     curr.reset();
   }
 }
@@ -40,13 +37,12 @@ int CommandAction::turnAmount(unsigned char arg) {
 }
 
 std::unique_ptr<Action> CommandAction::makeFwdAction(unsigned char arg,
-                                                     MouseIO &io, MouseState &s,
+                                                     MouseIO &io,
                                                      const SpeedProfile &sp) {
-  GridCoord v = angleToVector(goalAngle);
-  goal.x += v.x * arg;
-  goal.y += v.y * arg;
+  const Cell v = octantOffset(goalAngle);
+  const WorldCoord pose = io.getWorldCoord();
+  const WorldCoord rel = cellRelative(pose, cellOf(pose));
 
-  WorldCoord rel = io.getWorldCoord().gridRelativeCoords(io.getGridCoord());
   double halfCell = CELL_SIZE_METERS / 2.0;
   double dx = v.x != 0
                   ? (v.x * arg * CELL_SIZE_METERS + halfCell - rel.x - v.x * 0.01)
@@ -64,7 +60,6 @@ std::unique_ptr<Action> CommandAction::makeFwdAction(unsigned char arg,
 
 std::unique_ptr<Action> CommandAction::makeCurveAction(unsigned char arg,
                                                        MouseIO &io,
-                                                       MouseState &s,
                                                        const SpeedProfile &sp) {
   goalAngle += turnAmount(arg);
   double targetTheta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
@@ -74,9 +69,6 @@ std::unique_ptr<Action> CommandAction::makeCurveAction(unsigned char arg,
 
   goalAngle = (goalAngle + 8) % 8;
 
-  GridCoord v = angleToVector(goalAngle);
-  goal.x += v.x;
-  goal.y += v.y;
   double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
   return std::make_unique<SequentialAction>(SequentialAction::make(
       ProfiledCurveAction(sp.curveRadius, turnAngle, sp.curveFinalVelocity,
@@ -85,8 +77,7 @@ std::unique_ptr<Action> CommandAction::makeCurveAction(unsigned char arg,
                           sp.driveFinalVelocity, sp.maxSpeed}));
 }
 
-std::unique_ptr<Action> CommandAction::determineAction(MouseState &s,
-                                                       MouseIO &io) {
+std::unique_ptr<Action> CommandAction::determineAction(MouseIO &io) {
   unsigned char c = buf[pc++];
 
   unsigned char cls = c & 0b11100000;
@@ -111,17 +102,17 @@ std::unique_ptr<Action> CommandAction::determineAction(MouseState &s,
   }
   // Explore (slow) variants
   if (cls == EX_FWD0) {
-    return makeFwdAction(arg, io, s, EXPLORE_SPEED);
+    return makeFwdAction(arg, io, EXPLORE_SPEED);
   }
   if (cls == EX_ST0) {
-    return makeCurveAction(arg, io, s, EXPLORE_SPEED);
+    return makeCurveAction(arg, io, EXPLORE_SPEED);
   }
   // Fast variants
   if (cls == FWD0) {
-    return makeFwdAction(arg, io, s, FAST_SPEED);
+    return makeFwdAction(arg, io, FAST_SPEED);
   }
   if (cls == ST0) {
-    return makeCurveAction(arg, io, s, FAST_SPEED);
+    return makeCurveAction(arg, io, FAST_SPEED);
   }
   return std::make_unique<EmptyAction>();
 }

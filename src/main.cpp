@@ -1,15 +1,11 @@
 #include <Arduino.h>
 
-#include "MouseIO.h"
 #include "StateMachine.h"
 #include "TeensyIO.h"
 
-MouseIO *io = nullptr;
-TeensyIO teensyIO = TeensyIO{};
+TeensyIO teensyIO{};
+StateMachine mouse{};
 
-void setup() {
-  io = &teensyIO;
-  StateMachine::init(io);
-}
+void setup() { mouse.init(teensyIO); }
 
-void loop() { StateMachine::tick(io); }
+void loop() { mouse.tick(teensyIO); }

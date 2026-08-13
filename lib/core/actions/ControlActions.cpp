@@ -3,7 +3,7 @@
 DriveTimeAction::DriveTimeAction(double time, double speed)
     : finalTime(time), speed(speed) {}
 
-void DriveTimeAction::run(MouseState &s, MouseIO &io) {
+void DriveTimeAction::run(MazeMap &map, MouseIO &io) {
   totalTime += io.getDt();
   if (totalTime > finalTime) {
     canceled = true;
@@ -12,13 +12,13 @@ void DriveTimeAction::run(MouseState &s, MouseIO &io) {
   io.driveVoltage(1, 1);
 }
 
-void DriveTimeAction::end(MouseState &s, MouseIO &io) {
+void DriveTimeAction::end(MazeMap &map, MouseIO &io) {
   io.driveVoltage(0.0, 0.0);
 }
 
 YawPIDAction::YawPIDAction(double setpoint) : setpoint(setpoint) {}
 
-void YawPIDAction::run(MouseState &s, MouseIO &io) {
+void YawPIDAction::run(MazeMap &map, MouseIO &io) {
   double measure_r = io.getWorldCoord().theta;
   double error_raw = setpoint - measure_r;
   error = std::atan2(std::sin(error_raw), std::cos(error_raw));
@@ -36,7 +36,7 @@ void YawPIDAction::run(MouseState &s, MouseIO &io) {
   io.driveVelocity(-c, c);
 }
 
-void YawPIDAction::end(MouseState &s, MouseIO &io) {
+void YawPIDAction::end(MazeMap &map, MouseIO &io) {
   io.driveVoltage(0.0, 0.0);
   io.resetPIDs();
   p.resetAccum();
@@ -45,7 +45,7 @@ void YawPIDAction::end(MouseState &s, MouseIO &io) {
 SysIDRampAction::SysIDRampAction(double rampRate, double maxTime)
     : rampRate(rampRate), maxTime(maxTime) {}
 
-void SysIDRampAction::run(MouseState &s, MouseIO &io) {
+void SysIDRampAction::run(MazeMap &map, MouseIO &io) {
   totalTime += io.getDt();
   if (totalTime > maxTime) {
     canceled = true;
@@ -58,14 +58,14 @@ void SysIDRampAction::run(MouseState &s, MouseIO &io) {
   (void)speed;
 }
 
-void SysIDRampAction::end(MouseState &s, MouseIO &io) {
+void SysIDRampAction::end(MazeMap &map, MouseIO &io) {
   io.driveVoltage(0.0, 0.0);
 }
 
 RampVelocityAction::RampVelocityAction(double rampRate, double maxTime)
     : rampRate(rampRate), maxTime(maxTime) {}
 
-void RampVelocityAction::run(MouseState &s, MouseIO &io) {
+void RampVelocityAction::run(MazeMap &map, MouseIO &io) {
   totalTime += io.getDt();
   if (totalTime > maxTime) {
     canceled = true;
@@ -75,7 +75,7 @@ void RampVelocityAction::run(MouseState &s, MouseIO &io) {
   io.driveVelocity(velocity, velocity);
 }
 
-void RampVelocityAction::end(MouseState &s, MouseIO &io) {
+void RampVelocityAction::end(MazeMap &map, MouseIO &io) {
   io.driveVoltage(0.0, 0.0);
 }
 
@@ -85,7 +85,7 @@ ProfiledDriveAction::ProfiledDriveAction(double setpoint, double angle,
                profilePIDConstants, setpoint}),
       setpoint(setpoint), error(setpoint), angle(angle) {}
 
-void ProfiledDriveAction::run(MouseState &s, MouseIO &io) {
+void ProfiledDriveAction::run(MazeMap &map, MouseIO &io) {
   if (io.getAverageSensorState()[0].hypot() < 0.08) {
     profile.finalVelocity = 0;
     canceled = true;
@@ -132,7 +132,7 @@ void ProfiledDriveAction::run(MouseState &s, MouseIO &io) {
   io.driveVelocity(v - c, v + c);
 }
 
-void ProfiledDriveAction::end(MouseState &s, MouseIO &io) {
+void ProfiledDriveAction::end(MazeMap &map, MouseIO &io) {
   if (profile.finalVelocity == 0) {
     io.driveVoltage(0, 0);
   } else {
@@ -145,7 +145,7 @@ ProfiledRotationAction::ProfiledRotationAction(double angle)
                profilePIDConstants, angle}),
       setpoint(angle), error(angle) {}
 
-void ProfiledRotationAction::run(MouseState &s, MouseIO &io) {
+void ProfiledRotationAction::run(MazeMap &map, MouseIO &io) {
   double avgSpeed =
       0.5 * (std::abs(io.getDriveSpeedLeft()) + std::abs(io.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
@@ -171,7 +171,7 @@ void ProfiledRotationAction::run(MouseState &s, MouseIO &io) {
   io.driveVelocity(-wheelSpeed, wheelSpeed);
 }
 
-void ProfiledRotationAction::end(MouseState &s, MouseIO &io) {
+void ProfiledRotationAction::end(MazeMap &map, MouseIO &io) {
   io.driveVoltage(0, 0);
 }
 
@@ -184,7 +184,7 @@ ProfiledCurveAction::ProfiledCurveAction(double radius, double angle,
       outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius), radius(radius),
       setpoint(radius * angle), error(setpoint) {}
 
-void ProfiledCurveAction::run(MouseState &s, MouseIO &io) {
+void ProfiledCurveAction::run(MazeMap &map, MouseIO &io) {
   double avgSpeed =
       0.5 * (std::abs(io.getDriveSpeedLeft()) + std::abs(io.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
@@ -223,7 +223,7 @@ void ProfiledCurveAction::run(MouseState &s, MouseIO &io) {
   }
 }
 
-void ProfiledCurveAction::end(MouseState &s, MouseIO &io) {
+void ProfiledCurveAction::end(MazeMap &map, MouseIO &io) {
   if (profile.finalVelocity == 0) {
     io.driveVoltage(0, 0);
   } else {

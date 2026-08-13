@@ -21,21 +21,21 @@ struct SequentialAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
 
-  void run(MouseState &s, MouseIO &io) override {
+  void run(MazeMap &map, MouseIO &io) override {
     if (index >= actions.size()) {
       canceled = true;
       return;
     }
 
     if (actions[index]->completed()) {
-      actions[index]->end(s, io);
+      actions[index]->end(map, io);
       index++;
       return;
     }
 
-    actions[index]->run(s, io);
+    actions[index]->run(map, io);
   }
-  void end(MouseState &s, MouseIO &io) override {
+  void end(MazeMap &map, MouseIO &io) override {
     index = 0;
     canceled = false;
   }
