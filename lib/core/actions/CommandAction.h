@@ -33,17 +33,17 @@ struct CommandAction : Action {
     return canceled || (pc >= buf.size() && !curr);
   }
 
-  void run(MazeMap &map, MouseIO &io) override;
+  void run(MazeMap &map, Robot &r) override;
 
   // arg encodes direction and magnitude in lower 5 bits
   // bit 4 = right(1)/left(0), bits 0-2 = 45*n degrees
   static int turnAmount(unsigned char arg);
 
-  std::unique_ptr<Action> makeFwdAction(unsigned char arg, MouseIO &io,
+  std::unique_ptr<Action> makeFwdAction(unsigned char arg, Robot &r,
                                         const SpeedProfile &sp);
 
-  std::unique_ptr<Action> makeCurveAction(unsigned char arg, MouseIO &io,
+  std::unique_ptr<Action> makeCurveAction(unsigned char arg, Robot &r,
                                           const SpeedProfile &sp);
 
-  std::unique_ptr<Action> determineAction(MouseIO &io);
+  std::unique_ptr<Action> determineAction(Robot &r);
 };

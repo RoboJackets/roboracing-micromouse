@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "Tuning.h"
+
 bool MazeMap::hasWall(Cell c, Dir d) const {
   return walls[c.y][c.x] & wallBit(d);
 }
@@ -46,9 +48,9 @@ void MazeMap::observe(const WorldCoord &pose, double rotationRate,
     return;
   markKnown(at);
 
-  if (std::abs(std::remainder(pose.theta, M_PI / 2.0)) > 0.2)
+  if (std::abs(std::remainder(pose.theta, M_PI / 2.0)) > OBSERVE_MAX_HEADING_ERROR)
     return;
-  if (std::abs(rotationRate) > 0.15)
+  if (std::abs(rotationRate) > OBSERVE_MAX_ROTATION_RATE)
     return;
 
   const Dir facing = dirOf(pose.theta);
@@ -56,27 +58,27 @@ void MazeMap::observe(const WorldCoord &pose, double rotationRate,
 
   switch (facing) {
   case Dir::North:
-    if (rel.y > 0.1)
+    if (rel.y > OBSERVE_ENTRY_MARGIN)
       return;
     break;
   case Dir::South:
-    if (rel.y < 0.1)
+    if (rel.y < OBSERVE_ENTRY_MARGIN)
       return;
     break;
   case Dir::West:
-    if (rel.x < 0.1)
+    if (rel.x < OBSERVE_ENTRY_MARGIN)
       return;
     break;
   case Dir::East:
-    if (rel.x > 0.1)
+    if (rel.x > OBSERVE_ENTRY_MARGIN)
       return;
     break;
   }
 
-  if (readings[0].y < 0.075)
+  if (readings[0].y < WALL_THRESHOLD_FRONT)
     addWall(at, facing);
-  if (-readings[2].x < 0.12)
+  if (-readings[2].x < WALL_THRESHOLD_LEFT)
     addWall(at, turnLeft(facing));
-  if (readings[3].x < 0.11)
+  if (readings[3].x < WALL_THRESHOLD_RIGHT)
     addWall(at, turnRight(facing));
 }

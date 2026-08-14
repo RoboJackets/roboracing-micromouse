@@ -1,6 +1,6 @@
 #include "StateMachine.h"
 
-void StateMachine::init(MouseIO &io) {
+void StateMachine::init(Robot &r) {
   map.markKnown(Cell{0, 0});
   for (int i = 0; i < CENTER_GOALS.count; ++i)
     map.markKnown(CENTER_GOALS.cells[i]);
@@ -9,10 +9,10 @@ void StateMachine::init(MouseIO &io) {
   fast = false;
   goal = &CENTER_GOALS;
   currentState = GoalState::GOAL_SEARCH;
-  io.init();
+  r.init();
 }
 
-void StateMachine::switchState(GoalState state, MouseIO &io) {
+void StateMachine::switchState(GoalState state, Robot &r) {
   if (currentState == state) {
     return;
   }
@@ -36,7 +36,7 @@ void StateMachine::switchState(GoalState state, MouseIO &io) {
     cmd.goalAngle = 0;
     startup = makeStartup();
     a = &startup;
-    io.driveVoltage(0, 0);
+    r.driveVoltage(0, 0);
     break;
   case GoalState::NONE:
     a = &empty;
@@ -45,41 +45,41 @@ void StateMachine::switchState(GoalState state, MouseIO &io) {
   currentState = state;
 }
 
-void StateMachine::updateState(Cell at, MouseIO &io) {
+void StateMachine::updateState(Cell at, Robot &r) {
   switch (currentState) {
   case GoalState::GOAL_SEARCH:
     if (atGoal(at, *goal))
-      switchState(GoalState::RETURN, io);
+      switchState(GoalState::RETURN, r);
     break;
   case GoalState::RETURN:
     if (atGoal(at, *goal))
-      switchState(GoalState::FAST_PATH, io);
+      switchState(GoalState::FAST_PATH, r);
     break;
   case GoalState::FAST_PATH:
     if (atGoal(at, *goal))
-      switchState(GoalState::RETURN, io);
+      switchState(GoalState::RETURN, r);
     break;
   case GoalState::NONE:
     break;
   }
 }
 
-void StateMachine::tick(MouseIO &io) {
-  io.update();
+void StateMachine::tick(Robot &r) {
+  r.update();
 
-  const WorldCoord pose = io.getWorldCoord();
+  const WorldCoord pose = r.getWorldCoord();
   const Cell at = cellOf(pose);
   const Dir facing = dirOf(pose.theta);
 
-  updateState(at, io);
+  updateState(at, r);
 
   if (a->completed()) {
-    a->end(map, io);
+    a->end(map, r);
     if (enableUpdatesAfterStartup) {
       map.allowUpdates(true);
     }
     cmd.load({exploreStep(map, at, facing, *goal, fast)});
     a = &cmd;
   }
-  a->run(map, io);
+  a->run(map, r);
 }

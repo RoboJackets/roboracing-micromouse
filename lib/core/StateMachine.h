@@ -23,8 +23,8 @@ struct StateMachine {
     return SequentialAction::make(DelayAction(3), StartupAction{});
   }
 
-  void init(MouseIO &io);
-  void tick(MouseIO &io);
-  void switchState(GoalState state, MouseIO &io);
-  void updateState(Cell at, MouseIO &io);
+  void init(Robot &r);
+  void tick(Robot &r);
+  void switchState(GoalState state, Robot &r);
+  void updateState(Cell at, Robot &r);
 };

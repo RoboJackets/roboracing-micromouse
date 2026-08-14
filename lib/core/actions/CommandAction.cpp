@@ -7,16 +7,16 @@ void CommandAction::load(std::vector<unsigned char> b) {
   curr.reset();
 }
 
-void CommandAction::run(MazeMap &map, MouseIO &io) {
+void CommandAction::run(MazeMap &map, Robot &r) {
   if (completed())
     return;
   if (!curr) {
-    curr = determineAction(io);
+    curr = determineAction(r);
   }
-  curr->run(map, io);
+  curr->run(map, r);
   if (curr->completed()) {
-    map.observe(io.getWorldCoord(), io.getRotationRate(), io.getSensorState());
-    curr->end(map, io);
+    map.observe(r.getWorldCoord(), r.getRotationRate(), r.getSensorState());
+    curr->end(map, r);
     curr.reset();
   }
 }
@@ -37,10 +37,10 @@ int CommandAction::turnAmount(unsigned char arg) {
 }
 
 std::unique_ptr<Action> CommandAction::makeFwdAction(unsigned char arg,
-                                                     MouseIO &io,
+                                                     Robot &r,
                                                      const SpeedProfile &sp) {
   const Cell v = octantOffset(goalAngle);
-  const WorldCoord pose = io.getWorldCoord();
+  const WorldCoord pose = r.getWorldCoord();
   const WorldCoord rel = cellRelative(pose, cellOf(pose));
 
   double halfCell = CELL_SIZE_METERS / 2.0;
@@ -59,11 +59,11 @@ std::unique_ptr<Action> CommandAction::makeFwdAction(unsigned char arg,
 }
 
 std::unique_ptr<Action> CommandAction::makeCurveAction(unsigned char arg,
-                                                       MouseIO &io,
+                                                       Robot &r,
                                                        const SpeedProfile &sp) {
   goalAngle += turnAmount(arg);
   double targetTheta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
-  double currentTheta = io.getWorldCoord().theta;
+  double currentTheta = r.getWorldCoord().theta;
   double turnAngle = std::atan2(std::sin(targetTheta - currentTheta),
                                 std::cos(targetTheta - currentTheta));
 
@@ -77,22 +77,22 @@ std::unique_ptr<Action> CommandAction::makeCurveAction(unsigned char arg,
                           sp.driveFinalVelocity, sp.maxSpeed}));
 }
 
-std::unique_ptr<Action> CommandAction::determineAction(MouseIO &io) {
+std::unique_ptr<Action> CommandAction::determineAction(Robot &r) {
   unsigned char c = buf[pc++];
 
   unsigned char cls = c & 0b11100000;
   unsigned char arg = c & 0b00011111;
   if (c == STOP) {
-    io.driveVoltage(0, 0);
+    r.driveVoltage(0, 0);
     canceled = true;
     return std::make_unique<EmptyAction>();
   }
   if (c == IPT180) {
     goalAngle += 4;
     goalAngle = (goalAngle + 8) % 8;
-    io.driveVoltage(0, 0);
+    r.driveVoltage(0, 0);
     double theta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
-    double currentTheta = io.getWorldCoord().theta;
+    double currentTheta = r.getWorldCoord().theta;
     double turnAngle = std::atan2(std::sin(theta - currentTheta),
                                   std::cos(theta - currentTheta));
     return std::make_unique<SequentialAction>(SequentialAction::make(
@@ -102,17 +102,17 @@ std::unique_ptr<Action> CommandAction::determineAction(MouseIO &io) {
   }
   // Explore (slow) variants
   if (cls == EX_FWD0) {
-    return makeFwdAction(arg, io, EXPLORE_SPEED);
+    return makeFwdAction(arg, r, EXPLORE_SPEED);
   }
   if (cls == EX_ST0) {
-    return makeCurveAction(arg, io, EXPLORE_SPEED);
+    return makeCurveAction(arg, r, EXPLORE_SPEED);
   }
   // Fast variants
   if (cls == FWD0) {
-    return makeFwdAction(arg, io, FAST_SPEED);
+    return makeFwdAction(arg, r, FAST_SPEED);
   }
   if (cls == ST0) {
-    return makeCurveAction(arg, io, FAST_SPEED);
+    return makeCurveAction(arg, r, FAST_SPEED);
   }
   return std::make_unique<EmptyAction>();
 }

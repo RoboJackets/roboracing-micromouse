@@ -3,80 +3,80 @@
 DriveTimeAction::DriveTimeAction(double time, double speed)
     : finalTime(time), speed(speed) {}
 
-void DriveTimeAction::run(MazeMap &map, MouseIO &io) {
-  totalTime += io.getDt();
+void DriveTimeAction::run(MazeMap &map, Robot &r) {
+  totalTime += r.getDt();
   if (totalTime > finalTime) {
     canceled = true;
     return;
   }
-  io.driveVoltage(1, 1);
+  r.driveVoltage(1, 1);
 }
 
-void DriveTimeAction::end(MazeMap &map, MouseIO &io) {
-  io.driveVoltage(0.0, 0.0);
+void DriveTimeAction::end(MazeMap &map, Robot &r) {
+  r.driveVoltage(0.0, 0.0);
 }
 
 YawPIDAction::YawPIDAction(double setpoint) : setpoint(setpoint) {}
 
-void YawPIDAction::run(MazeMap &map, MouseIO &io) {
-  double measure_r = io.getWorldCoord().theta;
+void YawPIDAction::run(MazeMap &map, Robot &r) {
+  double measure_r = r.getWorldCoord().theta;
   double error_raw = setpoint - measure_r;
   error = std::atan2(std::sin(error_raw), std::cos(error_raw));
 
   double avgSpeed =
-      0.5 * (std::abs(io.getDriveSpeedLeft()) + std::abs(io.getDriveSpeedRight()));
+      0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
   if (std::abs(error) < 4 * M_PI / 180 && avgSpeed < 0.06) {
     canceled = true;
-    io.driveVoltage(0.0, 0.0);
+    r.driveVoltage(0.0, 0.0);
     p.resetAccum();
     return;
   }
 
-  double c = p.calculate(-error, 0, io.getDt());
-  io.driveVelocity(-c, c);
+  double c = p.calculate(-error, 0, r.getDt());
+  r.driveVelocity(-c, c);
 }
 
-void YawPIDAction::end(MazeMap &map, MouseIO &io) {
-  io.driveVoltage(0.0, 0.0);
-  io.resetPIDs();
+void YawPIDAction::end(MazeMap &map, Robot &r) {
+  r.driveVoltage(0.0, 0.0);
+  r.resetPIDs();
   p.resetAccum();
 }
 
 SysIDRampAction::SysIDRampAction(double rampRate, double maxTime)
     : rampRate(rampRate), maxTime(maxTime) {}
 
-void SysIDRampAction::run(MazeMap &map, MouseIO &io) {
-  totalTime += io.getDt();
+void SysIDRampAction::run(MazeMap &map, Robot &r) {
+  totalTime += r.getDt();
   if (totalTime > maxTime) {
     canceled = true;
     return;
   }
   double voltage = totalTime * rampRate;
-  io.driveVoltage(voltage, voltage);
+  r.driveVoltage(voltage, voltage);
 
-  double speed = (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
+  double speed = (r.getDriveSpeedLeft() + r.getDriveSpeedRight()) / 2.0;
   (void)speed;
 }
 
-void SysIDRampAction::end(MazeMap &map, MouseIO &io) {
-  io.driveVoltage(0.0, 0.0);
+void SysIDRampAction::end(MazeMap &map, Robot &r) {
+  r.driveVoltage(0.0, 0.0);
 }
 
 RampVelocityAction::RampVelocityAction(double rampRate, double maxTime)
     : rampRate(rampRate), maxTime(maxTime) {}
 
-void RampVelocityAction::run(MazeMap &map, MouseIO &io) {
-  totalTime += io.getDt();
+void RampVelocityAction::run(MazeMap &map, Robot &r) {
+  totalTime += r.getDt();
   if (totalTime > maxTime) {
     canceled = true;
     return;
   }
   double velocity = totalTime * rampRate;
-  io.driveVelocity(velocity, velocity);
+  r.driveVelocity(velocity, velocity);
 }
 
-void RampVelocityAction::end(MazeMap &map, MouseIO &io) {
-  io.driveVoltage(0.0, 0.0);
+void RampVelocityAction::end(MazeMap &map, Robot &r) {
+  r.driveVoltage(0.0, 0.0);
 }
 
 ProfiledDriveAction::ProfiledDriveAction(double setpoint, double angle,
@@ -85,13 +85,13 @@ ProfiledDriveAction::ProfiledDriveAction(double setpoint, double angle,
                profilePIDConstants, setpoint}),
       setpoint(setpoint), error(setpoint), angle(angle) {}
 
-void ProfiledDriveAction::run(MazeMap &map, MouseIO &io) {
-  if (io.getAverageSensorState()[0].hypot() < 0.08) {
+void ProfiledDriveAction::run(MazeMap &map, Robot &r) {
+  if (r.getAverageSensorState()[0].hypot() < 0.08) {
     profile.finalVelocity = 0;
     canceled = true;
   }
   double avgSpeed =
-      0.5 * (std::abs(io.getDriveSpeedLeft()) + std::abs(io.getDriveSpeedRight()));
+      0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
   if (std::abs(error) < POS_TOL && velOk) {
     canceled = true;
@@ -100,10 +100,10 @@ void ProfiledDriveAction::run(MazeMap &map, MouseIO &io) {
   if (canceled) {
     return;
   }
-  WorldCoord w = io.getWorldCoord();
+  WorldCoord w = r.getWorldCoord();
   if (!started) {
     prevCoord = w;
-    double vForward = (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
+    double vForward = (r.getDriveSpeedLeft() + r.getDriveSpeedRight()) / 2.0;
     profile.initalVelocity = vForward * std::cos(w.theta - angle);
     started = true;
   }
@@ -112,31 +112,31 @@ void ProfiledDriveAction::run(MazeMap &map, MouseIO &io) {
   measurement += dx * std::cos(angle) + dy * std::sin(angle);
   prevCoord = w;
   error = setpoint - measurement;
-  if ((io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2 > best) {
-    best = (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2;
+  if ((r.getDriveSpeedLeft() + r.getDriveSpeedRight()) / 2 > best) {
+    best = (r.getDriveSpeedLeft() + r.getDriveSpeedRight()) / 2;
   }
-  double v = profile.calculate(io.getDt(), measurement);
+  double v = profile.calculate(r.getDt(), measurement);
   double c = 0;
   double gyroError = angle - w.theta;
   gyroError = std::atan2(std::sin(gyroError), std::cos(gyroError));
-  if (std::abs(io.getSensorState().at(2).x) < 0.16 &&
-      io.getSensorState().at(3).x < 0.16) {
-    c = irPID.calculate(io.getSensorState().at(3).x,
-                        -io.getSensorState().at(2).x - 0.005, io.getDt());
-  } else if (std::abs(io.getSensorState().at(2).x) < 0.16) {
-    c = irPID.calculate(io.getSensorState().at(2).x, -0.08, io.getDt());
-  } else if (io.getSensorState().at(3).x < 0.16) {
-    c = irPID.calculate(io.getSensorState().at(3).x, 0.095, io.getDt());
+  if (std::abs(r.getSensorState().at(2).x) < 0.16 &&
+      r.getSensorState().at(3).x < 0.16) {
+    c = irPID.calculate(r.getSensorState().at(3).x,
+                        -r.getSensorState().at(2).x - 0.005, r.getDt());
+  } else if (std::abs(r.getSensorState().at(2).x) < 0.16) {
+    c = irPID.calculate(r.getSensorState().at(2).x, -0.08, r.getDt());
+  } else if (r.getSensorState().at(3).x < 0.16) {
+    c = irPID.calculate(r.getSensorState().at(3).x, 0.095, r.getDt());
   }
-  c += gyroPID.calculate(-gyroError, 0, io.getDt());
-  io.driveVelocity(v - c, v + c);
+  c += gyroPID.calculate(-gyroError, 0, r.getDt());
+  r.driveVelocity(v - c, v + c);
 }
 
-void ProfiledDriveAction::end(MazeMap &map, MouseIO &io) {
+void ProfiledDriveAction::end(MazeMap &map, Robot &r) {
   if (profile.finalVelocity == 0) {
-    io.driveVoltage(0, 0);
+    r.driveVoltage(0, 0);
   } else {
-    io.driveVelocity(profile.finalVelocity, profile.finalVelocity);
+    r.driveVelocity(profile.finalVelocity, profile.finalVelocity);
   }
 }
 
@@ -145,9 +145,9 @@ ProfiledRotationAction::ProfiledRotationAction(double angle)
                profilePIDConstants, angle}),
       setpoint(angle), error(angle) {}
 
-void ProfiledRotationAction::run(MazeMap &map, MouseIO &io) {
+void ProfiledRotationAction::run(MazeMap &map, Robot &r) {
   double avgSpeed =
-      0.5 * (std::abs(io.getDriveSpeedLeft()) + std::abs(io.getDriveSpeedRight()));
+      0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
   if (std::abs(error) < POS_TOL && velOk) {
     canceled = true;
@@ -156,7 +156,7 @@ void ProfiledRotationAction::run(MazeMap &map, MouseIO &io) {
   if (canceled) {
     return;
   }
-  WorldCoord w = io.getWorldCoord();
+  WorldCoord w = r.getWorldCoord();
   if (!started) {
     prevTheta = w.theta;
     started = true;
@@ -166,13 +166,13 @@ void ProfiledRotationAction::run(MazeMap &map, MouseIO &io) {
   measurement += dTheta;
   prevTheta = w.theta;
   error = setpoint - measurement;
-  double omega = profile.calculate(io.getDt(), measurement);
+  double omega = profile.calculate(r.getDt(), measurement);
   double wheelSpeed = omega * WHEEL_SEPERATION_M / 2;
-  io.driveVelocity(-wheelSpeed, wheelSpeed);
+  r.driveVelocity(-wheelSpeed, wheelSpeed);
 }
 
-void ProfiledRotationAction::end(MazeMap &map, MouseIO &io) {
-  io.driveVoltage(0, 0);
+void ProfiledRotationAction::end(MazeMap &map, Robot &r) {
+  r.driveVoltage(0, 0);
 }
 
 ProfiledCurveAction::ProfiledCurveAction(double radius, double angle,
@@ -184,9 +184,9 @@ ProfiledCurveAction::ProfiledCurveAction(double radius, double angle,
       outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius), radius(radius),
       setpoint(radius * angle), error(setpoint) {}
 
-void ProfiledCurveAction::run(MazeMap &map, MouseIO &io) {
+void ProfiledCurveAction::run(MazeMap &map, Robot &r) {
   double avgSpeed =
-      0.5 * (std::abs(io.getDriveSpeedLeft()) + std::abs(io.getDriveSpeedRight()));
+      0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
   if (std::abs(error) < POS_TOL && velOk) {
     canceled = true;
@@ -195,10 +195,10 @@ void ProfiledCurveAction::run(MazeMap &map, MouseIO &io) {
   if (canceled) {
     return;
   }
-  WorldCoord w = io.getWorldCoord();
+  WorldCoord w = r.getWorldCoord();
   if (!started) {
     prevTheta = w.theta;
-    double vForward = (io.getDriveSpeedLeft() + io.getDriveSpeedRight()) / 2.0;
+    double vForward = (r.getDriveSpeedLeft() + r.getDriveSpeedRight()) / 2.0;
     profile.initalVelocity = vForward;
     started = true;
   }
@@ -207,7 +207,7 @@ void ProfiledCurveAction::run(MazeMap &map, MouseIO &io) {
   measurement += dTheta * radius;
   prevTheta = w.theta;
   error = setpoint - measurement;
-  double v = profile.calculate(io.getDt(), std::abs(measurement));
+  double v = profile.calculate(r.getDt(), std::abs(measurement));
   double halfTrack = WHEEL_SEPERATION_M / 2.0;
   double outerRatio = (radius + halfTrack) / radius;
   double innerRatio = (radius - halfTrack) / radius;
@@ -217,17 +217,17 @@ void ProfiledCurveAction::run(MazeMap &map, MouseIO &io) {
   double vInner = v * innerRatio - c;
 
   if (setpoint > 0) {
-    io.driveVelocity(vInner, vOuter);
+    r.driveVelocity(vInner, vOuter);
   } else {
-    io.driveVelocity(vOuter, vInner);
+    r.driveVelocity(vOuter, vInner);
   }
 }
 
-void ProfiledCurveAction::end(MazeMap &map, MouseIO &io) {
+void ProfiledCurveAction::end(MazeMap &map, Robot &r) {
   if (profile.finalVelocity == 0) {
-    io.driveVoltage(0, 0);
+    r.driveVoltage(0, 0);
   } else {
-    io.driveVelocity(profile.finalVelocity, profile.finalVelocity);
+    r.driveVelocity(profile.finalVelocity, profile.finalVelocity);
   }
   irPID.resetAccum();
 }
