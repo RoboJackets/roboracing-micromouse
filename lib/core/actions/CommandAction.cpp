@@ -7,6 +7,17 @@ void CommandAction::load(std::vector<unsigned char> b) {
   curr.reset();
 }
 
+void CommandAction::cancel() {
+  canceled = true;
+  if (curr)
+    curr->cancel();
+}
+
+void CommandAction::end(Robot &r) {
+  if (curr)
+    curr->end(r);
+}
+
 void CommandAction::run(Robot &r) {
   if (completed())
     return;

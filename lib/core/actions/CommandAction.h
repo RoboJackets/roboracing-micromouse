@@ -30,8 +30,10 @@ struct CommandAction : Action {
   bool completed() const override {
     return canceled || (pc >= buf.size() && !curr);
   }
+  void cancel() override;
 
   void run(Robot &r) override;
+  void end(Robot &r) override;
 
   // arg encodes direction and magnitude in lower 5 bits
   // bit 4 = right(1)/left(0), bits 0-2 = 45*n degrees
