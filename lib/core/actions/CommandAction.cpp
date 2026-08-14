@@ -7,16 +7,16 @@ void CommandAction::load(std::vector<unsigned char> b) {
   curr.reset();
 }
 
-void CommandAction::run(MazeMap &map, Robot &r) {
+void CommandAction::run(Robot &r) {
   if (completed())
     return;
   if (!curr) {
     curr = determineAction(r);
   }
-  curr->run(map, r);
+  curr->run(r);
   if (curr->completed()) {
-    map.observe(r.getWorldCoord(), r.getRotationRate(), r.getSensorState());
-    curr->end(map, r);
+    r.observe();
+    curr->end(r);
     curr.reset();
   }
 }

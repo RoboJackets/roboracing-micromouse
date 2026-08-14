@@ -3,7 +3,7 @@
 DriveTimeAction::DriveTimeAction(double time, double speed)
     : finalTime(time), speed(speed) {}
 
-void DriveTimeAction::run(MazeMap &map, Robot &r) {
+void DriveTimeAction::run(Robot &r) {
   totalTime += r.getDt();
   if (totalTime > finalTime) {
     canceled = true;
@@ -12,13 +12,13 @@ void DriveTimeAction::run(MazeMap &map, Robot &r) {
   r.driveVoltage(1, 1);
 }
 
-void DriveTimeAction::end(MazeMap &map, Robot &r) {
+void DriveTimeAction::end(Robot &r) {
   r.driveVoltage(0.0, 0.0);
 }
 
 YawPIDAction::YawPIDAction(double setpoint) : setpoint(setpoint) {}
 
-void YawPIDAction::run(MazeMap &map, Robot &r) {
+void YawPIDAction::run(Robot &r) {
   double measure_r = r.getWorldCoord().theta;
   double error_raw = setpoint - measure_r;
   error = std::atan2(std::sin(error_raw), std::cos(error_raw));
@@ -36,7 +36,7 @@ void YawPIDAction::run(MazeMap &map, Robot &r) {
   r.driveVelocity(-c, c);
 }
 
-void YawPIDAction::end(MazeMap &map, Robot &r) {
+void YawPIDAction::end(Robot &r) {
   r.driveVoltage(0.0, 0.0);
   r.resetPIDs();
   p.resetAccum();
@@ -45,7 +45,7 @@ void YawPIDAction::end(MazeMap &map, Robot &r) {
 SysIDRampAction::SysIDRampAction(double rampRate, double maxTime)
     : rampRate(rampRate), maxTime(maxTime) {}
 
-void SysIDRampAction::run(MazeMap &map, Robot &r) {
+void SysIDRampAction::run(Robot &r) {
   totalTime += r.getDt();
   if (totalTime > maxTime) {
     canceled = true;
@@ -58,14 +58,14 @@ void SysIDRampAction::run(MazeMap &map, Robot &r) {
   (void)speed;
 }
 
-void SysIDRampAction::end(MazeMap &map, Robot &r) {
+void SysIDRampAction::end(Robot &r) {
   r.driveVoltage(0.0, 0.0);
 }
 
 RampVelocityAction::RampVelocityAction(double rampRate, double maxTime)
     : rampRate(rampRate), maxTime(maxTime) {}
 
-void RampVelocityAction::run(MazeMap &map, Robot &r) {
+void RampVelocityAction::run(Robot &r) {
   totalTime += r.getDt();
   if (totalTime > maxTime) {
     canceled = true;
@@ -75,7 +75,7 @@ void RampVelocityAction::run(MazeMap &map, Robot &r) {
   r.driveVelocity(velocity, velocity);
 }
 
-void RampVelocityAction::end(MazeMap &map, Robot &r) {
+void RampVelocityAction::end(Robot &r) {
   r.driveVoltage(0.0, 0.0);
 }
 
@@ -85,7 +85,7 @@ ProfiledDriveAction::ProfiledDriveAction(double setpoint, double angle,
                profilePIDConstants, setpoint}),
       setpoint(setpoint), error(setpoint), angle(angle) {}
 
-void ProfiledDriveAction::run(MazeMap &map, Robot &r) {
+void ProfiledDriveAction::run(Robot &r) {
   if (r.getAverageSensorState()[0].hypot() < 0.08) {
     profile.finalVelocity = 0;
     canceled = true;
@@ -132,7 +132,7 @@ void ProfiledDriveAction::run(MazeMap &map, Robot &r) {
   r.driveVelocity(v - c, v + c);
 }
 
-void ProfiledDriveAction::end(MazeMap &map, Robot &r) {
+void ProfiledDriveAction::end(Robot &r) {
   if (profile.finalVelocity == 0) {
     r.driveVoltage(0, 0);
   } else {
@@ -145,7 +145,7 @@ ProfiledRotationAction::ProfiledRotationAction(double angle)
                profilePIDConstants, angle}),
       setpoint(angle), error(angle) {}
 
-void ProfiledRotationAction::run(MazeMap &map, Robot &r) {
+void ProfiledRotationAction::run(Robot &r) {
   double avgSpeed =
       0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
@@ -171,7 +171,7 @@ void ProfiledRotationAction::run(MazeMap &map, Robot &r) {
   r.driveVelocity(-wheelSpeed, wheelSpeed);
 }
 
-void ProfiledRotationAction::end(MazeMap &map, Robot &r) {
+void ProfiledRotationAction::end(Robot &r) {
   r.driveVoltage(0, 0);
 }
 
@@ -184,7 +184,7 @@ ProfiledCurveAction::ProfiledCurveAction(double radius, double angle,
       outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius), radius(radius),
       setpoint(radius * angle), error(setpoint) {}
 
-void ProfiledCurveAction::run(MazeMap &map, Robot &r) {
+void ProfiledCurveAction::run(Robot &r) {
   double avgSpeed =
       0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
@@ -223,7 +223,7 @@ void ProfiledCurveAction::run(MazeMap &map, Robot &r) {
   }
 }
 
-void ProfiledCurveAction::end(MazeMap &map, Robot &r) {
+void ProfiledCurveAction::end(Robot &r) {
   if (profile.finalVelocity == 0) {
     r.driveVoltage(0, 0);
   } else {

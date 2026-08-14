@@ -1,10 +1,10 @@
 #include "StateMachine.h"
 
 void StateMachine::init(Robot &r) {
-  map.markKnown(Cell{0, 0});
+  r.map.markKnown(Cell{0, 0});
   for (int i = 0; i < CENTER_GOALS.count; ++i)
-    map.markKnown(CENTER_GOALS.cells[i]);
-  map.addBorderWalls();
+    r.map.markKnown(CENTER_GOALS.cells[i]);
+  r.map.addBorderWalls();
 
   fast = false;
   goal = &CENTER_GOALS;
@@ -19,7 +19,7 @@ void StateMachine::switchState(GoalState state, Robot &r) {
   if (a && !a->completed()) {
     a->cancel();
   }
-  map.allowUpdates(false);
+  r.map.allowUpdates(false);
   switch (state) {
   case GoalState::GOAL_SEARCH:
     fast = false;
@@ -74,12 +74,12 @@ void StateMachine::tick(Robot &r) {
   updateState(at, r);
 
   if (a->completed()) {
-    a->end(map, r);
+    a->end(r);
     if (enableUpdatesAfterStartup) {
-      map.allowUpdates(true);
+      r.map.allowUpdates(true);
     }
-    cmd.load({exploreStep(map, at, facing, *goal, fast)});
+    cmd.load({exploreStep(r.map, at, facing, *goal, fast)});
     a = &cmd;
   }
-  a->run(map, r);
+  a->run(r);
 }

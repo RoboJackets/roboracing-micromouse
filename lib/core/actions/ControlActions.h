@@ -15,8 +15,8 @@ struct DriveTimeAction : Action {
 
   DriveTimeAction(double time, double speed);
 
-  void run(MazeMap &map, Robot &r) override;
-  void end(MazeMap &map, Robot &r) override;
+  void run(Robot &r) override;
+  void end(Robot &r) override;
 };
 
 struct YawPIDAction : Action {
@@ -31,8 +31,8 @@ struct YawPIDAction : Action {
 
   YawPIDAction(double setpoint);
 
-  void run(MazeMap &map, Robot &r) override;
-  void end(MazeMap &map, Robot &r) override;
+  void run(Robot &r) override;
+  void end(Robot &r) override;
 };
 
 struct SysIDRampAction : Action {
@@ -46,8 +46,8 @@ struct SysIDRampAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
 
-  void run(MazeMap &map, Robot &r) override;
-  void end(MazeMap &map, Robot &r) override;
+  void run(Robot &r) override;
+  void end(Robot &r) override;
 };
 
 struct RampVelocityAction : Action {
@@ -61,8 +61,8 @@ struct RampVelocityAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
 
-  void run(MazeMap &map, Robot &r) override;
-  void end(MazeMap &map, Robot &r) override;
+  void run(Robot &r) override;
+  void end(Robot &r) override;
 };
 
 struct ProfiledDriveAction : Action {
@@ -85,8 +85,8 @@ struct ProfiledDriveAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
 
-  void run(MazeMap &map, Robot &r) override;
-  void end(MazeMap &map, Robot &r) override;
+  void run(Robot &r) override;
+  void end(Robot &r) override;
 };
 
 struct ProfiledRotationAction : Action {
@@ -106,8 +106,8 @@ struct ProfiledRotationAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
 
-  void run(MazeMap &map, Robot &r) override;
-  void end(MazeMap &map, Robot &r) override;
+  void run(Robot &r) override;
+  void end(Robot &r) override;
 };
 
 struct ProfiledCurveAction : Action {
@@ -132,6 +132,6 @@ struct ProfiledCurveAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
 
-  void run(MazeMap &map, Robot &r) override;
-  void end(MazeMap &map, Robot &r) override;
+  void run(Robot &r) override;
+  void end(Robot &r) override;
 };

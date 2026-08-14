@@ -6,12 +6,14 @@
 #include "MouseIO.h"
 #include "Odometry.h"
 #include "Types.h"
+#include "maze/MazeMap.h"
 
 struct Robot {
   MouseIO &io;
   Odometry odom{};
   Drivetrain drive{};
   DistanceSensors sensors{};
+  MazeMap map{};
 
   double lastNow = 0;
   double cachedDt = 0;
@@ -37,6 +39,10 @@ struct Robot {
   }
 
   bool buttonPressed() { return io.buttonPressed(); }
+
+  void observe() {
+    map.observe(odom.pose(), odom.rotationRate(), sensors.state());
+  }
 
   void driveVoltage(double left, double right) {
     drive.setVoltage(io, left, right);

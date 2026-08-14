@@ -7,8 +7,8 @@ struct StartupAction : Action {
   void cancel() override { canceled = true; }
   bool completed() const override { return canceled; }
 
-  void run(MazeMap &map, Robot &r) override;
-  void end(MazeMap &map, Robot &r) override;
+  void run(Robot &r) override;
+  void end(Robot &r) override;
 };
 
 struct DelayAction : Action {
@@ -21,6 +21,6 @@ struct DelayAction : Action {
 
   DelayAction(double runTime);
 
-  void run(MazeMap &map, Robot &r) override;
-  void end(MazeMap &map, Robot &r) override;
+  void run(Robot &r) override;
+  void end(Robot &r) override;
 };

@@ -9,7 +9,6 @@ enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
 
 struct StateMachine {
   GoalState currentState = GoalState::GOAL_SEARCH;
-  MazeMap map{};
   const Goals *goal = &CENTER_GOALS;
   bool fast = false;
   bool enableUpdatesAfterStartup = true;
