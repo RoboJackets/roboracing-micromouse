@@ -14,7 +14,7 @@ struct Gyro {
   Quaternion q;
   VectorFloat gravity;
 
-  void initalizeGyro();
+  void initializeGyro();
 
   // returns true when new ypr was computed
   bool update();

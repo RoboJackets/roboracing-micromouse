@@ -9,7 +9,7 @@ void DriveTimeAction::run(Robot &r) {
     canceled = true;
     return;
   }
-  r.driveVoltage(1, 1);
+  r.driveVoltage(speed, speed);
 }
 
 void DriveTimeAction::end(Robot &r) {
@@ -42,43 +42,6 @@ void YawPIDAction::end(Robot &r) {
   p.resetAccum();
 }
 
-SysIDRampAction::SysIDRampAction(double rampRate, double maxTime)
-    : rampRate(rampRate), maxTime(maxTime) {}
-
-void SysIDRampAction::run(Robot &r) {
-  totalTime += r.getDt();
-  if (totalTime > maxTime) {
-    canceled = true;
-    return;
-  }
-  double voltage = totalTime * rampRate;
-  r.driveVoltage(voltage, voltage);
-
-  double speed = (r.getDriveSpeedLeft() + r.getDriveSpeedRight()) / 2.0;
-  (void)speed;
-}
-
-void SysIDRampAction::end(Robot &r) {
-  r.driveVoltage(0.0, 0.0);
-}
-
-RampVelocityAction::RampVelocityAction(double rampRate, double maxTime)
-    : rampRate(rampRate), maxTime(maxTime) {}
-
-void RampVelocityAction::run(Robot &r) {
-  totalTime += r.getDt();
-  if (totalTime > maxTime) {
-    canceled = true;
-    return;
-  }
-  double velocity = totalTime * rampRate;
-  r.driveVelocity(velocity, velocity);
-}
-
-void RampVelocityAction::end(Robot &r) {
-  r.driveVoltage(0.0, 0.0);
-}
-
 ProfiledDriveAction::ProfiledDriveAction(double setpoint, double angle,
                                          double finalVelocity, double maxSpeed)
     : profile({maxSpeed, MAX_ACCEL_M_S2 / 2, 0, finalVelocity,
@@ -86,7 +49,9 @@ ProfiledDriveAction::ProfiledDriveAction(double setpoint, double angle,
       setpoint(setpoint), error(setpoint), angle(angle) {}
 
 void ProfiledDriveAction::run(Robot &r) {
-  if (r.getAverageSensorState()[0].hypot() < 0.08) {
+  const std::array<WorldCoord, 4> &ir = r.getSensorState();
+  const std::array<WorldCoord, 4> &irAvg = r.getAverageSensorState();
+  if (irAvg[0].hypot() < 0.08) {
     profile.finalVelocity = 0;
     canceled = true;
   }
@@ -104,7 +69,7 @@ void ProfiledDriveAction::run(Robot &r) {
   if (!started) {
     prevCoord = w;
     double vForward = (r.getDriveSpeedLeft() + r.getDriveSpeedRight()) / 2.0;
-    profile.initalVelocity = vForward * std::cos(w.theta - angle);
+    profile.initialVelocity = vForward * std::cos(w.theta - angle);
     started = true;
   }
   double dx = w.x - prevCoord.x;
@@ -112,21 +77,16 @@ void ProfiledDriveAction::run(Robot &r) {
   measurement += dx * std::cos(angle) + dy * std::sin(angle);
   prevCoord = w;
   error = setpoint - measurement;
-  if ((r.getDriveSpeedLeft() + r.getDriveSpeedRight()) / 2 > best) {
-    best = (r.getDriveSpeedLeft() + r.getDriveSpeedRight()) / 2;
-  }
   double v = profile.calculate(r.getDt(), measurement);
   double c = 0;
   double gyroError = angle - w.theta;
   gyroError = std::atan2(std::sin(gyroError), std::cos(gyroError));
-  if (std::abs(r.getSensorState().at(2).x) < 0.16 &&
-      r.getSensorState().at(3).x < 0.16) {
-    c = irPID.calculate(r.getSensorState().at(3).x,
-                        -r.getSensorState().at(2).x - 0.005, r.getDt());
-  } else if (std::abs(r.getSensorState().at(2).x) < 0.16) {
-    c = irPID.calculate(r.getSensorState().at(2).x, -0.08, r.getDt());
-  } else if (r.getSensorState().at(3).x < 0.16) {
-    c = irPID.calculate(r.getSensorState().at(3).x, 0.095, r.getDt());
+  if (std::abs(ir.at(2).x) < 0.16 && std::abs(ir.at(3).x) < 0.16) {
+    c = irPID.calculate(ir.at(3).x, -ir.at(2).x - 0.005, r.getDt());
+  } else if (std::abs(ir.at(2).x) < 0.16) {
+    c = irPID.calculate(ir.at(2).x, -0.08, r.getDt());
+  } else if (std::abs(ir.at(3).x) < 0.16) {
+    c = irPID.calculate(ir.at(3).x, 0.095, r.getDt());
   }
   c += gyroPID.calculate(-gyroError, 0, r.getDt());
   r.driveVelocity(v - c, v + c);
@@ -143,7 +103,7 @@ void ProfiledDriveAction::end(Robot &r) {
 ProfiledRotationAction::ProfiledRotationAction(double angle)
     : profile({MAX_ROT_SPEED_RAD_S * 0.1, MAX_ROT_SPEED_RAD_S2 * 0.5, 0, 0,
                profilePIDConstants, angle}),
-      setpoint(angle), error(angle) {}
+      error(angle), setpoint(angle) {}
 
 void ProfiledRotationAction::run(Robot &r) {
   double avgSpeed =
@@ -167,7 +127,7 @@ void ProfiledRotationAction::run(Robot &r) {
   prevTheta = w.theta;
   error = setpoint - measurement;
   double omega = profile.calculate(r.getDt(), measurement);
-  double wheelSpeed = omega * WHEEL_SEPERATION_M / 2;
+  double wheelSpeed = omega * WHEEL_SEPARATION_M / 2;
   r.driveVelocity(-wheelSpeed, wheelSpeed);
 }
 
@@ -181,8 +141,7 @@ ProfiledCurveAction::ProfiledCurveAction(double radius, double angle,
                             : std::sqrt(COEF_FRICTION * 9.81 * radius) * 0.3,
                MAX_ACCEL_M_S2 * 0.5, 0, finalVelocity, profilePIDConstants,
                radius * std::abs(angle)}),
-      outerRatio((radius + WHEEL_SEPERATION_M / 2.0) / radius), radius(radius),
-      setpoint(radius * angle), error(setpoint) {}
+      radius(radius), setpoint(radius * angle), error(setpoint) {}
 
 void ProfiledCurveAction::run(Robot &r) {
   double avgSpeed =
@@ -199,7 +158,7 @@ void ProfiledCurveAction::run(Robot &r) {
   if (!started) {
     prevTheta = w.theta;
     double vForward = (r.getDriveSpeedLeft() + r.getDriveSpeedRight()) / 2.0;
-    profile.initalVelocity = vForward;
+    profile.initialVelocity = vForward;
     started = true;
   }
   double dTheta = w.theta - prevTheta;
@@ -208,7 +167,7 @@ void ProfiledCurveAction::run(Robot &r) {
   prevTheta = w.theta;
   error = setpoint - measurement;
   double v = profile.calculate(r.getDt(), std::abs(measurement));
-  double halfTrack = WHEEL_SEPERATION_M / 2.0;
+  double halfTrack = WHEEL_SEPARATION_M / 2.0;
   double outerRatio = (radius + halfTrack) / radius;
   double innerRatio = (radius - halfTrack) / radius;
   double c = 0;

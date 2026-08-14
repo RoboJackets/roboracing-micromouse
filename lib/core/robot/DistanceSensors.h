@@ -26,6 +26,6 @@ struct DistanceSensors {
 
   void update(const std::array<double, 4> &metres);
 
-  std::array<WorldCoord, 4> state() const { return readings; }
-  std::array<WorldCoord, 4> averageState() const { return averages; }
+  const std::array<WorldCoord, 4> &state() const { return readings; }
+  const std::array<WorldCoord, 4> &averageState() const { return averages; }
 };

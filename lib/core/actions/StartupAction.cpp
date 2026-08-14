@@ -6,8 +6,6 @@ void StartupAction::run(Robot &r) {
   canceled = true;
 }
 
-void StartupAction::end(Robot &r) { canceled = false; }
-
 DelayAction::DelayAction(double runTime) : runTime(runTime) {}
 
 void DelayAction::run(Robot &r) {
@@ -23,8 +21,3 @@ void DelayAction::run(Robot &r) {
   }
 }
 
-void DelayAction::end(Robot &r) {
-  time = 0;
-  canceled = false;
-  go = false;
-}

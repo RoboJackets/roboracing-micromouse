@@ -23,12 +23,10 @@ inline constexpr SpeedProfile FAST_SPEED{0.2, 0.2, 0.03, 0.2, 0.04};
 struct CommandAction : Action {
   std::vector<unsigned char> buf;
   size_t pc = 0;
-  bool canceled = false;
   std::unique_ptr<Action> curr;
   int goalAngle = 0;
 
   void load(std::vector<unsigned char> b);
-  void cancel() override { canceled = true; }
   bool completed() const override {
     return canceled || (pc >= buf.size() && !curr);
   }

@@ -4,7 +4,6 @@
 #include <memory>
 #include <vector>
 struct SequentialAction : Action {
-  bool canceled = false;
   std::vector<std::unique_ptr<Action>> actions{};
   size_t index = 0;
   SequentialAction() = default;
@@ -18,8 +17,6 @@ struct SequentialAction : Action {
      ...);
     return SequentialAction(std::move(v));
   }
-  void cancel() override { canceled = true; }
-  bool completed() const override { return canceled; }
 
   void run(Robot &r) override {
     if (index >= actions.size()) {
@@ -36,7 +33,12 @@ struct SequentialAction : Action {
     actions[index]->run(r);
   }
   void end(Robot &r) override {
-    index = 0;
-    canceled = false;
+    if (index < actions.size())
+      actions[index]->end(r);
+  }
+  void cancel() override {
+    canceled = true;
+    if (index < actions.size())
+      actions[index]->cancel();
   }
 };

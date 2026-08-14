@@ -33,8 +33,10 @@ struct Robot {
   double getDriveSpeedLeft() const { return odom.leftSpeed(); }
   double getDriveSpeedRight() const { return odom.rightSpeed(); }
 
-  std::array<WorldCoord, 4> getSensorState() const { return sensors.state(); }
-  std::array<WorldCoord, 4> getAverageSensorState() const {
+  const std::array<WorldCoord, 4> &getSensorState() const {
+    return sensors.state();
+  }
+  const std::array<WorldCoord, 4> &getAverageSensorState() const {
     return sensors.averageState();
   }
 

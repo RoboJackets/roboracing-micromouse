@@ -1,6 +1,6 @@
 #include "Gyro.h"
 
-void Gyro::initalizeGyro() {
+void Gyro::initializeGyro() {
   Wire.begin();
   Wire.setClock(400000);
   Wire.setTimeout(3000);

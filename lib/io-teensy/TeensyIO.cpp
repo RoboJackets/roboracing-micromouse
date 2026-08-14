@@ -60,7 +60,7 @@ void TeensyIO::init() {
   pinMode(B_FRONT, INPUT);
   pinMode(B_BACK, INPUT);
 
-  gyro.initalizeGyro();
+  gyro.initializeGyro();
 
   mLeft.begin();
   mRight.begin();

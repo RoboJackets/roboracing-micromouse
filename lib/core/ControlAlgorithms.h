@@ -20,7 +20,7 @@ class PID {
   double d = 0;
   double maxAccum = 1.0;
   double lastError = 0;
-  bool inital = true;
+  bool initial = true;
   double lastSetpoint = 0;
   double accum = 0;
 
@@ -31,7 +31,7 @@ public:
 };
 
 struct TrapezoidalProfile {
-  double maxSpeed, maxAccel, initalVelocity, finalVelocity;
+  double maxSpeed, maxAccel, initialVelocity, finalVelocity;
   PIDConstants pidConstants;
   double setpoint;
   double time = 0;
@@ -39,7 +39,7 @@ struct TrapezoidalProfile {
   bool started = false;
   PID errorPid = PID{pidConstants};
 
-  TrapezoidalProfile(double maxSpeed, double maxAccel, double initalVelocity,
+  TrapezoidalProfile(double maxSpeed, double maxAccel, double initialVelocity,
                      double finalVelocity, PIDConstants pidConstants,
                      double setpoint);
 

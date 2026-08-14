@@ -5,9 +5,9 @@ PID::PID(PIDConstants constants)
       maxAccum(constants.maxAccum) {}
 
 double PID::calculate(double measurement, double setpoint, double dt) {
-  if (inital || lastSetpoint != setpoint) {
+  if (initial || lastSetpoint != setpoint) {
     lastSetpoint = setpoint;
-    inital = false;
+    initial = false;
     lastError = setpoint - measurement;
   }
   double error = setpoint - measurement;
@@ -23,11 +23,11 @@ double PID::calculate(double measurement, double setpoint, double dt) {
 }
 
 TrapezoidalProfile::TrapezoidalProfile(double maxSpeed, double maxAccel,
-                                       double initalVelocity,
+                                       double initialVelocity,
                                        double finalVelocity,
                                        PIDConstants pidConstants,
                                        double setpoint)
-    : maxSpeed(maxSpeed), maxAccel(maxAccel), initalVelocity(initalVelocity),
+    : maxSpeed(maxSpeed), maxAccel(maxAccel), initialVelocity(initialVelocity),
       finalVelocity(finalVelocity), pidConstants(pidConstants),
       setpoint(setpoint) {}
 
@@ -42,7 +42,7 @@ double TrapezoidalProfile::calculate(double dt, double measurement) {
   double direction = totalDistance >= 0.0 ? 1.0 : -1.0;
 
   double D = std::abs(totalDistance);
-  double v0 = std::abs(initalVelocity);
+  double v0 = std::abs(initialVelocity);
   double vf = std::abs(finalVelocity);
 
   v0 = std::min(v0, maxSpeed);
