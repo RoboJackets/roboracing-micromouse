@@ -8,17 +8,7 @@
 #include "EmptyAction.h"
 #include "SequentialAction.h"
 #include "StartupAction.h"
-
-struct SpeedProfile {
-  double maxSpeed;
-  double driveFinalVelocity;
-  double curveRadius;
-  double curveFinalVelocity;
-  double curveTrailDistance;
-};
-
-inline constexpr SpeedProfile EXPLORE_SPEED{0.1, 0.1, 0.03, 0.1, 0.03};
-inline constexpr SpeedProfile FAST_SPEED{0.2, 0.2, 0.03, 0.2, 0.04};
+#include "Tuning.h"
 
 struct CommandAction : Action {
   std::vector<unsigned char> buf;

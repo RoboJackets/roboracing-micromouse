@@ -6,6 +6,7 @@
 
 #include "Commands.h"
 #include "Constants.h"
+#include "Tuning.h"
 #include <cmath>
 
 enum ActionState {
@@ -28,4 +29,4 @@ struct State {
 
 std::vector<unsigned char> parse(std::string s, bool diagonals = true);
 std::string commandString(const std::vector<unsigned char> &commands);
-double computeWeight(std::vector<unsigned char> cmds);
+double computeWeight(const std::vector<unsigned char> &cmds);

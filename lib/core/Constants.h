@@ -19,5 +19,3 @@ constexpr double MAX_ROT_SPEED_RAD_S = (2 * MAX_SPEED_M_S) / WHEEL_SEPARATION_M;
 constexpr double MAX_ROT_SPEED_RAD_S2 =
     (2 * MAX_ACCEL_M_S2) / WHEEL_SEPARATION_M;
 constexpr double COEF_FRICTION = 0.5;
-const double CURVE_VELOCITY =
-    std::sqrt(9.81 * COEF_FRICTION * CELL_SIZE_METERS / 2);

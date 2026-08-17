@@ -8,9 +8,8 @@ void StateMachine::init(Robot &r) {
     r.map.markKnown(CENTER_GOALS.cells[i]);
   r.map.addBorderWalls();
 
-  fast = false;
-  goal = &CENTER_GOALS;
   currentState = GoalState::GOAL_SEARCH;
+  phase = phaseFor(currentState);
   r.init();
 }
 
@@ -22,19 +21,10 @@ void StateMachine::switchState(GoalState state, Robot &r) {
     a->cancel();
   }
   r.map.allowUpdates(false);
+  phase = phaseFor(state);
+
   switch (state) {
-  case GoalState::GOAL_SEARCH:
-    fast = false;
-    goal = &CENTER_GOALS;
-    break;
-  case GoalState::RETURN:
-    fast = false;
-    goal = &START_GOALS;
-    break;
   case GoalState::FAST_PATH:
-    fast = true;
-    goal = &CENTER_GOALS;
-    enableUpdatesAfterStartup = false;
     cmd.goalAngle = 0;
     startup = makeStartup();
     a = &startup;
@@ -43,6 +33,9 @@ void StateMachine::switchState(GoalState state, Robot &r) {
   case GoalState::NONE:
     a = &empty;
     break;
+  case GoalState::GOAL_SEARCH:
+  case GoalState::RETURN:
+    break;
   }
   currentState = state;
 }
@@ -50,15 +43,15 @@ void StateMachine::switchState(GoalState state, Robot &r) {
 void StateMachine::updateState(Cell at, Robot &r) {
   switch (currentState) {
   case GoalState::GOAL_SEARCH:
-    if (atGoal(at, *goal))
+    if (atGoal(at, *phase.goal))
       switchState(GoalState::RETURN, r);
     break;
   case GoalState::RETURN:
-    if (atGoal(at, *goal))
+    if (atGoal(at, *phase.goal))
       switchState(GoalState::FAST_PATH, r);
     break;
   case GoalState::FAST_PATH:
-    if (atGoal(at, *goal))
+    if (atGoal(at, *phase.goal))
       switchState(GoalState::RETURN, r);
     break;
   case GoalState::NONE:
@@ -77,10 +70,9 @@ void StateMachine::tick(Robot &r) {
 
   if (a->completed()) {
     a->end(r);
-    if (enableUpdatesAfterStartup) {
-      r.map.allowUpdates(true);
-    }
-    cmd.load({exploreStep(r.map, at, facing, *goal, fast)});
+    r.map.allowUpdates(phase.mapping);
+    cmd.load({exploreStep(r.map, at, facing, *phase.goal, phase.reach(),
+                          phase.fastSpeed)});
     a = &cmd;
   }
   a->run(r);

@@ -219,33 +219,36 @@ std::vector<unsigned char> parse(
   }
   return commands;
 }
-double computeWeight(std::vector<unsigned char> cmds) {
+double computeWeight(const std::vector<unsigned char> &cmds) {
+  const SpeedProfile &sp = FAST_SPEED;
   double weight = 0;
   for (const auto &vec : cmds) {
     unsigned char cmd = vec & 0b11100000;
     unsigned char arg = vec & 0b00011111;
     switch (cmd) {
     case FWD0:
-      weight += TrapezoidalProfile::totalTime(MAX_ACCEL_M_S2, MAX_SPEED_M_S,
+      weight += TrapezoidalProfile::totalTime(MAX_ACCEL_M_S2, sp.maxSpeed,
                                               CELL_SIZE_METERS * arg);
       break;
     case DFWD0:
       weight += TrapezoidalProfile::totalTime(
-          MAX_ACCEL_M_S2, MAX_SPEED_M_S, std::sqrt(2) * CELL_SIZE_METERS * arg);
+          MAX_ACCEL_M_S2, sp.maxSpeed, std::sqrt(2) * CELL_SIZE_METERS * arg);
       break;
     case ST0: {
-      double w = 0;
+      double turn = 0;
       if (vec == ST45L || vec == ST45R) {
-        w = (M_PI / 8) * CELL_SIZE_METERS / 2;
+        turn = M_PI / 4;
       }
       if (vec == ST90L || vec == ST90R) {
-        w = (M_PI / 4) * CELL_SIZE_METERS / 2;
+        turn = M_PI / 2;
       }
       if (vec == ST135L || vec == ST135R) {
-        w = (5 * M_PI / 8) * CELL_SIZE_METERS / 2;
+        turn = 3 * M_PI / 4;
       }
-      weight +=
-          TrapezoidalProfile::totalTime(MAX_ACCEL_M_S2, CURVE_VELOCITY, w);
+      weight += TrapezoidalProfile::totalTime(
+          MAX_ACCEL_M_S2, sp.curveFinalVelocity, turn * sp.curveRadius);
+      weight += TrapezoidalProfile::totalTime(MAX_ACCEL_M_S2, sp.maxSpeed,
+                                              sp.curveTrailDistance);
       break;
     }
     default:

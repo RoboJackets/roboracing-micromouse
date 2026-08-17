@@ -19,14 +19,13 @@ struct SequentialAction : Action {
   }
 
   void run(Robot &r) override {
-    if (index >= actions.size()) {
-      canceled = true;
-      return;
-    }
-
-    if (actions[index]->completed()) {
+    while (index < actions.size() && actions[index]->completed()) {
       actions[index]->end(r);
       index++;
+    }
+
+    if (index >= actions.size()) {
+      canceled = true;
       return;
     }
 
