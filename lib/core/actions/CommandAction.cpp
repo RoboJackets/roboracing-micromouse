@@ -22,13 +22,14 @@ void CommandAction::end(Robot &r) {
 }
 
 void CommandAction::run(Robot &r) {
-  if (completed())
-    return;
-  if (!curr) {
-    curr = determineAction(r);
-  }
-  curr->run(r);
-  if (curr->completed()) {
+  while (!completed()) {
+    if (!curr) {
+      curr = determineAction(r);
+    }
+    curr->run(r);
+    if (!curr->completed()) {
+      return;
+    }
     r.observe();
     curr->end(r);
     curr.reset();
