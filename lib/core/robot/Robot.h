@@ -46,9 +46,7 @@ struct Robot {
     map.observe(odom.pose(), odom.rotationRate(), sensors.state());
   }
 
-  void driveVoltage(double left, double right) {
-    drive.setVoltage(io, left, right);
-  }
+  void driveDuty(double left, double right) { drive.setDuty(io, left, right); }
   void driveVelocity(double left, double right) {
     drive.setVelocity(io, left, right, odom.leftSpeed(), odom.rightSpeed(),
                       cachedDt);

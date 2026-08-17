@@ -12,9 +12,7 @@ void Robot::update() {
   cachedDt = std::max(n - lastNow, 1e-6);
   lastNow = n;
 
+  io.poll();
   sensors.update(io.irMeters());
-  const double yaw = io.gyroYaw();
-  const double left = io.leftMeters();
-  const double right = io.rightMeters();
-  odom.update(left, right, yaw, cachedDt);
+  odom.update(io.leftMeters(), io.rightMeters(), io.gyroYaw(), cachedDt);
 }

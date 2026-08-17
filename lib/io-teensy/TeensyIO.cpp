@@ -12,25 +12,21 @@ void TeensyIO::setMotorPwm(double left, double right) {
   }
 }
 
-double TeensyIO::leftMeters() { return encoderLeft.getPosition(); }
-double TeensyIO::rightMeters() { return encoderRight.getPosition(); }
-
-double TeensyIO::gyroYaw() {
-  gyro.update();
-  return gyro.ypr[0];
-}
-
-std::array<double, 4> TeensyIO::irMeters() {
-  std::array<double, 4> out{};
+void TeensyIO::poll() {
   for (size_t i = 0; i < sensors.size(); i++) {
     IRSensor &sensor = sensors.at(i);
     digitalWrite(sensor.EMIT, HIGH);
     delayMicroseconds(EMIT_RECV_DELAY_US);
     int post = analogRead(sensor.RECV);
     digitalWrite(sensor.EMIT, LOW);
-    out[i] = sensor.metersFrom(post);
+    sampledIr[i] = sensor.metersFrom(post);
   }
-  return out;
+
+  gyro.update();
+  sampledYaw = gyro.ypr[0];
+
+  sampledLeft = encoderLeft.getPosition();
+  sampledRight = encoderRight.getPosition();
 }
 
 bool TeensyIO::buttonPressed() {

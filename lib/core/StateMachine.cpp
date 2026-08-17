@@ -28,7 +28,7 @@ void StateMachine::switchState(GoalState state, Robot &r) {
     cmd.goalAngle = 0;
     startup = makeStartup();
     a = &startup;
-    r.driveVoltage(0, 0);
+    r.driveDuty(0, 0);
     break;
   case GoalState::NONE:
     a = &empty;

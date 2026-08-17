@@ -13,11 +13,11 @@ void DriveTimeAction::run(Robot &r) {
     canceled = true;
     return;
   }
-  r.driveVoltage(speed, speed);
+  r.driveDuty(speed, speed);
 }
 
 void DriveTimeAction::end(Robot &r) {
-  r.driveVoltage(0.0, 0.0);
+  r.driveDuty(0.0, 0.0);
 }
 
 YawPIDAction::YawPIDAction(double setpoint) : setpoint(setpoint) {}
@@ -29,9 +29,9 @@ void YawPIDAction::run(Robot &r) {
 
   double avgSpeed =
       0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
-  if (std::abs(error) < 4 * M_PI / 180 && avgSpeed < 0.06) {
+  if (std::abs(error) < YAW_ANGLE_TOL && avgSpeed < VEL_TOL) {
     canceled = true;
-    r.driveVoltage(0.0, 0.0);
+    r.driveDuty(0.0, 0.0);
     p.resetAccum();
     return;
   }
@@ -41,28 +41,28 @@ void YawPIDAction::run(Robot &r) {
 }
 
 void YawPIDAction::end(Robot &r) {
-  r.driveVoltage(0.0, 0.0);
+  r.driveDuty(0.0, 0.0);
   r.resetPIDs();
   p.resetAccum();
 }
 
 ProfiledDriveAction::ProfiledDriveAction(double setpoint, double angle,
                                          double finalVelocity, double maxSpeed)
-    : profile({maxSpeed, MAX_ACCEL_M_S2 / 2, 0, finalVelocity,
+    : profile({maxSpeed, MAX_ACCEL_M_S2 * DRIVE_ACCEL_SCALE, 0, finalVelocity,
                profilePIDConstants, setpoint}),
       setpoint(setpoint), error(setpoint), angle(angle) {}
 
 void ProfiledDriveAction::run(Robot &r) {
   const std::array<WorldCoord, 4> &ir = r.getSensorState();
   const std::array<WorldCoord, 4> &irAvg = r.getAverageSensorState();
-  if (irAvg[0].hypot() < 0.08) {
+  if (irAvg[0].hypot() < FRONT_WALL_STOP_DISTANCE) {
     profile.finalVelocity = 0;
     canceled = true;
   }
   double avgSpeed =
       0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
-  if (std::abs(error) < POS_TOL && velOk) {
+  if (std::abs(error) < DRIVE_POS_TOL && velOk) {
     canceled = true;
     return;
   }
@@ -85,12 +85,13 @@ void ProfiledDriveAction::run(Robot &r) {
   double c = 0;
   double gyroError = angle - w.theta;
   gyroError = std::atan2(std::sin(gyroError), std::cos(gyroError));
-  if (std::abs(ir.at(2).x) < 0.16 && std::abs(ir.at(3).x) < 0.16) {
-    c = irPID.calculate(ir.at(3).x, -ir.at(2).x - 0.005, r.getDt());
-  } else if (std::abs(ir.at(2).x) < 0.16) {
-    c = irPID.calculate(ir.at(2).x, -0.08, r.getDt());
-  } else if (std::abs(ir.at(3).x) < 0.16) {
-    c = irPID.calculate(ir.at(3).x, 0.095, r.getDt());
+  if (std::abs(ir.at(2).x) < IR_VALID_RANGE &&
+      std::abs(ir.at(3).x) < IR_VALID_RANGE) {
+    c = irPID.calculate(ir.at(3).x, -ir.at(2).x - IR_CENTER_OFFSET, r.getDt());
+  } else if (std::abs(ir.at(2).x) < IR_VALID_RANGE) {
+    c = irPID.calculate(ir.at(2).x, IR_LEFT_ONLY_SETPOINT, r.getDt());
+  } else if (std::abs(ir.at(3).x) < IR_VALID_RANGE) {
+    c = irPID.calculate(ir.at(3).x, IR_RIGHT_ONLY_SETPOINT, r.getDt());
   }
   c += gyroPID.calculate(-gyroError, 0, r.getDt());
   r.driveVelocity(v - c, v + c);
@@ -98,14 +99,15 @@ void ProfiledDriveAction::run(Robot &r) {
 
 void ProfiledDriveAction::end(Robot &r) {
   if (profile.finalVelocity == 0) {
-    r.driveVoltage(0, 0);
+    r.driveDuty(0, 0);
   } else {
     r.driveVelocity(profile.finalVelocity, profile.finalVelocity);
   }
 }
 
 ProfiledRotationAction::ProfiledRotationAction(double angle)
-    : profile({MAX_ROT_SPEED_RAD_S * 0.1, MAX_ROT_SPEED_RAD_S2 * 0.5, 0, 0,
+    : profile({MAX_ROT_SPEED_RAD_S * ROTATION_MAX_SPEED_SCALE,
+               MAX_ROT_SPEED_RAD_S2 * ROTATION_ACCEL_SCALE, 0, 0,
                profilePIDConstants, angle}),
       error(angle), setpoint(angle) {}
 
@@ -113,7 +115,7 @@ void ProfiledRotationAction::run(Robot &r) {
   double avgSpeed =
       0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
-  if (std::abs(error) < POS_TOL && velOk) {
+  if (std::abs(error) < ROTATION_POS_TOL && velOk) {
     canceled = true;
     return;
   }
@@ -136,22 +138,23 @@ void ProfiledRotationAction::run(Robot &r) {
 }
 
 void ProfiledRotationAction::end(Robot &r) {
-  r.driveVoltage(0, 0);
+  r.driveDuty(0, 0);
 }
 
 ProfiledCurveAction::ProfiledCurveAction(double radius, double angle,
                                          double finalVelocity, double maxSpeed)
     : profile({maxSpeed > 0 ? maxSpeed
-                            : std::sqrt(COEF_FRICTION * 9.81 * radius) * 0.3,
-               MAX_ACCEL_M_S2 * 0.5, 0, finalVelocity, profilePIDConstants,
-               radius * std::abs(angle)}),
+                            : std::sqrt(COEF_FRICTION * 9.81 * radius) *
+                                  CURVE_FRICTION_SPEED_SCALE,
+               MAX_ACCEL_M_S2 * CURVE_ACCEL_SCALE, 0, finalVelocity,
+               profilePIDConstants, radius * std::abs(angle)}),
       radius(radius), setpoint(radius * angle), error(setpoint) {}
 
 void ProfiledCurveAction::run(Robot &r) {
   double avgSpeed =
       0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
-  if (std::abs(error) < POS_TOL && velOk) {
+  if (std::abs(error) < CURVE_POS_TOL && velOk) {
     canceled = true;
     return;
   }
@@ -188,7 +191,7 @@ void ProfiledCurveAction::run(Robot &r) {
 
 void ProfiledCurveAction::end(Robot &r) {
   if (profile.finalVelocity == 0) {
-    r.driveVoltage(0, 0);
+    r.driveDuty(0, 0);
   } else {
     r.driveVelocity(profile.finalVelocity, profile.finalVelocity);
   }

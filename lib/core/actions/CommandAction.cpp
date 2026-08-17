@@ -58,12 +58,12 @@ std::unique_ptr<Action> CommandAction::makeFwdAction(unsigned char arg,
   const WorldCoord rel = cellRelative(pose, cellOf(pose));
 
   double halfCell = CELL_SIZE_METERS / 2.0;
-  double dx = v.x != 0
-                  ? (v.x * arg * CELL_SIZE_METERS + halfCell - rel.x - v.x * 0.01)
-                  : 0;
-  double dy = v.y != 0
-                  ? (v.y * arg * CELL_SIZE_METERS + halfCell - rel.y - v.y * 0.01)
-                  : 0;
+  double dx = v.x != 0 ? (v.x * arg * CELL_SIZE_METERS + halfCell - rel.x -
+                          v.x * CELL_STOP_SHORT)
+                       : 0;
+  double dy = v.y != 0 ? (v.y * arg * CELL_SIZE_METERS + halfCell - rel.y -
+                          v.y * CELL_STOP_SHORT)
+                       : 0;
 
   double distance = std::sqrt(dx * dx + dy * dy);
   double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
@@ -97,20 +97,20 @@ std::unique_ptr<Action> CommandAction::determineAction(Robot &r) {
   unsigned char cls = c & 0b11100000;
   unsigned char arg = c & 0b00011111;
   if (c == STOP) {
-    r.driveVoltage(0, 0);
+    r.driveDuty(0, 0);
     canceled = true;
     return std::make_unique<EmptyAction>();
   }
   if (c == IPT180) {
     goalAngle = normalizeOctant(goalAngle + 4);
-    r.driveVoltage(0, 0);
+    r.driveDuty(0, 0);
     double theta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
     double currentTheta = r.getWorldCoord().theta;
     double turnAngle = std::atan2(std::sin(theta - currentTheta),
                                   std::cos(theta - currentTheta));
     return std::make_unique<SequentialAction>(SequentialAction::make(
         ProfiledRotationAction{turnAngle}, DelayAction{0},
-        ProfiledDriveAction{CELL_SIZE_METERS - 0.01, theta,
+        ProfiledDriveAction{CELL_SIZE_METERS - CELL_STOP_SHORT, theta,
                             EXPLORE_SPEED.maxSpeed, EXPLORE_SPEED.maxSpeed}));
   }
   // Explore (slow) variants
