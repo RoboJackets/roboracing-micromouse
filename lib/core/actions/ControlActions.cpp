@@ -1,5 +1,9 @@
 #include "ControlActions.h"
 
+#include <array>
+
+#include "robot/Robot.h"
+
 DriveTimeAction::DriveTimeAction(double time, double speed)
     : finalTime(time), speed(speed) {}
 

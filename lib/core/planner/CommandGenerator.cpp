@@ -1,10 +1,11 @@
 #include "CommandGenerator.h"
 
+namespace {
+
 State transition(State currentState, char c,
-                 std::vector<unsigned char> &commands,
-                 bool diagonals = true) {
-  unsigned char x = currentState.x;
-  unsigned char y = currentState.y;
+                 std::vector<unsigned char> &commands, bool diagonals) {
+  int x = currentState.x;
+  int y = currentState.y;
 
   if (c == 'S') {
     if (x > 0) {
@@ -126,9 +127,13 @@ State transition(State currentState, char c,
     }
     break;
   }
+  case END:
+    break;
   }
   return {END, 0, 0};
 }
+
+} // namespace
 
 std::string commandString(const std::vector<unsigned char> &commands) {
   std::stringstream oss;
@@ -142,6 +147,10 @@ std::string commandString(const std::vector<unsigned char> &commands) {
   for (unsigned char c : commands) {
     unsigned char cmd = c & 0b11100000;
     unsigned char arg = c & 0b00011111;
+    if (c == IPT180) {
+      append("IPT180");
+      continue;
+    }
     switch (cmd) {
     case FWD0:
       append("FWD" + std::to_string(arg));
@@ -202,7 +211,7 @@ std::vector<unsigned char> parse(
                       // a 90/135 degree turn assumes one cell of motion as well.
   State current{};
   std::vector<unsigned char> commands{};
-  for (int i = 0; i < s.length(); i++) {
+  for (size_t i = 0; i < s.length(); i++) {
     current = transition(current, s[i], commands, diagonals);
   }
   if (commands.empty() || commands.back() != STOP) {

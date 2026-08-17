@@ -5,6 +5,7 @@ struct Odometry {
   WorldCoord w{};
   double gyroOffset = 0;
   double gyroYaw = 0;
+  bool seeded = false;
 
   double lastLeftPosition = 0;
   double lastRightPosition = 0;

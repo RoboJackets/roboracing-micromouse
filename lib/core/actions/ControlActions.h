@@ -3,6 +3,7 @@
 #include "Commands.h"
 #include "Constants.h"
 #include "ControlAlgorithms.h"
+#include "Types.h"
 #include <cmath>
 
 struct DriveTimeAction : Action {

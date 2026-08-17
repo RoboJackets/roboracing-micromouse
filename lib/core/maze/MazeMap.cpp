@@ -5,6 +5,8 @@
 #include "Tuning.h"
 
 bool MazeMap::hasWall(Cell c, Dir d) const {
+  if (!inBounds(c))
+    return true;
   return walls[c.y][c.x] & wallBit(d);
 }
 
@@ -18,7 +20,9 @@ void MazeMap::addWall(Cell c, Dir d) {
   walls[n.y][n.x] |= wallBit(opposite(d));
 }
 
-bool MazeMap::isKnown(Cell c) const { return explored[c.y][c.x]; }
+bool MazeMap::isKnown(Cell c) const {
+  return inBounds(c) && explored[c.y][c.x];
+}
 
 void MazeMap::markKnown(Cell c) {
   if (inBounds(c))

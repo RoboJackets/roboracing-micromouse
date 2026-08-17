@@ -28,6 +28,12 @@ public:
   PID(PIDConstants constants);
   double calculate(double measurement, double setpoint, double dt);
   void resetAccum() { accum = 0; }
+  void reset() {
+    accum = 0;
+    lastError = 0;
+    lastSetpoint = 0;
+    initial = true;
+  }
 };
 
 struct TrapezoidalProfile {
@@ -58,4 +64,5 @@ struct MotorFeedForward {
   MotorFeedForward(double ks, double kv, double ka);
 
   double calculate(double velocitySetpoint, double dt);
+  void reset() { lastVelocity = 0; }
 };

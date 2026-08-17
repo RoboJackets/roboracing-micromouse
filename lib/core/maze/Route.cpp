@@ -58,5 +58,5 @@ Dir nextStep(const MazeMap &map, const DistanceField &field, Cell at,
     }
   }
 
-  return bestIdx < 0 ? facing : SCAN_ORDER[bestIdx];
+  return bestIdx < 0 ? opposite(facing) : SCAN_ORDER[bestIdx];
 }

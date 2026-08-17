@@ -1,7 +1,5 @@
 #include "FloodFill.h"
 
-#include <queue>
-
 DistanceField floodFill(const MazeMap &map, const Goals &goal,
                         Reachability reach) {
   DistanceField field{};
@@ -9,16 +7,20 @@ DistanceField floodFill(const MazeMap &map, const Goals &goal,
     for (int x = 0; x < N; ++x)
       field.d[y][x] = INF;
 
-  std::queue<Cell> queue{};
+  Cell queue[N * N];
+  int head = 0;
+  int tail = 0;
+
   for (int i = 0; i < goal.count; ++i) {
     const Cell g = goal.cells[i];
+    if (!inBounds(g))
+      continue;
     field.d[g.y][g.x] = 0;
-    queue.push(g);
+    queue[tail++] = g;
   }
 
-  while (!queue.empty()) {
-    const Cell c = queue.front();
-    queue.pop();
+  while (head < tail) {
+    const Cell c = queue[head++];
     const int dist = field.d[c.y][c.x];
 
     for (const Dir d : SCAN_ORDER) {
@@ -30,7 +32,8 @@ DistanceField floodFill(const MazeMap &map, const Goals &goal,
       if (dist + 1 >= field.d[n.y][n.x])
         continue;
       field.d[n.y][n.x] = dist + 1;
-      queue.push(n);
+      if (tail < N * N)
+        queue[tail++] = n;
     }
   }
   return field;

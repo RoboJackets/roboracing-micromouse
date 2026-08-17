@@ -6,9 +6,17 @@
 
 void Odometry::update(double leftMeters, double rightMeters, double yaw,
                       double dt) {
+  if (!seeded) {
+    seeded = true;
+    gyroYaw = yaw;
+    leftPosition = leftMeters;
+    rightPosition = rightMeters;
+  }
+
   const double prevYaw = gyroYaw;
   gyroYaw = yaw;
-  const double rawRotationRate = (gyroYaw - prevYaw) / dt;
+  const double rawRotationRate =
+      std::remainder(gyroYaw - prevYaw, 2 * M_PI) / dt;
   filteredRotationRate +=
       ROTATION_FILTER_ALPHA * (rawRotationRate - filteredRotationRate);
 

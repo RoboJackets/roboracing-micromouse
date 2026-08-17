@@ -5,14 +5,19 @@
 
 namespace {
 constexpr double INF_M = std::numeric_limits<double>::infinity();
+
+WorldCoord outOfRange(const SensorMount &m) {
+  return WorldCoord{std::copysign(INF_M, std::cos(m.theta)),
+                    std::copysign(INF_M, std::sin(m.theta)), m.theta};
 }
+} // namespace
 
 void DistanceSensors::update(const std::array<double, 4> &metres) {
   for (int i = 0; i < 4; ++i) {
     const SensorMount &m = IR_MOUNTS[i];
     WorldCoord coord;
     if (std::isinf(metres[i])) {
-      coord = {INF_M, INF_M, m.theta};
+      coord = outOfRange(m);
     } else {
       coord = {std::cos(m.theta) * metres[i] + m.x,
                std::sin(m.theta) * metres[i] + m.y, m.theta};
@@ -26,7 +31,7 @@ void DistanceSensors::update(const std::array<double, 4> &metres) {
     double sumX = 0, sumY = 0;
     int found = 0;
     for (int j = 0; j < bufCount[i]; ++j) {
-      if (buffer[i][j].x == INF_M)
+      if (std::isinf(buffer[i][j].x))
         continue;
       found++;
       sumX += buffer[i][j].x;
@@ -34,7 +39,8 @@ void DistanceSensors::update(const std::array<double, 4> &metres) {
     }
 
     readings[i] = coord;
-    averages[i] = found == 0 ? WorldCoord{INF_M, INF_M, m.theta}
-                             : WorldCoord{sumX / found, sumY / found, m.theta};
+    averages[i] = found == 0
+                      ? outOfRange(m)
+                      : WorldCoord{sumX / found, sumY / found, m.theta};
   }
 }

@@ -72,6 +72,8 @@ constexpr bool inBounds(Cell c) {
 inline constexpr Dir SCAN_ORDER[4]{Dir::North, Dir::West, Dir::South,
                                    Dir::East};
 
+constexpr int normalizeOctant(int octant) { return ((octant % 8) + 8) % 8; }
+
 constexpr Cell octantOffset(int octant) {
   switch (octant & 7) {
   case 0:
@@ -121,8 +123,14 @@ inline WorldCoord cellRelative(const WorldCoord &w, Cell c) {
 struct Goals {
   const Cell *cells;
   int count;
-  int explorationWeight = 1;
-  int turnPenalty = 0;
+  int explorationWeight;
+  int turnPenalty;
+
+  template <int M>
+  constexpr Goals(const Cell (&a)[M], int explorationWeight = 1,
+                  int turnPenalty = 0)
+      : cells(a), count(M), explorationWeight(explorationWeight),
+        turnPenalty(turnPenalty) {}
 };
 
 constexpr int TIEBREAK_OFF = 0;
@@ -130,10 +138,10 @@ constexpr int TIEBREAK_OFF = 0;
 inline constexpr Cell centerGoals[]{{7, 7}, {7, 8}, {8, 7}, {8, 8}};
 inline constexpr Cell startGoal[]{{0, 0}};
 
-inline constexpr Goals CENTER_GOALS{centerGoals, 4,
+inline constexpr Goals CENTER_GOALS{centerGoals,
                                     /*explorationWeight=*/TIEBREAK_OFF,
                                     /*turnPenalty=*/TIEBREAK_OFF};
-inline constexpr Goals START_GOALS{startGoal, 1,
+inline constexpr Goals START_GOALS{startGoal,
                                    /*explorationWeight=*/TIEBREAK_OFF,
                                    /*turnPenalty=*/TIEBREAK_OFF};
 

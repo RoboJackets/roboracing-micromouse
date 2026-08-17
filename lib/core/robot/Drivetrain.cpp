@@ -16,6 +16,8 @@ void Drivetrain::setVelocity(MouseIO &io, double left, double right,
 }
 
 void Drivetrain::resetPIDs() {
-  velocityPIDLeft.resetAccum();
-  velocityPIDRight.resetAccum();
+  velocityPIDLeft.reset();
+  velocityPIDRight.reset();
+  leftff.reset();
+  rightff.reset();
 }

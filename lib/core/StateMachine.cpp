@@ -1,5 +1,7 @@
 #include "StateMachine.h"
 
+#include "robot/Robot.h"
+
 void StateMachine::init(Robot &r) {
   r.map.markKnown(Cell{0, 0});
   for (int i = 0; i < CENTER_GOALS.count; ++i)

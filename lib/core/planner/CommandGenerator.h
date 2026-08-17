@@ -1,10 +1,8 @@
 #pragma once
 #include "ControlAlgorithms.h"
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
-
 
 #include "Commands.h"
 #include "Constants.h"
@@ -24,8 +22,8 @@ enum ActionState {
 
 struct State {
   ActionState action = START;
-  unsigned char x = 0;
-  unsigned char y = 0;
+  int x = 0;
+  int y = 0;
 };
 
 std::vector<unsigned char> parse(std::string s, bool diagonals = true);

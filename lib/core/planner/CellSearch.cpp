@@ -39,9 +39,10 @@ void dfs(const MazeMap &map, const Goals &goal, Cell curr,
   visited.erase(curr);
 }
 
-std::string path_to_instruct(const std::vector<Cell> &path) {
-  int curr_dx = 0;
-  int curr_dy = 1;
+std::string path_to_instruct(const std::vector<Cell> &path, Dir facing) {
+  const Cell heading = step(Cell{0, 0}, facing);
+  int curr_dx = heading.x;
+  int curr_dy = heading.y;
 
   std::stringstream ss;
   ss << 'X';
@@ -73,13 +74,12 @@ std::string path_to_instruct(const std::vector<Cell> &path) {
 
 } // namespace
 
-std::vector<unsigned char> planFastRoute(const MazeMap &map,
-                                         const Goals &goal) {
+std::vector<unsigned char> planFastRoute(const MazeMap &map, const Goals &goal,
+                                         Cell start, Dir facing) {
   std::vector<Cell> temp{};
   std::unordered_set<Cell, CellHash> visited{};
   std::vector<std::vector<Cell>> solutions{};
 
-  const Cell start{0, 0};
   temp.push_back(start);
   dfs(map, goal, start, temp, visited, solutions);
 
@@ -87,7 +87,7 @@ std::vector<unsigned char> planFastRoute(const MazeMap &map,
   std::vector<unsigned char> bestVec{};
 
   for (const auto &vec : solutions) {
-    std::string s = path_to_instruct(vec);
+    std::string s = path_to_instruct(vec, facing);
     std::vector<unsigned char> v = parse(s, false);
     double w = computeWeight(v);
     if (w < bestWeight) {

@@ -86,10 +86,11 @@ double TrapezoidalProfile::calculate(double dt, double measurement) {
 
     double tA_tri = (vp - v0) / maxAccel;
     double tD_tri = (vp - vf) / maxAccel;
-    double T = tA_tri + tD_tri;
 
     tA_tri = std::max(0.0, tA_tri);
     tD_tri = std::max(0.0, tD_tri);
+
+    double T = tA_tri + tD_tri;
 
     double dA_tri = (v0 + vp) * 0.5 * tA_tri;
 

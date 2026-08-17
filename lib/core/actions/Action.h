@@ -1,5 +1,6 @@
 #pragma once
-#include "robot/Robot.h"
+
+struct Robot;
 
 struct Action {
   virtual ~Action() = default;

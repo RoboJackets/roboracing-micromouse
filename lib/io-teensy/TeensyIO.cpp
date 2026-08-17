@@ -45,6 +45,8 @@ double TeensyIO::now() {
 }
 
 void TeensyIO::init() {
+  Serial.begin(9600);
+
   lastMicros = micros();
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(EMIT_1, OUTPUT);
@@ -56,6 +58,7 @@ void TeensyIO::init() {
   pinMode(RECV_2, INPUT);
   pinMode(RECV_3, INPUT);
   pinMode(RECV_4, INPUT);
+  analogReadResolution(10);
 
   pinMode(B_FRONT, INPUT);
   pinMode(B_BACK, INPUT);
@@ -64,6 +67,4 @@ void TeensyIO::init() {
 
   mLeft.begin();
   mRight.begin();
-
-  Serial.begin(9600);
 }

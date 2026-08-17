@@ -1,5 +1,8 @@
 #include "CommandAction.h"
 
+#include "maze/Maze.h"
+#include "robot/Robot.h"
+
 void CommandAction::load(std::vector<unsigned char> b) {
   buf = std::move(b);
   canceled = false;
@@ -78,7 +81,7 @@ std::unique_ptr<Action> CommandAction::makeCurveAction(unsigned char arg,
   double turnAngle = std::atan2(std::sin(targetTheta - currentTheta),
                                 std::cos(targetTheta - currentTheta));
 
-  goalAngle = (goalAngle + 8) % 8;
+  goalAngle = normalizeOctant(goalAngle);
 
   double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
   return std::make_unique<SequentialAction>(SequentialAction::make(
@@ -99,8 +102,7 @@ std::unique_ptr<Action> CommandAction::determineAction(Robot &r) {
     return std::make_unique<EmptyAction>();
   }
   if (c == IPT180) {
-    goalAngle += 4;
-    goalAngle = (goalAngle + 8) % 8;
+    goalAngle = normalizeOctant(goalAngle + 4);
     r.driveVoltage(0, 0);
     double theta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
     double currentTheta = r.getWorldCoord().theta;
