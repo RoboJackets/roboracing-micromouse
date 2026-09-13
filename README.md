@@ -1,6 +1,6 @@
 # Welcome to RoboRacing Micromouse
 ## What is Micromouse?
-Micromouse is a new member program designed with the intention of providing an introduction to the electrical and firmware side of developing robots as a part of RoboRacing, while also preparing for a fun and competitive racing competition! Members will work on their own "mouse" that will be able to solve a 16x16 maze as quickly as possible.
+Micromouse is RoboRacing's primary project. Members are split into teams of 2-3 to build a brand new bot from scratch. This repository stores the code for RoboRacing's primary competitive bot. 
 
 > Watch a detailed overview of the competition by the Veritasium YouTube Channel
 
