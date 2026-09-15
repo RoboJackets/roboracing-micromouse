@@ -71,6 +71,7 @@ void StateMachine::tick(Robot &r) {
   if (a->completed()) {
     a->end(r);
     r.map.allowUpdates(phase.mapping);
+    r.observe();
     cmd.load({exploreStep(r.map, at, facing, *phase.goal, phase.reach(),
                           phase.fastSpeed)});
     a = &cmd;

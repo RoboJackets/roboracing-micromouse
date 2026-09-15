@@ -135,7 +135,7 @@ struct Goals {
 
 constexpr int TIEBREAK_OFF = 0;
 
-inline constexpr Cell centerGoals[]{{7, 7}, {7, 8}, {8, 7}, {8, 8}};
+inline constexpr Cell centerGoals[]{{2, 0}};
 inline constexpr Cell startGoal[]{{0, 0}};
 
 inline constexpr Goals CENTER_GOALS{centerGoals,

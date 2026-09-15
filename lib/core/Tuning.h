@@ -11,9 +11,9 @@ constexpr double OBSERVE_MAX_HEADING_ERROR = 0.2;
 constexpr double OBSERVE_MAX_ROTATION_RATE = 0.15;
 constexpr double OBSERVE_ENTRY_MARGIN = 0.1;
 
-constexpr double WALL_THRESHOLD_FRONT = 0.075;
+constexpr double WALL_THRESHOLD_FRONT = 0.18;
 constexpr double WALL_THRESHOLD_LEFT = 0.12;
-constexpr double WALL_THRESHOLD_RIGHT = 0.11;
+constexpr double WALL_THRESHOLD_RIGHT = 0.12;
 
 constexpr double DRIVE_POS_TOL = 0.01;    // m
 constexpr double ROTATION_POS_TOL = 0.02; // rad
@@ -30,9 +30,9 @@ constexpr double DRIVE_DEFAULT_MAX_SPEED = 0.1;
 
 constexpr double IR_VALID_RANGE = 0.16;
 constexpr double IR_CENTER_OFFSET = 0.005;
-constexpr double IR_LEFT_ONLY_SETPOINT = -0.08;
-constexpr double IR_RIGHT_ONLY_SETPOINT = 0.095;
-constexpr double FRONT_WALL_STOP_DISTANCE = 0.08;
+constexpr double IR_LEFT_ONLY_SETPOINT = -0.07;
+constexpr double IR_RIGHT_ONLY_SETPOINT = 0.07;
+constexpr double FRONT_WALL_STOP_DISTANCE = 0.145;
 
 constexpr double YAW_ANGLE_TOL = 4 * M_PI / 180;
 
