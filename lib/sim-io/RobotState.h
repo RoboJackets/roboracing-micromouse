@@ -32,6 +32,8 @@ struct RobotState {
     double x;
     double y;
     double theta;
+    double leftEncoder;
+    double rightEncoder;
     std::array<double, 4> ir_readings;
 
     double distance_to_collision(double x, double y, double theta, bool worldState[240][240]);

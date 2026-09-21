@@ -2,13 +2,17 @@
 #include "MouseIO.h"
 #include "RobotState.h"
 #include <array>
+#include <chrono>
 
 struct SimIO : MouseIO {
   // each grid represents 1.2cm
-  bool worldState[240][240]{};
+  bool worldState[240][240];
   double start_time;
   double current_time;
-  RobotState robotState;
+  double delta_t;
+  double current_left_pwm{0};
+  double current_right_pwm{0};
+  RobotState robotState{};
   
   double sampledYaw = 0;
   double sampledLeft = 0;

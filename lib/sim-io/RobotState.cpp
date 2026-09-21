@@ -28,6 +28,9 @@ void RobotState::update_state(double left, double right, double delta_t, bool wo
     double icc_x = x - r * std::sin(theta);
     double icc_y = y + r * std::cos(theta);
 
+    leftEncoder += v_l * delta_t;
+    rightEncoder += v_r * delta_t;
+
     x = (x - icc_x) * std::cos(omega * delta_t) + (y - icc_y) * -std::sin(omega * delta_t) + icc_x;
     y = (x - icc_x) * std::sin(omega * delta_t) + (y - icc_y) * std::cos(omega * delta_t) + icc_y;
     theta = theta + omega * delta_t;
