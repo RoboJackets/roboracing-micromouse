@@ -9,7 +9,6 @@ struct SimIO : MouseIO {
   bool worldState[240][240];
   double start_time;
   double current_time;
-  double delta_t;
   double current_left_pwm{0};
   double current_right_pwm{0};
   RobotState robotState{};

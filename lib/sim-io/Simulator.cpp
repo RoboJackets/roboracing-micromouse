@@ -3,11 +3,7 @@
 #include <array>
 
 void SimIO::init() {
-    auto now = std::chrono::system_clock::now();
-    auto duration = now.time_since_epoch();
-    auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-    start_time = millis * 1e-3;
-    delta_t = 10;
+    start_time = SimIO::now();
     current_time = start_time;
 }
 

@@ -26,7 +26,7 @@ struct RobotState {
 
     // Robot Constants
     const double m = .1; // kg (mass)
-    const double l = 12; // cm (radius of robot model)
+    const double l = 12; // cm (wheel base of robot model)
 
     // State Information
     double x;
