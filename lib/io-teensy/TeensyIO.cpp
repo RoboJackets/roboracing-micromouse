@@ -19,8 +19,10 @@ void TeensyIO::poll() {
     delayMicroseconds(EMIT_RECV_DELAY_US);
     int post = analogRead(sensor.RECV);
     digitalWrite(sensor.EMIT, LOW);
+    // Serial.printf("%d: %d     ", i, post);
     sampledIr[i] = sensor.metersFrom(post);
   }
+  // Serial.println();
 
   gyro.update();
   sampledYaw = gyro.ypr[0];
