@@ -25,6 +25,7 @@ void CommandAction::run(Robot &r) {
   while (!completed()) {
     if (!curr) {
       curr = determineAction(r);
+      curr->begin(r);
     }
     curr->run(r);
     if (!curr->completed()) {

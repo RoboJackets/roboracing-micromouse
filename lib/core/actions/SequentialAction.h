@@ -18,10 +18,16 @@ struct SequentialAction : Action {
     return SequentialAction(std::move(v));
   }
 
+  void begin(Robot &r) override {
+    if (index < actions.size())
+      actions[index]->begin(r);
+  }
   void run(Robot &r) override {
     while (index < actions.size() && actions[index]->completed()) {
       actions[index]->end(r);
       index++;
+      if (index < actions.size())
+        actions[index]->begin(r);
     }
 
     if (index >= actions.size()) {

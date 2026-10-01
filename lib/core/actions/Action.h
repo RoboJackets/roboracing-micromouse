@@ -2,8 +2,9 @@
 
 struct Robot;
 
-struct Action {
+struct Action {  
   virtual ~Action() = default;
+  virtual void begin(Robot &r) {}
   virtual void run(Robot &r) = 0;
   virtual void end(Robot &r) {}
   virtual void cancel() { canceled = true; }
