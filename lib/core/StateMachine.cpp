@@ -11,6 +11,7 @@ void StateMachine::init(Robot &r) {
   currentState = GoalState::GOAL_SEARCH;
   phase = phaseFor(currentState);
   r.init();
+  a->begin(r);
 }
 
 void StateMachine::switchState(GoalState state, Robot &r) {
@@ -28,10 +29,12 @@ void StateMachine::switchState(GoalState state, Robot &r) {
     cmd.goalAngle = 0;
     startup = makeStartup();
     a = &startup;
+    a->begin(r);
     r.driveDuty(0, 0);
     break;
   case GoalState::NONE:
     a = &empty;
+    a->begin(r);
     break;
   case GoalState::GOAL_SEARCH:
   case GoalState::RETURN:
@@ -75,6 +78,7 @@ void StateMachine::tick(Robot &r) {
     cmd.load({exploreStep(r.map, at, facing, *phase.goal, phase.reach(),
                           phase.fastSpeed)});
     a = &cmd;
+    a->begin(r);
   }
   a->run(r);
 }
