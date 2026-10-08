@@ -1,13 +1,21 @@
 #pragma once
+
 #include <sstream>
 #include <string>
 #include <vector>
-
+#include "actions/Action.h"
 #include "Constants.h"
 #include "Tuning.h"
 #include <cmath>
 #include <variant>
+#include <memory>
 
+// The input to the CommandGenerator is a sequence of Moves
+enum class Move {
+  Forward, Left, Right, Back, Stop
+};
+
+// Data types for the CommandGenerator state machine
 enum ActionState {
   START,
   ORTHO_F,
@@ -26,9 +34,8 @@ struct State {
   int y = 0;
 };
 
-// The input to the CommandGenerator is a sequence of Moves
-enum class Move {
-  Forward, Left, Right, Back, Stop
+enum class Side {
+  Left = -1, Right = +1
 };
 
 // The output of the CommandGenerator.
@@ -38,10 +45,6 @@ struct Command {
 
   Type type;
   int8_t amt; // number of cells if Forward, signed multiple of 45 degrees otherwise
-};
-
-enum class Side {
-  Left = -1, Right = +1
 };
 
 class CommandGenerator {
@@ -80,6 +83,15 @@ private:
   std::vector<Command> out;
 };
 
-std::vector<unsigned char> parse(std::string s, bool diagonals = true);
-std::string commandString(const std::vector<unsigned char> &commands);
-double computeWeight(const std::vector<unsigned char> &cmds);
+struct CommandTranslator {
+  int goalAngle = 0;
+
+  std::unique_ptr<Action> translate(const Command& c, Robot& r, const SpeedProfile& sp);
+
+private:
+  std::unique_ptr<Action> makeFwdAction(int8_t amt, Robot &r,
+                                        const SpeedProfile &sp);
+
+  std::unique_ptr<Action> makeCurveAction(int8_t amt, Robot &r,
+                                          const SpeedProfile &sp);
+};
