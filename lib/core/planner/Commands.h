@@ -60,7 +60,7 @@ public:
 private:
   // State definitions
   struct Straight {
-    int8_t cells = 0;
+    int cells = 0;
   };
 
   struct Turning {
@@ -94,4 +94,38 @@ private:
 
   std::unique_ptr<Action> makeCurveAction(int8_t amt, Robot &r,
                                           const SpeedProfile &sp);
+};
+
+// Runs one Command, translating it when the step begins rather than when the
+// route is planned, so the action is built from the robot's pose at that point.
+struct CommandStep : Action {
+  CommandStep(Command c, CommandTranslator &translator, const SpeedProfile &sp)
+      : c(c), translator(&translator), sp(&sp) {}
+
+  void begin(Robot &r) override {
+    curr = translator->translate(c, r, *sp);
+    curr->begin(r);
+  }
+  void run(Robot &r) override {
+    if (curr)
+      curr->run(r);
+  }
+  void end(Robot &r) override {
+    if (curr)
+      curr->end(r);
+  }
+  void cancel() override {
+    canceled = true;
+    if (curr)
+      curr->cancel();
+  }
+  bool completed() const override {
+    return canceled || (curr && curr->completed());
+  }
+
+private:
+  Command c;
+  CommandTranslator *translator;
+  const SpeedProfile *sp;
+  std::unique_ptr<Action> curr;
 };
