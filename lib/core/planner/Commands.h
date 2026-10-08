@@ -45,6 +45,10 @@ struct Command {
 
   Type type;
   int8_t amt; // number of cells if Forward, signed multiple of 45 degrees otherwise
+
+  Command(Type type, int amt) : type{type}, amt{static_cast<int8_t>(amt)} {
+    
+  }
 };
 
 class CommandGenerator {
