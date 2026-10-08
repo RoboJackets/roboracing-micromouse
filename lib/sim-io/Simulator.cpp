@@ -3,8 +3,8 @@
 #include <array>
 
 void SimIO::init() {
-    start_time = SimIO::now();
-    current_time = start_time;
+    start_time = std::chrono::steady_clock::now();
+    current_time = 0;
 }
 
 void SimIO::poll() {
@@ -30,8 +30,5 @@ bool SimIO::buttonPressed() {
 }
 
 double SimIO::now() {
-    auto now = std::chrono::system_clock::now();
-    auto duration = now.time_since_epoch();
-    auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-    return millis * 1e-3;
+    return std::chrono::duration<double>(std::chrono::steady_clock::now() - start_time).count();
 }

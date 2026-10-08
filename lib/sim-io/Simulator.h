@@ -7,8 +7,8 @@
 struct SimIO : MouseIO {
   // each grid represents 1.2cm
   bool worldState[240][240];
-  double start_time;
-  double current_time;
+  std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
+  double current_time = 0;
   double current_left_pwm{0};
   double current_right_pwm{0};
   RobotState robotState{};
