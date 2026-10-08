@@ -57,7 +57,7 @@ public:
 private:
   // State definitions
   struct Straight {
-    int cells = 0;
+    int8_t cells = 0;
   };
 
   struct Turning {
