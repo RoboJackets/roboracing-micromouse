@@ -10,9 +10,9 @@ double RobotState::distance_to_collision(double x, double y, double theta, bool 
     while (distance < .5 && !is_collision) {
         curr_x += dx * .01;
         curr_y += dy * .01;
-        int r = std::fmod(curr_x, .012);
-        int c = std::fmod(curr_y, .012);
-        if (r < 240 && c < 240 && worldState[r][c]) {
+        int r = curr_x / .012;
+        int c = curr_y / .012;
+        if (r >= 0 && c >= 0 && r < 240 && c < 240 && worldState[r][c]) {
             is_collision = true;
         }
         distance = std::sqrt(std::pow(curr_x - x, 2) + std::pow(curr_y - y, 2));
@@ -21,11 +21,11 @@ double RobotState::distance_to_collision(double x, double y, double theta, bool 
 }
 
 void RobotState::update_state(double left, double right, double delta_t, bool worldState[240][240]) {
-    double v_l = ((motor_consts.t * left)/(motor_consts.r * m)) * delta_t;
-    double v_r = ((motor_consts.t * right)/(motor_consts.r * m)) * delta_t;
+    double v_l = (motor_consts.t * left)/(motor_consts.r * m);
+    double v_r = (motor_consts.t * right)/(motor_consts.r * m);
     if (v_l == v_r) {
-        x = v_l * std::cos(theta) * delta_t;
-        y = v_l * std::sin(theta) * delta_t;
+        x += v_l * std::cos(theta) * delta_t;
+        y += v_l * std::sin(theta) * delta_t;
     } else {
         double r = (l / 2) * ((v_l + v_r) / (v_r - v_l));
         double omega = (v_r - v_l) / l;
@@ -33,8 +33,9 @@ void RobotState::update_state(double left, double right, double delta_t, bool wo
         double icc_x = x - r * std::sin(theta);
         double icc_y = y + r * std::cos(theta);
     
-        x = (x - icc_x) * std::cos(omega * delta_t) + (y - icc_y) * -std::sin(omega * delta_t) + icc_x;
+        double new_x = (x - icc_x) * std::cos(omega * delta_t) + (y - icc_y) * -std::sin(omega * delta_t) + icc_x;
         y = (x - icc_x) * std::sin(omega * delta_t) + (y - icc_y) * std::cos(omega * delta_t) + icc_y;
+        x = new_x;
         theta = theta + omega * delta_t;
     }
 
