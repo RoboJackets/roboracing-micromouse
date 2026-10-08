@@ -99,6 +99,18 @@ CommandGenerator::State CommandGenerator::on(Turning s, Move m) {
   }
 }
 
+std::unique_ptr<Action> CommandTranslator::translate(const Command& c, Robot& r, const SpeedProfile& sp) {
+  switch (c.type) {
+    case Command::Type::Forward:
+      return makeFwdAction(c.amt, r, sp);
+    case Command::Type::SmoothTurn:
+      return makeCurveAction(c.amt, r, sp);
+    case Command::Type::Stop:
+      break;
+  }
+  return std::make_unique<StopAction>();
+}
+
 std::unique_ptr<Action> CommandTranslator::makeFwdAction(int8_t amt, Robot &r, const SpeedProfile &sp) {
   const Cell v = octantOffset(goalAngle);
   const WorldCoord pose = r.getWorldCoord();
