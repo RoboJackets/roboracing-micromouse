@@ -7,11 +7,11 @@ double RobotState::distance_to_collision(double x, double y, double theta, bool 
     double curr_y = y;
     double distance = 0;
     bool is_collision = false;
-    while (distance < 50 && !is_collision) {
-        curr_x += dx;
-        curr_y += dy;
-        int r = std::fmod(curr_x, 1.2);
-        int c = std::fmod(curr_y, 1.2);
+    while (distance < .5 && !is_collision) {
+        curr_x += dx * .01;
+        curr_y += dy * .01;
+        int r = std::fmod(curr_x, .012);
+        int c = std::fmod(curr_y, .012);
         if (r < 240 && c < 240 && worldState[r][c]) {
             is_collision = true;
         }

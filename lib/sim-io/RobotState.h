@@ -10,23 +10,23 @@ struct IR {
 };
 
 struct Motor {
-    double t = .45; // kg * cm (stall torque)
-    double r = 1.6; // cm (radius of wheel)
+    double t = .0045; // kg * m (stall torque)
+    double r = .016; // m (radius of wheel)
 };
 
 struct RobotState {
     // Onboard Electronic Constants
     const Motor motor_consts{};
     const std::array<IR, 4> ir_consts{
-        IR{0.968202, 0.500721, M_PI / 4},
-        IR{1.30488, 0.547281, 0},
-        IR{1.30488, 0.547281, 0},
-        IR{0.818039, 0.53409, -M_PI / 4}
+        IR{0.00968202, 0.00500721, M_PI / 4},
+        IR{0.0130488, 0.00547281, 0},
+        IR{0.0130488, 0.00547281, 0},
+        IR{0.00818039, 0.0053409, -M_PI / 4}
     };
 
     // Robot Constants
     const double m = .1; // kg (mass)
-    const double l = 12; // cm (wheel base of robot model)
+    const double l = .12; // m (wheel base of robot model)
 
     // State Information
     double x;
