@@ -33,6 +33,7 @@ CommandGenerator::State CommandGenerator::on(Straight s, Move m) {
     });
     return Straight{};
   }
+  return state;
 }
 
 CommandGenerator::State CommandGenerator::on(Turning s, Move m) {
@@ -97,6 +98,7 @@ CommandGenerator::State CommandGenerator::on(Turning s, Move m) {
       return Straight{};
     }
   }
+  return state;
 }
 
 std::unique_ptr<Action> CommandTranslator::translate(const Command& c, Robot& r, const SpeedProfile& sp) {
