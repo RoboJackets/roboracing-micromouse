@@ -29,12 +29,12 @@ struct RobotState {
     const double l = .12; // m (wheel base of robot model)
 
     // State Information
-    double x;
-    double y;
-    double theta;
-    double leftEncoder;
-    double rightEncoder;
-    std::array<double, 4> ir_readings;
+    double x = .09;
+    double y = .065;
+    double theta = M_PI / 2;
+    double leftEncoder = 0;
+    double rightEncoder = 0;
+    std::array<double, 4> ir_readings{};
 
     double distance_to_collision(double x, double y, double theta, bool worldState[240][240]);
     void update_state(double left, double right, double delta_t, bool worldState[240][240]);

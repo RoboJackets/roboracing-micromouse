@@ -15,7 +15,7 @@ void SimIO::poll() {
     sampledIr = robotState.ir_readings;
     sampledLeft = robotState.leftEncoder;
     sampledRight = robotState.rightEncoder;
-    sampledYaw = robotState.theta;
+    sampledYaw = -robotState.theta;
 }
 
 void SimIO::setMotorPwm(double left, double right) {
