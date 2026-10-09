@@ -32,6 +32,14 @@ bool SimIO::loadMazeNum(std::ifstream& in) {
     return true;
 }
 
+void SimIO::printMaze(std::ostream &out) const {
+    out << "MAZE: 240 240 ";
+    for (int y = 0; y < 240; y++)
+        for (int x = 0; x < 240; x++)
+            out << (worldState[x][y] ? '1' : '0');
+    out << '\n';
+}
+
 void SimIO::init() {
     start_time = std::chrono::steady_clock::now();
     current_time = 0;
