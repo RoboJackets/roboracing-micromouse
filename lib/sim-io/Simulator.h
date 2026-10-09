@@ -1,8 +1,10 @@
 #pragma once
 #include "MouseIO.h"
 #include "RobotState.h"
+#include "maze/Maze.h"
 #include <array>
 #include <chrono>
+#include <string>
 
 struct SimIO : MouseIO {
   // each grid represents 0.012m
@@ -17,6 +19,12 @@ struct SimIO : MouseIO {
   double sampledLeft = 0;
   double sampledRight = 0;
   std::array<double, 4> sampledIr{};
+
+  // Marks the wall on side d of cell (cx, cy), one grid square thick.
+  void addWall(int cx, int cy, Dir d);
+  // Replaces worldState with the maze in a .num file ("x y N E S W" per cell,
+  // 1 = wall). Returns false if the file can't be opened.
+  bool SimIO::loadMazeNum(std::ifstream& in);
 
   void init() override;
 
