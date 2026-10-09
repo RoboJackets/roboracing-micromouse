@@ -1,6 +1,7 @@
 #pragma once
 #include <cmath>
 #include <array>
+#include "robot/DistanceSensors.h"
 
 
 struct IR {
@@ -17,11 +18,12 @@ struct Motor {
 struct RobotState {
     // Onboard Electronic Constants
     const Motor motor_consts{};
+    // Same mounts the robot uses: robot frame, +y forward, +x right
     const std::array<IR, 4> ir_consts{
-        IR{0.00968202, 0.00500721, M_PI / 4},
-        IR{0.0130488, 0.00547281, 0},
-        IR{0.0130488, 0.00547281, 0},
-        IR{0.00818039, 0.0053409, -M_PI / 4}
+        IR{IR_MOUNTS[0].x, IR_MOUNTS[0].y, IR_MOUNTS[0].theta},
+        IR{IR_MOUNTS[1].x, IR_MOUNTS[1].y, IR_MOUNTS[1].theta},
+        IR{IR_MOUNTS[2].x, IR_MOUNTS[2].y, IR_MOUNTS[2].theta},
+        IR{IR_MOUNTS[3].x, IR_MOUNTS[3].y, IR_MOUNTS[3].theta}
     };
 
     // Robot Constants
