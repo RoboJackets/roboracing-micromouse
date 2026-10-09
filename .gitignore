@@ -38,3 +38,4 @@
 !.vscode/settings.json
 !.vscode/extensions.json
 .pio/
+build/*
