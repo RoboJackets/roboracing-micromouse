@@ -4,6 +4,7 @@
 #include "maze/Maze.h"
 #include <array>
 #include <chrono>
+#include <ostream>
 #include <string>
 
 struct SimIO : MouseIO {
@@ -24,7 +25,10 @@ struct SimIO : MouseIO {
   void addWall(int cx, int cy, Dir d);
   // Replaces worldState with the maze in a .num file ("x y N E S W" per cell,
   // 1 = wall). Returns false if the file can't be opened.
-  bool SimIO::loadMazeNum(std::ifstream& in);
+  bool loadMazeNum(std::ifstream& in);
+  // Prints worldState as one line: "MAZE: 240 240 " followed by 240 * 240
+  // '0'/'1' characters, row by row from y = 0, x = 0..239 within each row.
+  void printMaze(std::ostream &out) const;
 
   void init() override;
 
