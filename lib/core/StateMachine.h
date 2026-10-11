@@ -50,4 +50,5 @@ struct StateMachine {
   void runFastPath(Robot &r, const std::vector<Move> &moves);
   void switchState(GoalState state, Robot &r);
   void updateState(Cell at, Robot &r);
+  SequentialAction movesToAction(const std::vector<Move> &moves);
 };
