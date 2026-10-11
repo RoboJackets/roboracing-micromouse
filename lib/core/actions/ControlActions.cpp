@@ -4,6 +4,11 @@
 
 #include "robot/Robot.h"
 
+void StopAction::run(Robot &r) {
+  r.driveDuty(0.0, 0.0);
+  canceled = true;
+}
+
 DriveTimeAction::DriveTimeAction(double time, double speed)
     : finalTime(time), speed(speed) {}
 

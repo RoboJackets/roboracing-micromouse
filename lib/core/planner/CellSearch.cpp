@@ -4,8 +4,6 @@
 #include <string>
 #include <unordered_set>
 
-#include "CommandGenerator.h"
-
 namespace {
 
 struct CellHash {
@@ -86,14 +84,14 @@ std::vector<unsigned char> planFastRoute(const MazeMap &map, const Goals &goal,
   double bestWeight = 9999999999999.0;
   std::vector<unsigned char> bestVec{};
 
-  for (const auto &vec : solutions) {
-    std::string s = path_to_instruct(vec, facing);
-    std::vector<unsigned char> v = parse(s, false);
-    double w = computeWeight(v);
-    if (w < bestWeight) {
-      bestWeight = w;
-      bestVec = std::move(v);
-    }
-  }
+  // for (const auto &vec : solutions) {
+  //   std::string s = path_to_instruct(vec, facing);
+  //   std::vector<unsigned char> v = parse(s, false);
+  //   double w = computeWeight(v);
+  //   if (w < bestWeight) {
+  //     bestWeight = w;
+  //     bestVec = std::move(v);
+  //   }
+  // }
   return bestVec;
 }

@@ -56,5 +56,7 @@
         "sstream": "cpp",
         "stack": "cpp",
         "cstdarg": "cpp"
-    }
+    },
+    "clangd.enable": false,
+    "C_Cpp.intelliSenseEngine": "default"
 }

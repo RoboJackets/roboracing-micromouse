@@ -7,6 +7,10 @@
 #include "Types.h"
 #include <cmath>
 
+struct StopAction : Action {
+  void run(Robot &r) override;
+};
+
 struct DriveTimeAction : Action {
   double totalTime = 0;
   double finalTime;
