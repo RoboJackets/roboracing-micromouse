@@ -71,12 +71,19 @@ private:
     Side side;
   };
 
-  using State = std::variant<Straight, Turning>;
+  struct Diagonal {
+    Side lastSide;
+    Side generalSide;
+    int cells = 1;
+  };
+
+  using State = std::variant<Straight, Turning, Diagonal>;
 
   // Transitions
   // state' <- f(state, move)
   State on(Straight s, Move m);
   State on(Turning s, Move m);
+  State on(Diagonal s, Move m);
 
   // Logistics
   void push_cmd(Command c) {

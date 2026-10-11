@@ -49,13 +49,9 @@ CommandGenerator::State CommandGenerator::on(Turning s, Move m) {
         Command::Type::SmoothTurn,
         -2
       });
-      return Turning{Side::Left };
+      return Turning{Side::Left};
     } else if (m == Move::Right) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        -2
-      });
-      return Turning{Side::Right };
+      return Diagonal{Side::Right, Side::Left};
     } else if (m == Move::Stop) {
       push_cmd({
         Command::Type::SmoothTurn,
@@ -75,17 +71,102 @@ CommandGenerator::State CommandGenerator::on(Turning s, Move m) {
       });
       return Straight{1};
     } else if (m == Move::Left) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        2
-      });
-      return Turning{Side::Left };
+      return Diagonal{Side::Left, Side::Right};
     } else if (m == Move::Right) {
       push_cmd({
         Command::Type::SmoothTurn,
         2
       });
       return Turning{Side::Right };
+    } else if (m == Move::Stop) {
+      push_cmd({
+        Command::Type::SmoothTurn,
+        2
+      });
+      push_cmd({
+        Command::Type::Stop,
+        0
+      });
+      return Straight{};
+    }
+  }
+  return state;
+} 
+
+CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
+  if (s.lastSide == Side::Left) {
+    if (m == Move::Forward) {
+      push_cmd({
+        Command::Type::SmoothTurn,
+        s.generalSide == Side::Left ? -1 : 1 
+      });
+      push_cmd({
+        Command::Type::Forward,
+        s.cells
+      });
+      push_cmd({
+        Command::Type::SmoothTurn,
+        s.generalSide == Side::Left ? -1 : 1 
+      });
+      return Straight{1};
+    } else if (m == Move::Left) {
+      push_cmd({
+        Command::Type::SmoothTurn,
+        s.generalSide == Side::Left ? -1 : 1 
+      });
+      push_cmd({
+        Command::Type::Forward,
+        s.cells
+      });
+      push_cmd({
+        Command::Type::SmoothTurn,
+        s.generalSide == Side::Left ? -1 : 1 
+      });
+      return Straight{1};
+    } else if (m == Move::Right) {
+      return Diagonal{Side::Right, s.generalSide, s.cells + 1};
+    } else if (m == Move::Stop) {
+      push_cmd({
+        Command::Type::SmoothTurn,
+        -2
+      });
+      push_cmd({
+        Command::Type::Stop,
+        0
+      });
+      return Straight{};
+    }
+  } else if (s.lastSide == Side::Right) {
+    if (m == Move::Forward) {
+      push_cmd({
+        Command::Type::SmoothTurn,
+        s.generalSide == Side::Left ? -1 : 1 
+      });
+      push_cmd({
+        Command::Type::Forward,
+        s.cells
+      });
+      push_cmd({
+        Command::Type::SmoothTurn,
+        s.generalSide == Side::Left ? -1 : 1 
+      });
+      return Straight{1};
+    } else if (m == Move::Left) {
+      return Diagonal{Side::Right, s.generalSide, s.cells};
+    } else if (m == Move::Right) {
+      push_cmd({
+        Command::Type::SmoothTurn,
+        s.generalSide == Side::Left ? -1 : 1 
+      });
+      push_cmd({
+        Command::Type::Forward,
+        s.cells
+      });
+      push_cmd({
+        Command::Type::SmoothTurn,
+        s.generalSide == Side::Left ? -1 : 1 
+      });
+      return Straight{1};
     } else if (m == Move::Stop) {
       push_cmd({
         Command::Type::SmoothTurn,
