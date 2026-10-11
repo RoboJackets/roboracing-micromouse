@@ -24,9 +24,7 @@ int main(int argc, char *argv[]) {
     mouse.init(robot);
     robot.setWorldCoord(WorldCoord{0.09, 0.065, M_PI / 2});
     mouse.runFastPath(robot, {Move::Forward, Move::Forward, Move::Right, Move::Forward, Move::Stop});
-
     
-
     while (true) {
         mouse.tick(robot);
         std::cout << "TIME: " << simIO.now() << '\n';
