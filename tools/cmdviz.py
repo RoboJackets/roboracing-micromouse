@@ -25,8 +25,9 @@ CENTER_GOAL_CELLS = [(7, 7), (7, 8), (8, 7), (8, 8)]
 # Must match `struct Command` in lib/core/planner/CommandGenerator.h as dumped
 # by src/cmdgen/main.cpp: 4-byte enum `type`, int8_t `amt`, 3 bytes padding.
 RECORD = struct.Struct("<ib3x")
-FORWARD, SMOOTH_TURN, STOP = 0, 1, 2
-TYPE_NAMES = {FORWARD: "Forward", SMOOTH_TURN: "SmoothTurn", STOP: "Stop"}
+FORWARD, SMOOTH_TURN, STOP, IN_PLACE_TURN = 0, 1, 2, 3
+TYPE_NAMES = {FORWARD: "Forward", SMOOTH_TURN: "SmoothTurn", STOP: "Stop",
+              IN_PLACE_TURN: "InPlaceTurn"}
 
 # Headings in clockwise order so a positive (right) turn increments the index.
 HEADINGS = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # N, E, S, W
@@ -50,6 +51,8 @@ def describe(cmd):
         return f"TURN {'R' if amt > 0 else 'L'} {abs(amt) * 45}°"
     if type_ == STOP:
         return "STOP"
+    if type_ == IN_PLACE_TURN:
+        return f"IPT {abs(amt) * 45}°"
     return f"UNKNOWN(type={type_}, amt={amt})"
 
 
@@ -82,6 +85,11 @@ def simulate(commands):
                 break
             heading = (heading + amt // 2) % 4
             advance(1)
+        elif type_ == IN_PLACE_TURN:
+            if amt % 2:
+                warnings.append(f"#{i}: {abs(amt) * 45}° turn (diagonal) not drawn")
+                break
+            heading = (heading + amt // 2) % 4
         elif type_ == STOP:
             spans.append((first, first))
             if i != len(commands) - 1:

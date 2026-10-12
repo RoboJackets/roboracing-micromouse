@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-#include "planner/CommandGenerator.h"
+#include "planner/Commands.h"
 
 bool toMove(char c, Move &m) {
   switch (c) {
@@ -11,6 +11,7 @@ bool toMove(char c, Move &m) {
   case 'R': m = Move::Right;   return true;
   case 'B': m = Move::Back;    return true;
   case 'S': m = Move::Stop;    return true;
+  case 'C': m = Move::Continue; return true;
   }
   return false;
 }

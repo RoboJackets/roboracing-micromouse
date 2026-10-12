@@ -2,22 +2,6 @@
 
 #include "robot/Robot.h"
 
-std::vector<Move> planFastMoves(const MazeMap &map, const Phase &phase) {
-  const DistanceField field = floodFill(map, *phase.goal, phase.reach());
-  std::vector<Move> moves;
-  Cell at{0, 0};
-  Dir facing = Dir::North;
-  while (!atGoal(at, *phase.goal) && field.at(at) < INF &&
-         moves.size() < N * N) {
-    const Dir d = nextStep(map, field, at, facing, *phase.goal);
-    moves.push_back(relativeMove(facing, d));
-    at = step(at, d);
-    facing = d;
-  }
-  moves.push_back(Move::Stop);
-  return moves;
-}
-
 void StateMachine::init(Robot &r) {
   r.map.markKnown(Cell{0, 0});
   for (int i = 0; i < CENTER_GOALS.count; ++i)
@@ -52,6 +36,7 @@ void StateMachine::switchState(GoalState state, Robot &r) {
     a->begin(r);
     break;
   case GoalState::GOAL_SEARCH:
+    break;
   case GoalState::RETURN:
     break;
   }
@@ -84,22 +69,29 @@ void StateMachine::tick(Robot &r) {
   const Cell at = cellOf(pose);
   const Dir facing = dirOf(pose.theta);
 
-  updateState(at, r);
-
+  
   if (a->completed()) {
+    updateState(at, r);
     a->end(r);
     r.map.allowUpdates(phase.mapping);
     r.observe();
-    Move move = exploreStep(r.map, at, facing, *phase.goal, phase.reach(),
-                            phase.fastSpeed);
-    std::vector<Move> moves = {move};
-    act = movesToAction(moves, EXPLORE_SPEED);
+    if (currentState == GoalState::FAST_PATH) {
+      translator.goalAngle = 0;
+      act = movesToAction(planFastRoute(r.map, *phase.goal), FAST_SPEED);
+    } else {
+      Move move = exploreStep(r.map, at, facing, *phase.goal, phase.reach(),
+                              phase.fastSpeed);
+      std::vector<Move> moves = {move, Move::Continue};
+      act = movesToAction(moves, EXPLORE_SPEED);
+    }
+
     a = &act;
     a->begin(r);
   }
   a->run(r);
 }
-SequentialAction StateMachine::movesToAction(const std::vector<Move> &moves, const SpeedProfile speed) {
+SequentialAction StateMachine::movesToAction(const std::vector<Move> &moves,
+                                             const SpeedProfile speed) {
   const std::vector<Command> commands = CommandGenerator{}.exec(moves);
   std::vector<std::unique_ptr<Action>> steps;
   for (const Command &c : commands)

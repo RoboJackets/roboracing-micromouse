@@ -4,6 +4,7 @@
 #include "actions/StartupAction.h"
 #include "maze/Explorer.h"
 #include "planner/Commands.h"
+#include "planner/CellSearch.h"
 
 enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
 
