@@ -23,7 +23,7 @@ struct StateMachine {
 
   SequentialAction startup = makeStartup();
   EmptyAction empty{};
-  SequentialAction fastPath{};
+  SequentialAction act{};
   CommandTranslator translator{};
   Action *a = &startup;
 
@@ -50,5 +50,5 @@ struct StateMachine {
   void runFastPath(Robot &r, const std::vector<Move> &moves);
   void switchState(GoalState state, Robot &r);
   void updateState(Cell at, Robot &r);
-  SequentialAction movesToAction(const std::vector<Move> &moves);
+  SequentialAction movesToAction(const std::vector<Move> &moves, const SpeedProfile speed);
 };
