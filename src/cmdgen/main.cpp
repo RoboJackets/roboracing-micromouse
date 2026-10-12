@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-#include "planner/CommandGenerator.h"
+#include "planner/Commands.h"
 
 bool toMove(char c, Move &m) {
   switch (c) {
