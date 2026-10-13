@@ -41,15 +41,12 @@ void SimIO::printMaze(std::ostream &out) const {
 }
 
 void SimIO::init() {
-    start_time = std::chrono::steady_clock::now();
     current_time = 0;
 }
 
 void SimIO::poll() {
-    double now = SimIO::now();
-    double delta_t = now - current_time;
-    current_time = now;
-    robotState.update_state(current_left_pwm, current_right_pwm, delta_t, worldState);
+    current_time += dt;
+    robotState.update_state(current_left_pwm, current_right_pwm, dt, worldState);
     sampledIr = robotState.ir_readings;
     sampledLeft = robotState.leftEncoder;
     sampledRight = robotState.rightEncoder;
@@ -68,5 +65,5 @@ bool SimIO::buttonPressed() {
 }
 
 double SimIO::now() {
-    return std::chrono::duration<double>(std::chrono::steady_clock::now() - start_time).count();
+    return current_time;
 }

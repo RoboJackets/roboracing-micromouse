@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Live plot of the simulator's streamed pose and IR readings on a 16x16 maze.
+"""Play back the simulator's pose and IR readings on a 16x16 maze.
+
+The simulator runs much faster than real time, so the window replays the run by
+the TIME stamps in its output rather than drawing blocks as they arrive.
 
 Usage:
-    .pio/build/sim/program | python3 tools/simviz.py              # live window
-    python3 tools/simviz.py sim.log --save run.png                # static image of a saved run
+    .pio/build/sim/program | python3 tools/simviz.py              # play back at real speed
+    python3 tools/simviz.py sim.log --speed 4                     # replay a saved run at 4x
+    python3 tools/simviz.py sim.log --save run.png                # static image of the whole run
 
 Reads the maze printed once at startup, then the blocks printed every tick:
     MAZE: <w> <h> <w*h 0/1 chars, row by row from y = 0>   (SimIO::printMaze)
@@ -12,9 +16,11 @@ Reads the maze printed once at startup, then the blocks printed every tick:
     0: <x>, <y>     1: <x>, <y>     2: ...      (IR hits, robot frame, metres)
 """
 import argparse
+import bisect
 import math
 import sys
 import threading
+import time
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -29,16 +35,17 @@ MIN_STEP_METERS = 0.002  # skip path points closer than this to keep the trail l
 
 
 class Stream:
-    """Parses the simulator output, keeping a decimated trail plus the latest tick."""
+    """Parses the simulator output into one frame per printed block."""
 
     def __init__(self):
         self.lock = threading.Lock()
-        self.trail = []  # (x, y) in metres
-        self.pose = None  # (x, y, theta)
-        self.time = 0.0
-        self.sensors = []  # IR hits in the robot frame, metres
+        self.trail = []  # (x, y) in metres, decimated over the whole run
+        self.times = []  # sim time of each frame, ascending
+        self.frames = []  # (pose, sensors, trail length) per frame
         self.maze = None  # walls as a [y][x] bool array, one entry per sim grid square
         self.done = False
+        self._time = 0.0  # TIME and WORLD of the block being parsed
+        self._pose = None
 
     def feed(self, line):
         if line.startswith("MAZE:"):
@@ -48,24 +55,22 @@ class Stream:
             with self.lock:
                 self.maze = maze
         elif line.startswith("TIME:"):
-            t = float(line[5:])
-            with self.lock:
-                self.time = t
+            self._time = float(line[5:])
         elif line.startswith("WORLD:"):
             xy, theta = line[6:].split("THETA:")
             x, y = (float(v) for v in xy.split(","))
-            theta = float(theta)
-            with self.lock:
-                self.pose = (x, y, theta)
-                if not self.trail or math.dist(self.trail[-1], (x, y)) >= MIN_STEP_METERS:
-                    self.trail.append((x, y))
-        elif line[:2] == "0:":
+            self._pose = (x, y, float(theta))
+        elif line[:2] == "0:" and self._pose is not None:  # last line of a block
             hits = []
             parts = line.replace(",", " ").split()
             for i in range(0, len(parts) - 2, 3):  # ["0:", x, y, "1:", x, y, ...]
                 hits.append((float(parts[i + 1]), float(parts[i + 2])))
+            xy = self._pose[:2]
             with self.lock:
-                self.sensors = hits
+                if not self.trail or math.dist(self.trail[-1], xy) >= MIN_STEP_METERS:
+                    self.trail.append(xy)
+                self.times.append(self._time)
+                self.frames.append((self._pose, hits, len(self.trail)))
 
     def read(self, f):
         for line in f:
@@ -128,19 +133,40 @@ def make_artists(ax):
     return trail, rays, hits, robot, walls
 
 
-def update(stream, fig, artists):
+class Clock:
+    """Playback time: sim seconds since the first frame, scaled by speed."""
+
+    def __init__(self, speed):
+        self.speed = speed
+        self.start = None  # wall time when playback began
+
+    def now(self, stream):
+        with stream.lock:
+            if not stream.times:
+                return None
+            first = stream.times[0]
+        if self.start is None:
+            self.start = time.monotonic()
+        return first + (time.monotonic() - self.start) * self.speed
+
+
+def update(stream, fig, artists, t=math.inf):
+    """Draw the last frame at or before sim time t."""
     trail, rays, hits, robot, walls = artists
     with stream.lock:
-        pts = list(stream.trail)
-        pose, sensors, t = stream.pose, list(stream.sensors), stream.time
         maze, stream.maze = stream.maze, None
+        i = bisect.bisect_right(stream.times, t) - 1
+        if i >= 0:
+            pose, sensors, n = stream.frames[i]
+            t = stream.times[i]
+            pts = stream.trail[:n]
     if maze is not None:
         rgba = np.zeros(maze.shape + (4,))
         rgba[maze] = (0.15, 0.15, 0.15, 1.0)
         walls.set_data(rgba)
-    trail.set_data([p[0] / CELL_SIZE_METERS for p in pts], [p[1] / CELL_SIZE_METERS for p in pts])
-    if pose is None:
+    if i < 0:
         return
+    trail.set_data([p[0] / CELL_SIZE_METERS for p in pts], [p[1] / CELL_SIZE_METERS for p in pts])
     robot.set_xy(robot_shape(pose))
     robot.set_visible(True)
     cx, cy = pose[0] / CELL_SIZE_METERS, pose[1] / CELL_SIZE_METERS
@@ -165,6 +191,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("file", nargs="?", help="saved simulator output (default: stdin)")
     parser.add_argument("--save", metavar="PNG", help="read to the end, then write an image")
+    parser.add_argument("--speed", type=float, default=1.0,
+                        help="playback speed, sim seconds per real second (default: 1)")
     args = parser.parse_args()
 
     src = open(args.file) if args.file else sys.stdin
@@ -185,8 +213,14 @@ def main():
         return
 
     threading.Thread(target=stream.read, args=(src,), daemon=True).start()
-    anim = FuncAnimation(fig, lambda _: update(stream, fig, artists), interval=100,
-                         cache_frame_data=False)
+    clock = Clock(args.speed)
+
+    def tick(_):
+        t = clock.now(stream)
+        if t is not None:
+            update(stream, fig, artists, t)
+
+    anim = FuncAnimation(fig, tick, interval=33, cache_frame_data=False)
     plt.show()
     del anim
 

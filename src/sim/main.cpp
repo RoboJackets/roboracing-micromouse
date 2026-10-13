@@ -4,6 +4,9 @@
 #include <iostream>
 #include <fstream>
 
+constexpr double PRINT_PERIOD = 0.01;
+constexpr double MAX_SIM_TIME = 300;
+
 int main(int argc, char *argv[]) {
     SimIO simIO{};
     Robot robot{simIO};
@@ -25,10 +28,14 @@ int main(int argc, char *argv[]) {
     robot.setWorldCoord(WorldCoord{0.09, 0.065, M_PI / 2});
     mouse.runFastPath(robot, {Move::Forward, Move::Forward, Move::Right, Move::Forward, Move::Stop});
 
-    
+    double last_print = -PRINT_PERIOD;
 
-    while (true) {
+    while (simIO.now() < MAX_SIM_TIME) {
         mouse.tick(robot);
+        if (simIO.now() - last_print < PRINT_PERIOD)
+            continue;
+        last_print = simIO.now();
+
         std::cout << "TIME: " << simIO.now() << '\n';
 
         const WorldCoord w = robot.getWorldCoord();
@@ -40,6 +47,7 @@ int main(int argc, char *argv[]) {
         }
         std::cout << '\n';
     }
+    std::cout.flush();
 
     return 0;
 }
