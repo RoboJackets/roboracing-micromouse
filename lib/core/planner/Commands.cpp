@@ -128,7 +128,11 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
     } else if (m == Move::Stop) {
       push_cmd({
         Command::Type::SmoothTurn,
-        -2
+        s.generalSide == Side::Left ? -1 : 1 
+      });
+      push_cmd({
+        Command::Type::Forward,
+        s.cells / 2
       });
       push_cmd({
         Command::Type::Stop,
@@ -144,7 +148,7 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
       });
       push_cmd({
         Command::Type::Forward,
-        s.cells
+        s.cells / 2
       });
       push_cmd({
         Command::Type::SmoothTurn,
@@ -152,7 +156,7 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
       });
       return Straight{1};
     } else if (m == Move::Left) {
-      return Diagonal{Side::Right, s.generalSide, s.cells};
+      return Diagonal{Side::Left, s.generalSide, s.cells + 1};
     } else if (m == Move::Right) {
       push_cmd({
         Command::Type::SmoothTurn,
@@ -160,7 +164,7 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
       });
       push_cmd({
         Command::Type::Forward,
-        s.cells
+        s.cells / 2
       });
       push_cmd({
         Command::Type::SmoothTurn,
@@ -170,7 +174,11 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
     } else if (m == Move::Stop) {
       push_cmd({
         Command::Type::SmoothTurn,
-        2
+        s.generalSide == Side::Left ? -1 : 1 
+      });
+      push_cmd({
+        Command::Type::Forward,
+        s.cells / 2 + 1
       });
       push_cmd({
         Command::Type::Stop,

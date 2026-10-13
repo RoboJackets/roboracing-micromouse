@@ -74,7 +74,7 @@ private:
   struct Diagonal {
     Side lastSide;
     Side generalSide;
-    int cells = 1;
+    int cells = 0;
   };
 
   using State = std::variant<Straight, Turning, Diagonal>;

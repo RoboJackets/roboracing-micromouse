@@ -4,20 +4,25 @@
 Usage:
     echo FFRFFLFS | .pio/build/cmdgen/program | python3 tools/cmdviz.py
     python3 tools/cmdviz.py commands.bin
+    python3 tools/cmdviz.py --moves FFRLRL
     ... | python3 tools/cmdviz.py --save path.png    # write an image instead of opening a window
 
-The robot starts in the center of cell (0, 0) (bottom-left) facing north. Each
-Forward moves N cells; each 90° SmoothTurn rotates and moves one cell, drawn as a
-quarter arc through the cell where the heading changes.
+The robot starts in the center of cell (0, 0) (bottom-left) facing north. Forward
+moves along the current heading; each SmoothTurn rotates by ``amt * 45°`` and
+moves one cell. Right-angle turns are drawn as quarter arcs; diagonal legs are
+drawn as straight lines. Use ``--moves`` to interactively step through how input
+instructions are converted into commands.
 """
 import argparse
 import math
 import struct
 import sys
+import textwrap
 
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+from matplotlib.widgets import Button
 
 N = 16
 CENTER_GOAL_CELLS = [(7, 7), (7, 8), (8, 7), (8, 8)]
@@ -28,8 +33,12 @@ RECORD = struct.Struct("<ib3x")
 FORWARD, SMOOTH_TURN, STOP = 0, 1, 2
 TYPE_NAMES = {FORWARD: "Forward", SMOOTH_TURN: "SmoothTurn", STOP: "Stop"}
 
-# Headings in clockwise order so a positive (right) turn increments the index.
-HEADINGS = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # N, E, S, W
+# Octant offsets in clockwise order so a positive (right) turn increments index.
+HEADINGS = [
+    (0, 1), (1, 1), (1, 0), (1, -1),
+    (0, -1), (-1, -1), (-1, 0), (-1, 1),
+]  # N, NE, E, SE, S, SW, W, NW
+MOVE_NAMES = {"F": "Forward", "L": "Left", "R": "Right", "B": "Back", "S": "Stop"}
 
 # Cycled per command so adjacent segments are easy to tell apart.
 SEGMENT_COLORS = ["#1f6fd1", "#e67e22", "#16a085", "#8e44ad", "#c0392b"]
@@ -77,10 +86,7 @@ def simulate(commands):
         if type_ == FORWARD:
             advance(amt)
         elif type_ == SMOOTH_TURN:
-            if amt % 2:
-                warnings.append(f"#{i}: {abs(amt) * 45}° turn (diagonal) not drawn")
-                break
-            heading = (heading + amt // 2) % 4
+            heading = (heading + amt) % len(HEADINGS)
             advance(1)
         elif type_ == STOP:
             spans.append((first, first))
@@ -101,12 +107,87 @@ def simulate(commands):
     return cells, heading, spans, warnings
 
 
+def generate_move(state, move):
+    """Mirror one CommandGenerator transition; return its new state and output."""
+    kind = state[0]
+    emitted = []
+    if kind == "straight":
+        cells = state[1]
+        if move == "F":
+            return ("straight", cells + 1), emitted
+        if move in ("L", "R"):
+            if cells:
+                emitted.append((FORWARD, cells))
+            return ("turning", -1 if move == "L" else 1), emitted
+        if move == "S":
+            if cells:
+                emitted.append((FORWARD, cells))
+            emitted.append((STOP, 0))
+            return ("straight", 0), emitted
+    elif kind == "turning":
+        side = state[1]
+        if move == "F":
+            emitted.append((SMOOTH_TURN, 2 * side))
+            return ("straight", 1), emitted
+        if move == "L" and side == -1 or move == "R" and side == 1:
+            emitted.append((SMOOTH_TURN, 2 * side))
+            return state, emitted
+        if move in ("L", "R"):
+            return ("diagonal", -side, side, 1), emitted
+        if move == "S":
+            emitted.extend(((SMOOTH_TURN, 2 * side), (STOP, 0)))
+            return ("straight", 0), emitted
+    elif kind == "diagonal":
+        last_side, general_side, cells = state[1:]
+        if move == "F":
+            emitted.extend(((SMOOTH_TURN, general_side),
+                            (FORWARD, cells),
+                            (SMOOTH_TURN, last_side)))
+            return ("straight", 1), emitted
+        if last_side == -1 and move == "R":
+            return ("diagonal", 1, general_side, cells + 1), emitted
+        if last_side == 1 and move == "L":
+            return ("diagonal", -1, general_side, cells), emitted
+        if move == ("L" if last_side == -1 else "R"):
+            emitted.extend(((SMOOTH_TURN, general_side),
+                            (FORWARD, cells),
+                            (SMOOTH_TURN, 3 * last_side)))
+            return ("straight", 1), emitted
+        if move == "S":
+            emitted.extend(((SMOOTH_TURN, 2 * last_side), (STOP, 0)))
+            return ("straight", 0), emitted
+    return state, emitted
+
+
+def trace_moves(moves):
+    """Return command-generator state and emitted commands after each move."""
+    state = ("straight", 0)
+    commands = []
+    trace = [{"move": None, "state": state, "emitted": [], "commands": []}]
+    for move in moves:
+        state, emitted = generate_move(state, move)
+        commands.extend(emitted)
+        trace.append({"move": move, "state": state, "emitted": emitted,
+                      "commands": commands.copy()})
+    return trace
+
+
+def describe_state(state):
+    if state[0] == "straight":
+        return f"Straight; {state[1]} forward move(s) buffered"
+    if state[0] == "turning":
+        return f"Turning {'right' if state[1] > 0 else 'left'}; waiting for resolution"
+    _, last_side, general_side, cells = state
+    return (f"Diagonal; last side {'right' if last_side > 0 else 'left'}, "
+            f"general side {'right' if general_side > 0 else 'left'}, {cells} cell(s)")
+
+
 def step_pieces(cells, samples=12):
-    """Return one polyline per cell step, with 90° corners drawn as quarter arcs.
+    """Return one polyline per step, with cardinal 90° corners drawn as arcs.
 
     A corner arc (radius half a cell) belongs to the step that turns, so it begins
-    on the edge where the robot enters the corner cell. Joining consecutive pieces
-    gives one continuous path.
+    on the edge where the robot enters the corner cell. Diagonal legs remain
+    straight. Joining consecutive pieces gives one continuous path.
     """
     centers = [(x + 0.5, y + 0.5) for x, y in cells]
     n = len(centers) - 1
@@ -115,7 +196,12 @@ def step_pieces(cells, samples=12):
         return (centers[k + 1][0] - centers[k][0], centers[k + 1][1] - centers[k][1])
 
     def corner(k):
-        return 0 < k < n and d(k - 1) != d(k) and d(k - 1) != (-d(k)[0], -d(k)[1])
+        if not 0 < k < n:
+            return False
+        din, dout = d(k - 1), d(k)
+        cardinal = lambda direction: direction[0] == 0 or direction[1] == 0
+        return (cardinal(din) and cardinal(dout)
+                and din[0] * dout[0] + din[1] * dout[1] == 0)
 
     pieces = []
     for k in range(n):
@@ -142,13 +228,7 @@ def step_pieces(cells, samples=12):
     return pieces
 
 
-def draw(cells, heading, spans, save_path=None):
-    if save_path:
-        matplotlib.use("Agg")
-
-    fig, ax = plt.subplots(figsize=(8, 8))
-    fig.canvas.manager.set_window_title("micromouse path visualizer")
-
+def draw_path(ax, cells, heading, spans):
     for x, y in CENTER_GOAL_CELLS:
         ax.add_patch(Rectangle((x, y), 1, 1, color="#f6d860", alpha=0.5, lw=0))
     ax.add_patch(Rectangle((0, 0), 1, 1, color="#8fd18f", alpha=0.6, lw=0))
@@ -174,7 +254,9 @@ def draw(cells, heading, spans, save_path=None):
 
     ax.plot(*start, "o", color="#1a8f1a", ms=12, zorder=5)
     dx, dy = HEADINGS[heading]
-    ax.annotate("", xy=(end[0] + 0.35 * dx, end[1] + 0.35 * dy), xytext=end,
+    length = math.hypot(dx, dy)
+    ax.annotate("", xy=(end[0] + 0.35 * dx / length,
+                        end[1] + 0.35 * dy / length), xytext=end,
                 arrowprops=dict(arrowstyle="-|>", color="#c0392b", lw=2.5,
                                 mutation_scale=22), zorder=5)
     for x, y in cells:
@@ -189,19 +271,102 @@ def draw(cells, heading, spans, save_path=None):
     ax.tick_params(length=0)
     for side in ax.spines.values():
         side.set_visible(False)
-    fig.tight_layout()
 
+
+def draw(cells, heading, spans, save_path=None):
+    if save_path:
+        matplotlib.use("Agg")
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    fig.canvas.manager.set_window_title("micromouse path visualizer")
+    draw_path(ax, cells, heading, spans)
+    fig.tight_layout()
     if save_path:
         fig.savefig(save_path, dpi=100)
     else:
         plt.show()
 
 
+def draw_stepper(moves):
+    trace = trace_moves(moves)
+    fig, ax = plt.subplots(figsize=(10, 9))
+    fig.canvas.manager.set_window_title("micromouse instruction stepper")
+    fig.subplots_adjust(top=0.68, bottom=0.16)
+    fig.text(0.5, 0.94, f"Instructions: {' '.join(moves)}",
+             ha="center", va="top", fontsize=14, family="monospace")
+    detail = fig.text(0.5, 0.86, "", ha="center", va="top",
+                      fontsize=10, family="monospace")
+    step_label = fig.text(0.5, 0.72, "", ha="center", va="top", fontsize=10)
+    index = [0]
+
+    def update():
+        step = index[0]
+        entry = trace[step]
+        commands = entry["commands"]
+        cells, heading, spans, warnings = simulate(commands)
+        ax.clear()
+        draw_path(ax, cells, heading, spans)
+        if step == 0:
+            instruction = "Start"
+            emitted = "—"
+        else:
+            instruction = f"{step}. {entry['move']} ({MOVE_NAMES[entry['move']]})"
+            emitted = ", ".join(map(describe, entry["emitted"])) or "none"
+        generated = ", ".join(map(describe, commands)) or "none yet"
+        detail.set_text(textwrap.fill(
+            f"Instruction: {instruction} | Emitted now: {emitted} | "
+            f"State: {describe_state(entry['state'])} | Commands so far: {generated}",
+            width=110))
+        step_label.set_text(f"Step {step} of {len(moves)}")
+        path_warnings = [warning for warning in warnings
+                         if warning != "path does not end with STOP"]
+        if path_warnings:
+            step_label.set_text(f"Step {step} of {len(moves)} — {path_warnings[0]}")
+        fig.canvas.draw_idle()
+
+    previous_ax = fig.add_axes([0.35, 0.045, 0.13, 0.06])
+    next_ax = fig.add_axes([0.52, 0.045, 0.13, 0.06])
+    previous_button = Button(previous_ax, "Previous")
+    next_button = Button(next_ax, "Next")
+
+    def move_step(delta):
+        index[0] = max(0, min(len(moves), index[0] + delta))
+        update()
+
+    previous_button.on_clicked(lambda _event: move_step(-1))
+    next_button.on_clicked(lambda _event: move_step(1))
+    fig.canvas.mpl_connect("key_press_event", lambda event: (
+        move_step(-1) if event.key in ("left", "backspace")
+        else move_step(1) if event.key in ("right", "enter", " ")
+        else None
+    ))
+    update()
+    plt.show()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("file", nargs="?", help="binary command file (default: stdin)")
+    parser.add_argument("--moves", help="step through move instructions (F, L, R, B, S)")
     parser.add_argument("--save", metavar="PNG", help="write an image instead of opening a window")
     args = parser.parse_args()
+
+    if args.moves is not None:
+        if args.file:
+            parser.error("--moves cannot be combined with a binary command file")
+        moves = "".join(args.moves.upper().split())
+        invalid = next((move for move in moves if move not in MOVE_NAMES), None)
+        if invalid is not None:
+            parser.error(f"unknown move {invalid!r}; expected only F, L, R, B, S")
+        if args.save:
+            commands = trace_moves(moves)[-1]["commands"]
+            cells, heading, spans, warnings = simulate(commands)
+            for warning in warnings:
+                print(f"warning: {warning}", file=sys.stderr)
+            draw(cells, heading, spans, args.save)
+        else:
+            draw_stepper(moves)
+        return
 
     if args.file:
         with open(args.file, "rb") as f:
