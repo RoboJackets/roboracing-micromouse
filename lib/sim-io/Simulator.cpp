@@ -67,3 +67,11 @@ bool SimIO::buttonPressed() {
 double SimIO::now() {
     return current_time;
 }
+
+int SimIO::printf(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int result = ::printf(format, args);
+    va_end(args);
+    return result;
+}

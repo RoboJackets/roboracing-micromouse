@@ -66,3 +66,11 @@ void TeensyIO::init() {
   mLeft.begin();
   mRight.begin();
 }
+
+int TeensyIO::printf(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  int result = Serial.printf(format, args);
+  va_end(args);
+  return result;
+}
