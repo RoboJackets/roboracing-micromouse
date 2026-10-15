@@ -14,6 +14,8 @@ Reads the maze printed once at startup, then the blocks printed every tick:
     TIME: <seconds since start>
     WORLD: <x>, <y> THETA: <theta>
     0: <x>, <y>     1: <x>, <y>     2: ...      (IR hits, robot frame, metres)
+Any other line (e.g. MouseIO::printf output) is echoed to stdout when playback
+reaches the sim time it was printed at.
 """
 import argparse
 import bisect
@@ -42,12 +44,14 @@ class Stream:
         self.trail = []  # (x, y) in metres, decimated over the whole run
         self.times = []  # sim time of each frame, ascending
         self.frames = []  # (pose, sensors, trail length) per frame
+        self.logs = []  # (sim time, text) of lines that aren't part of a block
         self.maze = None  # walls as a [y][x] bool array, one entry per sim grid square
         self.done = False
         self._time = 0.0  # TIME and WORLD of the block being parsed
         self._pose = None
 
-    def feed(self, line):
+    def feed(self, raw):
+        line = raw.strip()
         if line.startswith("MAZE:"):
             _, w, h, bits = line.split()
             w, h = int(w), int(h)
@@ -71,14 +75,34 @@ class Stream:
                     self.trail.append(xy)
                 self.times.append(self._time)
                 self.frames.append((self._pose, hits, len(self.trail)))
+        else:
+            with self.lock:
+                self.logs.append((self._time, raw.rstrip("\r\n")))
 
     def read(self, f):
         for line in f:
             try:
-                self.feed(line.strip())
+                self.feed(line)
             except ValueError:
                 pass  # partial or unexpected line
         self.done = True
+
+
+class Echo:
+    """Prints the stream's log lines up to a sim time, each once."""
+
+    def __init__(self):
+        self.printed = 0
+
+    def upto(self, stream, t=math.inf):
+        with stream.lock:
+            new = []
+            while self.printed < len(stream.logs) and stream.logs[self.printed][0] <= t:
+                new.append(stream.logs[self.printed][1])
+                self.printed += 1
+        if new:
+            sys.stdout.write("\n".join(new) + "\n")
+            sys.stdout.flush()
 
 
 def to_world(pose, hit):
@@ -208,16 +232,19 @@ def main():
 
     if args.save:
         stream.read(src)
+        Echo().upto(stream)
         update(stream, fig, artists)
         fig.savefig(args.save, dpi=100)
         return
 
     threading.Thread(target=stream.read, args=(src,), daemon=True).start()
     clock = Clock(args.speed)
+    echo = Echo()
 
     def tick(_):
         t = clock.now(stream)
         if t is not None:
+            echo.upto(stream, t)
             update(stream, fig, artists, t)
 
     anim = FuncAnimation(fig, tick, interval=33, cache_frame_data=False)
