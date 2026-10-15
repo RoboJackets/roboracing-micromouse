@@ -77,12 +77,12 @@ void StateMachine::tick(Robot &r) {
     r.observe();
     if (currentState == GoalState::FAST_PATH) {
       translator.goalAngle = 0;
-      act = movesToAction(planFastRoute(r.map, *phase.goal), FAST_SPEED);
+      act = movesToAction(r, planFastRoute(r.map, *phase.goal), FAST_SPEED);
     } else {
       Move move = exploreStep(r.map, at, facing, *phase.goal, phase.reach(),
                               phase.fastSpeed);
       std::vector<Move> moves = {move, Move::Continue};
-      act = movesToAction(moves, EXPLORE_SPEED);
+      act = movesToAction(r, moves, EXPLORE_SPEED);
     }
 
     a = &act;
@@ -90,17 +90,19 @@ void StateMachine::tick(Robot &r) {
   }
   a->run(r);
 }
-SequentialAction StateMachine::movesToAction(const std::vector<Move> &moves,
+
+SequentialAction StateMachine::movesToAction(Robot& r, const std::vector<Move> &moves,
                                              const SpeedProfile speed) {
   const std::vector<Command> commands = CommandGenerator{}.exec(moves);
+  CommandTranslator translator{};
   std::vector<std::unique_ptr<Action>> steps;
   for (const Command &c : commands)
-    steps.push_back(std::make_unique<CommandStep>(c, translator, speed));
+    steps.push_back(translator.translate(c, r, speed));
   return SequentialAction(std::move(steps));
 }
 
 void StateMachine::runFastPath(Robot &r, const std::vector<Move> &moves) {
-  act = movesToAction(moves, FAST_SPEED);
+  act = movesToAction(r, moves, FAST_SPEED);
   a = &act;
   a->begin(r);
 }
