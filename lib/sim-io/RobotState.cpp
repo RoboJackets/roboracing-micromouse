@@ -1,4 +1,5 @@
 #include "RobotState.h"
+#include <algorithm>
 #include <limits>
 
 // Distance from (x, y) along heading theta to the first wall square, or infinity
@@ -41,8 +42,12 @@ double RobotState::distance_to_collision(double x, double y, double theta, bool 
 }
 
 void RobotState::update_state(double left, double right, double delta_t, bool worldState[240][240]) {
-    double v_l = (motor_consts.t * left)/(motor_consts.r * m);
-    double v_r = (motor_consts.t * right)/(motor_consts.r * m);
+    // duty below the static-friction threshold doesn't turn the wheel
+    auto effective = [&](double duty) {
+        return std::copysign(std::max(0.0, std::abs(duty) - motor_consts.static_duty), duty);
+    };
+    double v_l = (motor_consts.t * effective(left))/(motor_consts.r * m);
+    double v_r = (motor_consts.t * effective(right))/(motor_consts.r * m);
     if (v_l == v_r) {
         x += v_l * std::cos(theta) * delta_t;
         y += v_l * std::sin(theta) * delta_t;
