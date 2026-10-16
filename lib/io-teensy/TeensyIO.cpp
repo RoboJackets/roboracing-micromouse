@@ -70,7 +70,10 @@ void TeensyIO::init() {
 int TeensyIO::printf(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  int result = Serial.printf(format, args);
+  char buf[256];
+  int result = vsnprintf(buf, sizeof(buf), format, args);
   va_end(args);
+  if (result > 0)
+    Serial.write(buf, result < (int)sizeof(buf) ? result : sizeof(buf) - 1);
   return result;
 }
