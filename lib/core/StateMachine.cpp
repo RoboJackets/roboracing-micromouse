@@ -68,7 +68,6 @@ void StateMachine::tick(Robot &r) {
   const WorldCoord pose = r.getWorldCoord();
   const Cell at = cellOf(pose);
   const Dir facing = dirOf(pose.theta);
-
   
   if (a->completed()) {
     updateState(at, r);
@@ -76,11 +75,14 @@ void StateMachine::tick(Robot &r) {
     r.map.allowUpdates(phase.mapping);
     r.observe();
     if (currentState == GoalState::FAST_PATH) {
-      translator.goalAngle = 0;
-      act = movesToAction(r, planFastRoute(r.map, *phase.goal), FAST_SPEED);
+      printf("[fast_path]\n");
+      translator.goalAngle = 2 * static_cast<int>(facing);  // octants
+      act = movesToAction(r, planFastRoute(r.map, *phase.goal, at, facing),
+                          FAST_SPEED);
     } else {
       Move move = exploreStep(r.map, at, facing, *phase.goal, phase.reach(),
-                              phase.fastSpeed);
+      phase.fastSpeed);
+      printf("[explore] move: %d\n", move);
       std::vector<Move> moves = {move, Move::Continue};
       act = movesToAction(r, moves, EXPLORE_SPEED);
     }
@@ -94,7 +96,6 @@ void StateMachine::tick(Robot &r) {
 SequentialAction StateMachine::movesToAction(Robot& r, const std::vector<Move> &moves,
                                              const SpeedProfile speed) {
   const std::vector<Command> commands = CommandGenerator{}.exec(moves);
-  CommandTranslator translator{};
   std::vector<std::unique_ptr<Action>> steps;
   for (const Command &c : commands)
     steps.push_back(translator.translate(c, r, speed));
