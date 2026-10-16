@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <stdarg.h>
 
 struct MouseIO {
   virtual ~MouseIO() = default;
@@ -68,4 +69,6 @@ struct MouseIO {
    * @return double time since robot start
    */
   virtual double now() = 0;
+
+  virtual int printf(const char* format, ...) = 0;
 };

@@ -4,6 +4,7 @@
 #include "actions/StartupAction.h"
 #include "maze/Explorer.h"
 #include "planner/Commands.h"
+#include "planner/CellSearch.h"
 
 enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
 
@@ -23,7 +24,7 @@ struct StateMachine {
 
   SequentialAction startup = makeStartup();
   EmptyAction empty{};
-  SequentialAction fastPath{};
+  SequentialAction act{};
   CommandTranslator translator{};
   Action *a = &startup;
 
@@ -50,4 +51,5 @@ struct StateMachine {
   void runFastPath(Robot &r, const std::vector<Move> &moves);
   void switchState(GoalState state, Robot &r);
   void updateState(Cell at, Robot &r);
+  SequentialAction movesToAction(Robot& r, const std::vector<Move> &moves, const SpeedProfile speed);
 };

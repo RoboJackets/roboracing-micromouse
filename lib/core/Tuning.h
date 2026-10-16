@@ -32,7 +32,7 @@ constexpr double IR_VALID_RANGE = 0.16;
 constexpr double IR_CENTER_OFFSET = 0.005;
 constexpr double IR_LEFT_ONLY_SETPOINT = -0.07;
 constexpr double IR_RIGHT_ONLY_SETPOINT = 0.07;
-constexpr double FRONT_WALL_STOP_DISTANCE = 0.145;
+constexpr double FRONT_WALL_STOP_DISTANCE = 0.105;
 
 constexpr double YAW_ANGLE_TOL = 4 * M_PI / 180;
 

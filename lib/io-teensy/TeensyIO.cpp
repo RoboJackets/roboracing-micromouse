@@ -66,3 +66,14 @@ void TeensyIO::init() {
   mLeft.begin();
   mRight.begin();
 }
+
+int TeensyIO::printf(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  char buf[256];
+  int result = vsnprintf(buf, sizeof(buf), format, args);
+  va_end(args);
+  if (result > 0)
+    Serial.write(buf, result < (int)sizeof(buf) ? result : sizeof(buf) - 1);
+  return result;
+}

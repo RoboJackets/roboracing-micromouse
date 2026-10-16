@@ -32,6 +32,26 @@ CommandGenerator::State CommandGenerator::on(Straight s, Move m) {
       0
     });
     return Straight{};
+  } else if (m == Move::Back) {
+    if (s.cells > 0) {
+      push_cmd({
+        Command::Type::Forward,
+        s.cells
+      });
+    }
+    push_cmd({
+      Command::Type::InPlaceTurn,
+      4
+    });
+    return Straight{1};
+  } else if (m == Move::Continue) {
+    if (s.cells > 0) {
+      push_cmd({
+        Command::Type::Forward,
+        s.cells
+      });
+    }
+    return Straight{};
   }
   return state;
 }
@@ -66,6 +86,22 @@ CommandGenerator::State CommandGenerator::on(Turning s, Move m) {
         0
       });
       return Straight{};
+    } else if (m == Move::Back) {
+      push_cmd({
+        Command::Type::SmoothTurn,
+        -2
+      });
+      push_cmd({
+        Command::Type::InPlaceTurn,
+        4
+      });
+      return Straight{1};
+    } else if (m == Move::Continue) {
+      push_cmd({
+        Command::Type::SmoothTurn,
+        -2
+      });
+      return Straight{};
     }
   } else if (s.side == Side::Right) {
     if (m == Move::Forward) {
@@ -96,6 +132,22 @@ CommandGenerator::State CommandGenerator::on(Turning s, Move m) {
         0
       });
       return Straight{};
+    } else if (m == Move::Back) {
+      push_cmd({
+        Command::Type::SmoothTurn,
+        2
+      });
+      push_cmd({
+        Command::Type::InPlaceTurn,
+        4
+      });
+      return Straight{1};
+    } else if (m == Move::Continue) {
+      push_cmd({
+        Command::Type::SmoothTurn,
+        2
+      });
+      return Straight{};
     }
   }
   return state;
@@ -107,6 +159,8 @@ std::unique_ptr<Action> CommandTranslator::translate(const Command& c, Robot& r,
       return makeFwdAction(c.amt, r, sp);
     case Command::Type::SmoothTurn:
       return makeCurveAction(c.amt, r, sp);
+    case Command::Type::InPlaceTurn:
+      return makeInPlaceTurnAction(c.amt, r, sp);
     case Command::Type::Stop:
       break;
   }
@@ -119,14 +173,10 @@ std::unique_ptr<Action> CommandTranslator::makeFwdAction(int8_t amt, Robot &r, c
   const WorldCoord rel = cellRelative(pose, cellOf(pose));
 
   double halfCell = CELL_SIZE_METERS / 2.0;
-  double dx = v.x != 0 ? (v.x * amt * CELL_SIZE_METERS + halfCell - rel.x -
-                          v.x * CELL_STOP_SHORT)
-                       : 0;
-  double dy = v.y != 0 ? (v.y * amt * CELL_SIZE_METERS + halfCell - rel.y -
-                          v.y * CELL_STOP_SHORT)
-                       : 0;
+  double dx = v.x * amt * CELL_SIZE_METERS + halfCell - rel.x - v.x * CELL_STOP_SHORT;
+  double dy = v.y * amt * CELL_SIZE_METERS + halfCell - rel.y - v.y * CELL_STOP_SHORT;
 
-  double distance = std::sqrt(dx * dx + dy * dy);
+  double distance = (dx * v.x + dy * v.y) / std::hypot(v.x, v.y);
   double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
   return std::make_unique<SequentialAction>(
       SequentialAction::make(ProfiledDriveAction{
@@ -149,4 +199,26 @@ std::unique_ptr<Action> CommandTranslator::makeCurveAction(int8_t amt, Robot& r,
                             sp.maxSpeed),
         ProfiledDriveAction{sp.curveTrailDistance, travelAngle,
                             sp.driveFinalVelocity, sp.maxSpeed}));
+}
+
+std::unique_ptr<Action> CommandTranslator::makeInPlaceTurnAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
+    const Cell v = octantOffset(goalAngle);
+    const WorldCoord pose = r.getWorldCoord();
+    const WorldCoord rel = cellRelative(pose, cellOf(pose));
+
+    double halfCell = CELL_SIZE_METERS / 2.0;
+    double centerDistance = ((halfCell - rel.x) * v.x + (halfCell - rel.y) * v.y) /
+                            std::hypot(v.x, v.y);
+    double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
+
+    goalAngle += amt;
+    goalAngle = normalizeOctant(goalAngle);
+
+    double targetTheta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
+    double turnAngle = std::atan2(std::sin(targetTheta - pose.theta),
+                                  std::cos(targetTheta - pose.theta));
+
+    return std::make_unique<SequentialAction>(SequentialAction::make(
+        ProfiledDriveAction{centerDistance, travelAngle, 0, sp.maxSpeed},
+        ProfiledRotationAction{turnAngle}));
 }

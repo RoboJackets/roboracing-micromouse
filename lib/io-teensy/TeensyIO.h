@@ -45,4 +45,5 @@ struct TeensyIO : MouseIO {
 
   bool buttonPressed() override;
   double now() override;
+  int printf(const char *, ...) override;
 };
