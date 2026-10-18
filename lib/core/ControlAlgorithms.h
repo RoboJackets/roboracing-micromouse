@@ -36,23 +36,25 @@ public:
   }
 };
 
-struct TrapezoidalProfile {
-  double maxSpeed, maxAccel, initialVelocity, finalVelocity;
-  PIDConstants pidConstants;
-  double setpoint;
-  double time = 0;
-  double startMeasurement = 0;
-  bool started = false;
-  PID errorPid = PID{pidConstants};
+class TrapezoidalProfile {
+public:
+  struct State {
+    double position = 0;
+    double velocity = 0;
+  };
 
-  TrapezoidalProfile(double maxSpeed, double maxAccel, double initialVelocity,
-                     double finalVelocity, PIDConstants pidConstants,
-                     double setpoint);
+  struct Constraints {
+    double maxSpeed;
+    double maxAccel;
+  };
 
-  double calculate(double dt, double measurement);
-  void reset();
+  Constraints cts;
 
-  static double totalTime(double maxAccel, double maxSpeed, double distance);
+  TrapezoidalProfile(Constraints constraints);
+
+  State calculate(double dt, State setpoint, State goal) const;
+
+  double totalTime(State setpoint, State goal) const;
 };
 
 struct MotorFeedForward {
