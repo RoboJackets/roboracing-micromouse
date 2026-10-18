@@ -40,6 +40,13 @@ void SimIO::printMaze(std::ostream &out) const {
     out << '\n';
 }
 
+void SimIO::placeAtStart() {
+    const RobotState start{};
+    robotState.x = start.x;
+    robotState.y = start.y;
+    robotState.theta = start.theta;
+}
+
 void SimIO::init() {
     current_time = 0;
 }
