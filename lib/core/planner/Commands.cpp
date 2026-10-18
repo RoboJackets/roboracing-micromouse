@@ -57,100 +57,43 @@ CommandGenerator::State CommandGenerator::on(Straight s, Move m) {
 }
 
 CommandGenerator::State CommandGenerator::on(Turning s, Move m) {
-  if (s.side == Side::Left) {
-    if (m == Move::Forward) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        -2
-      });
-      return Straight{1};
-    } else if (m == Move::Left) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        -2
-      });
-      return Turning{Side::Left };
-    } else if (m == Move::Right) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        -2
-      });
-      return Turning{Side::Right };
-    } else if (m == Move::Stop) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        -2
-      });
-      push_cmd({
-        Command::Type::Stop,
-        0
-      });
-      return Straight{};
-    } else if (m == Move::Back) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        -2
-      });
-      push_cmd({
-        Command::Type::InPlaceTurn,
-        4
-      });
-      return Straight{1};
-    } else if (m == Move::Continue) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        -2
-      });
-      return Straight{};
-    }
-  } else if (s.side == Side::Right) {
-    if (m == Move::Forward) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        2
-      });
-      return Straight{1};
-    } else if (m == Move::Left) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        2
-      });
-      return Turning{Side::Left };
-    } else if (m == Move::Right) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        2
-      });
-      return Turning{Side::Right };
-    } else if (m == Move::Stop) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        2
-      });
-      push_cmd({
-        Command::Type::Stop,
-        0
-      });
-      return Straight{};
-    } else if (m == Move::Back) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        2
-      });
-      push_cmd({
-        Command::Type::InPlaceTurn,
-        4
-      });
-      return Straight{1};
-    } else if (m == Move::Continue) {
-      push_cmd({
-        Command::Type::SmoothTurn,
-        2
-      });
-      return Straight{};
-    }
+  push_cmd({
+    Command::Type::SmoothTurn,
+    s.side == Side::Left ? -2 : 2
+  });
+  // The turn finishes inside the cell it started in, so the cell the turn move
+  // entered still has to be driven.
+  if (m == Move::Forward) {
+    return Straight{2};
+  } else if (m == Move::Left || m == Move::Right) {
+    push_cmd({
+      Command::Type::Forward,
+      1
+    });
+    return Turning{m == Move::Left ? Side::Left : Side::Right};
+  } else if (m == Move::Stop) {
+    push_cmd({
+      Command::Type::Forward,
+      1
+    });
+    push_cmd({
+      Command::Type::Stop,
+      0
+    });
+    return Straight{};
+  } else if (m == Move::Back) {
+    push_cmd({
+      Command::Type::Forward,
+      1
+    });
+    push_cmd({
+      Command::Type::InPlaceTurn,
+      4
+    });
+    return Straight{1};
   }
-  return state;
+  // Continue: explore replans from wherever the turn leaves the robot
+  return Straight{};
 }
 
 std::unique_ptr<Action> CommandTranslator::translate(const Command& c, Robot& r, const SpeedProfile& sp) {

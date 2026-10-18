@@ -58,17 +58,17 @@ ProfiledDriveAction::ProfiledDriveAction(double setpoint, double angle,
       setpoint(setpoint), error(setpoint), angle(angle) {}
 
 void ProfiledDriveAction::run(Robot &r) {
+  r.io.printf("[drive]\n");
   const std::array<WorldCoord, 4> &ir = r.getSensorState();
   const std::array<WorldCoord, 4> &irAvg = r.getAverageSensorState();
   if (irAvg[0].hypot() < FRONT_WALL_STOP_DISTANCE) {
     profile.finalVelocity = 0;
     canceled = true;
+    r.io.printf("canceled\n");
   }
   double avgSpeed =
       0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
-  r.io.printf("[drive] error: %f\tavgSpeed: %f\n", error, avgSpeed);
-  r.io.printf("[drive] %d\n", std::abs(error) < DRIVE_POS_TOL && velOk);
   if (std::abs(error) < DRIVE_POS_TOL && velOk) {
     canceled = true;
     return;
@@ -92,6 +92,9 @@ void ProfiledDriveAction::run(Robot &r) {
   double c = 0;
   double gyroError = angle - w.theta;
   gyroError = std::atan2(std::sin(gyroError), std::cos(gyroError));
+
+  r.io.printf("[drive] error: %f\tv: %f\n", error, v);
+
   if (std::abs(ir.at(2).x) < IR_VALID_RANGE &&
       std::abs(ir.at(3).x) < IR_VALID_RANGE) {
     c = irPID.calculate(ir.at(3).x, -ir.at(2).x - IR_CENTER_OFFSET, r.getDt());

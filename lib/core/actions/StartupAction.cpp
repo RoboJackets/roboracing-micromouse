@@ -11,6 +11,7 @@ void StartupAction::run(Robot &r) {
 DelayAction::DelayAction(double runTime) : runTime(runTime) {}
 
 void DelayAction::run(Robot &r) {
+  r.io.printf("[delay]\n");
   if (r.buttonPressed()) {
     go = true;
   }

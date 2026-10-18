@@ -108,7 +108,8 @@ SequentialAction StateMachine::movesToAction(Robot& r, const std::vector<Move> &
   const std::vector<Command> commands = CommandGenerator{}.exec(moves);
   std::vector<std::unique_ptr<Action>> steps;
   for (const Command &c : commands)
-    steps.push_back(translator.translate(c, r, speed));
+    steps.push_back(
+        std::make_unique<DeferredCommandAction>(translator, c, speed));
   return SequentialAction(std::move(steps));
 }
 

@@ -15,6 +15,19 @@ enum class Move {
   Forward, Left, Right, Back, Stop, Continue
 };
 
+// for debugging
+inline char to_char(Move m) {
+  switch (m) {
+    case Move::Forward: return 'F';
+    case Move::Left: return 'L';
+    case Move::Right: return 'R';
+    case Move::Back: return 'B';
+    case Move::Stop: return 'S';
+    case Move::Continue: return 'C';
+  }
+  return '?';
+}
+
 // Data types for the CommandGenerator state machine
 enum ActionState {
   START,
@@ -101,4 +114,35 @@ private:
 
   std::unique_ptr<Action> makeInPlaceTurnAction(int8_t amt, Robot &r,
                                                 const SpeedProfile &sp);
+};
+
+// Translates its command when it begins rather than when it's built, so that
+// each step of a multi-command route is planned from the robot's actual pose.
+struct DeferredCommandAction : Action {
+  CommandTranslator &translator;
+  Command command;
+  SpeedProfile speed;
+  std::unique_ptr<Action> inner{};
+
+  DeferredCommandAction(CommandTranslator &translator, Command command,
+                        SpeedProfile speed)
+      : translator(translator), command(command), speed(speed) {}
+
+  void begin(Robot &r) override {
+    inner = translator.translate(command, r, speed);
+    inner->begin(r);
+  }
+  void run(Robot &r) override { inner->run(r); }
+  void end(Robot &r) override {
+    if (inner)
+      inner->end(r);
+  }
+  void cancel() override {
+    canceled = true;
+    if (inner)
+      inner->cancel();
+  }
+  bool completed() const override {
+    return canceled || (inner && inner->completed());
+  }
 };

@@ -115,7 +115,7 @@ inline Dir dirOf(double theta) {
   return Dir::South;
 }
 
-inline WorldCoord cellRelative(const WorldCoord &w, Cell c) {
+inline WorldCoord  cellRelative(const WorldCoord &w, Cell c) {
   return WorldCoord{w.x - c.x * CELL_SIZE_METERS, w.y - c.y * CELL_SIZE_METERS,
                     w.theta};
 }
@@ -135,7 +135,7 @@ struct Goals {
 
 constexpr int TIEBREAK_OFF = 0;
 
-inline constexpr Cell centerGoals[]{{2, 0}};
+inline constexpr Cell centerGoals[]{{3, 3}};
 inline constexpr Cell startGoal[]{{0, 0}};
 
 inline constexpr Goals CENTER_GOALS{centerGoals,
