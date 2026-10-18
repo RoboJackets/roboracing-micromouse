@@ -82,8 +82,13 @@ void StateMachine::tick(Robot &r) {
     if (currentState == GoalState::FAST_PATH) {
       printf("[fast_path]\n");
       translator.goalAngle = 2 * static_cast<int>(facing);  // octants
-      act = movesToAction(r, planFastRoute(r.map, *phase.goal, at, facing),
-                          FAST_SPEED);
+      std::vector<Move> route = planFastRoute(r.map, *phase.goal, at, facing);
+      r.io.printf("Fast Route:\n");
+      for (Move m : route) {
+        r.io.printf("%c", to_char(m));
+      }
+      r.io.printf("\n");
+      act = movesToAction(r, route, FAST_SPEED);
     } else {
       Move move = exploreStep(r.map, at, facing, *phase.goal, phase.reach(),
       phase.fastSpeed);
