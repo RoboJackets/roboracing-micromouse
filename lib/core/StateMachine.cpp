@@ -70,8 +70,13 @@ void StateMachine::tick(Robot &r) {
   const Dir facing = dirOf(pose.theta);
   
   if (a->completed()) {
-    updateState(at, r);
     a->end(r);
+    Action *prev = a;
+    updateState(at, r);
+    if (a != prev) {
+      a->run(r);
+      return;
+    }
     r.map.allowUpdates(phase.mapping);
     r.observe();
     if (currentState == GoalState::FAST_PATH) {
