@@ -68,21 +68,30 @@ void StateMachine::tick(Robot &r) {
   const WorldCoord pose = r.getWorldCoord();
   const Cell at = cellOf(pose);
   const Dir facing = dirOf(pose.theta);
-  
+
   if (a->completed()) {
-    updateState(at, r);
     a->end(r);
+    Action *prev = a;
+    updateState(at, r);
+
+    // hacky fix to allow the fastpath startup to run:
+    if (a != prev) {
+      a->run(r);
+      return;
+    }
+    
     r.map.allowUpdates(phase.mapping);
     r.observe();
+
     if (currentState == GoalState::FAST_PATH) {
-      printf("[fast_path]\n");
+      r.io.printf("[fast_path]\n");
       translator.goalAngle = 2 * static_cast<int>(facing);  // octants
       act = movesToAction(r, planFastRoute(r.map, *phase.goal, at, facing),
                           FAST_SPEED);
     } else {
       Move move = exploreStep(r.map, at, facing, *phase.goal, phase.reach(),
       phase.fastSpeed);
-      printf("[explore] move: %d\n", move);
+      r.io.printf("[explore] move: %d\n", move);
       std::vector<Move> moves = {move, Move::Continue};
       act = movesToAction(r, moves, EXPLORE_SPEED);
     }
