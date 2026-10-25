@@ -92,10 +92,7 @@ def simulate(commands):
             heading = (heading + amt) % len(HEADINGS)
             advance(1)
         elif type_ == IN_PLACE_TURN:
-            if amt % 2:
-                warnings.append(f"#{i}: {abs(amt) * 45}° turn (diagonal) not drawn")
-                break
-            heading = (heading + amt // 2) % 4
+            heading = (heading + amt) % 4
         elif type_ == STOP:
             spans.append((first, first))
             if i != len(commands) - 1:
