@@ -11,8 +11,9 @@ struct IR {
 };
 
 struct Motor {
-    double t = .0045; // kg * m (stall torque)
+    double t = .00229; // kg * m (stall torque)
     double r = .016; // m (radius of wheel)
+    double static_duty = .4; // duty lost to static friction
 };
 
 struct RobotState {

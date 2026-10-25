@@ -67,6 +67,8 @@ void ProfiledDriveAction::run(Robot &r) {
   double avgSpeed =
       0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
+  r.io.printf("[drive] error: %f\tavgSpeed: %f\n", error, avgSpeed);
+  r.io.printf("[drive] %d\n", std::abs(error) < DRIVE_POS_TOL && velOk);
   if (std::abs(error) < DRIVE_POS_TOL && velOk) {
     canceled = true;
     return;
@@ -120,6 +122,7 @@ void ProfiledRotationAction::run(Robot &r) {
   double avgSpeed =
       0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
+  r.io.printf("error: %f\tavgSpeed: %f\n", error, avgSpeed);
   if (std::abs(error) < ROTATION_POS_TOL && velOk) {
     canceled = true;
     return;
@@ -159,6 +162,7 @@ void ProfiledCurveAction::run(Robot &r) {
   double avgSpeed =
       0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
   bool velOk = (profile.finalVelocity == 0) ? (avgSpeed < VEL_TOL) : true;
+  r.io.printf("error: %f\tavgSpeed: %f\n", error, avgSpeed);
   if (std::abs(error) < CURVE_POS_TOL && velOk) {
     canceled = true;
     return;

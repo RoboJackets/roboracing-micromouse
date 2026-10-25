@@ -2,25 +2,26 @@
 
 #include "Commands.h"
 
-unsigned char stepOpcode(Dir facing, Dir target, bool fastSpeed) {
+
+Move relativeMove(Dir facing, Dir target) {
   switch ((static_cast<int>(target) - static_cast<int>(facing)) & 3) {
   case 0:
-    return fastSpeed ? FWD0 + 1 : EX_FWD0 + 1;
+    return Move::Forward;
   case 1:
-    return fastSpeed ? ST90R : EX_ST90R;
+    return Move::Right;
   case 2:
-    return IPT180;
+    return Move::Back;
   default:
-    return fastSpeed ? ST90L : EX_ST90L;
+    return Move::Left;
   }
 }
-
-unsigned char exploreStep(const MazeMap &map, Cell at, Dir facing,
+Move exploreStep(const MazeMap &map, Cell at, Dir facing,
                           const Goals &goal, Reachability reach,
                           bool fastSpeed) {
   if (atGoal(at, goal))
-    return STOP;
+    return Move::Stop;
 
   const DistanceField field = floodFill(map, goal, reach);
-  return stepOpcode(facing, nextStep(map, field, at, facing, goal), fastSpeed);
+  const Dir d = nextStep(map, field, at, facing, goal);
+  return relativeMove(facing, d);
 }

@@ -10,7 +10,7 @@
 struct SimIO : MouseIO {
   // each grid represents 0.012m
   bool worldState[240][240]{};
-  std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
+  double dt = 0.001;
   double current_time = 0;
   double current_left_pwm{0};
   double current_right_pwm{0};
@@ -43,4 +43,5 @@ struct SimIO : MouseIO {
 
   bool buttonPressed() override;
   double now() override;
+  int printf(const char *, ...) override;
 };
