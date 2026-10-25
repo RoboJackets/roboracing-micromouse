@@ -259,7 +259,7 @@ std::unique_ptr<Action> CommandTranslator::translate(const Command& c, Robot& r,
 std::unique_ptr<Action> CommandTranslator::makeFwdAction(int8_t amt, Robot &r, const SpeedProfile &sp) {
   const Cell v = octantOffset(goalAngle);
   const WorldCoord pose = r.getWorldCoord();
-  const WorldCoord rel = cellRelative(pose, cellOf(pose));
+  const WorldCoord rel = cellRelative(pose, goalCell);
 
   double halfCell = CELL_SIZE_METERS / 2.0;
   double dx = v.x * amt * CELL_SIZE_METERS + halfCell - rel.x - v.x * CELL_STOP_SHORT;
@@ -267,6 +267,7 @@ std::unique_ptr<Action> CommandTranslator::makeFwdAction(int8_t amt, Robot &r, c
 
   double distance = (dx * v.x + dy * v.y) / std::hypot(v.x, v.y);
   double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
+  goalCell = Cell{goalCell.x + v.x * amt, goalCell.y + v.y * amt};
   return std::make_unique<SequentialAction>(
       SequentialAction::make(ProfiledDriveAction{
           distance, travelAngle, sp.driveFinalVelocity, sp.maxSpeed}));
@@ -275,6 +276,8 @@ std::unique_ptr<Action> CommandTranslator::makeFwdAction(int8_t amt, Robot &r, c
 std::unique_ptr<Action> CommandTranslator::makeCurveAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
     goalAngle += amt;
     goalAngle = normalizeOctant(goalAngle);
+    const Cell v = octantOffset(goalAngle);
+    goalCell = Cell{goalCell.x + v.x, goalCell.y + v.y};
 
     double targetTheta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
     double currentTheta = r.getWorldCoord().theta;
@@ -293,7 +296,7 @@ std::unique_ptr<Action> CommandTranslator::makeCurveAction(int8_t amt, Robot& r,
 std::unique_ptr<Action> CommandTranslator::makeInPlaceTurnAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
     const Cell v = octantOffset(goalAngle);
     const WorldCoord pose = r.getWorldCoord();
-    const WorldCoord rel = cellRelative(pose, cellOf(pose));
+    const WorldCoord rel = cellRelative(pose, goalCell);
 
     double halfCell = CELL_SIZE_METERS / 2.0;
     double centerDistance = ((halfCell - rel.x) * v.x + (halfCell - rel.y) * v.y) /

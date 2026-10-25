@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "actions/Action.h"
+#include "maze/Maze.h"
 #include "Constants.h"
 #include "Tuning.h"
 #include <cmath>
@@ -96,6 +97,7 @@ private:
 
 struct CommandTranslator {
   int goalAngle = 0;
+  Cell goalCell{};
 
   std::unique_ptr<Action> translate(const Command& c, Robot& r, const SpeedProfile& sp);
 
@@ -108,4 +110,30 @@ private:
 
   std::unique_ptr<Action> makeInPlaceTurnAction(int8_t amt, Robot &r,
                                                 const SpeedProfile &sp);
+};
+
+struct DeferredCommandAction : Action {
+  Command c;
+  CommandTranslator &translator;
+  SpeedProfile sp;
+  std::unique_ptr<Action> inner;
+
+  DeferredCommandAction(Command c, CommandTranslator &translator, SpeedProfile sp)
+      : c(c), translator(translator), sp(sp) {}
+
+  void begin(Robot &r) override {
+    inner = translator.translate(c, r, sp);
+    inner->begin(r);
+  }
+  void run(Robot &r) override { inner->run(r); }
+  void end(Robot &r) override {
+    if (inner) inner->end(r);
+  }
+  void cancel() override {
+    canceled = true;
+    if (inner) inner->cancel();
+  }
+  bool completed() const override {
+    return canceled || (inner && inner->completed());
+  }
 };
