@@ -116,8 +116,7 @@ inline Dir dirOf(double theta) {
 }
 
 inline WorldCoord  cellRelative(const WorldCoord &w, Cell c) {
-  return WorldCoord{w.x - c.x * CELL_SIZE_METERS, w.y - c.y * CELL_SIZE_METERS,
-                    w.theta};
+  return WorldCoord{w.x - c.x * CELL_SIZE_METERS, w.y - c.y * CELL_SIZE_METERS};
 }
 
 struct Goals {

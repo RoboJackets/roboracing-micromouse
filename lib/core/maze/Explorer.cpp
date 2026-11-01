@@ -1,8 +1,5 @@
 #include "Explorer.h"
 
-#include "Commands.h"
-
-
 Move relativeMove(Dir facing, Dir target) {
   switch ((static_cast<int>(target) - static_cast<int>(facing)) & 3) {
   case 0:

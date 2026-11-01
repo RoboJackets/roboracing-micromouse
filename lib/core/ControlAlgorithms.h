@@ -50,7 +50,7 @@ public:
 
   Constraints cts;
 
-  TrapezoidalProfile(Constraints constraints);
+  explicit TrapezoidalProfile(Constraints constraints);
 
   State calculate(double dt, State setpoint, State goal) const;
 

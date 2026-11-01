@@ -1,6 +1,5 @@
 #pragma once
 #include "Action.h"
-#include "Commands.h"
 #include "Constants.h"
 #include "ControlAlgorithms.h"
 #include "Tuning.h"
@@ -36,18 +35,19 @@ struct YawPIDAction : Action {
 };
 
 struct ProfiledDriveAction : Action {
+  const WorldCoord begin;
+  const WorldCoord target;
+  const WorldCoord dir;
+  const double lineAngle;
+  
+  double time = 0;
   TrapezoidalProfile profile;
-  double setpoint;
-  double error;
-  double angle;
-  double measurement = 0;
-  bool started = false;
-  WorldCoord prevCoord;
 
-  ProfiledDriveAction(double setpoint, double angle, double finalVelocity,
-                      double maxSpeed = DRIVE_DEFAULT_MAX_SPEED);
+  PID distPID = PID{profilePIDConstants};
   PID irPID = PID{IRadjust};
   PID gyroPID = PID{rot90PIDConstants};
+    
+  ProfiledDriveAction(WorldCoord begin, WorldCoord target, TrapezoidalProfile::Constraints);
 
   void run(Robot &r) override;
   void end(Robot &r) override;
@@ -55,6 +55,8 @@ struct ProfiledDriveAction : Action {
 
 struct ProfiledRotationAction : Action {
   TrapezoidalProfile profile;
+  TrapezoidalProfile::State profileSetpoint{};
+  PID errorPid = PID{profilePIDConstants};
   bool started = false;
   double prevTheta = 0;
   double measurement = 0;
@@ -69,7 +71,10 @@ struct ProfiledRotationAction : Action {
 
 struct ProfiledCurveAction : Action {
   TrapezoidalProfile profile;
+  TrapezoidalProfile::State profileSetpoint{};
+  PID errorPid = PID{profilePIDConstants};
   PID irPID = PID{IRadjust};
+  double finalVelocity;
   double measurement = 0;
   double radius;
   bool started = false;

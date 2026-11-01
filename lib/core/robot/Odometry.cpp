@@ -35,12 +35,12 @@ void Odometry::update(double leftMeters, double rightMeters, double yaw,
   const double wheelDelta = ((deltaLeft + deltaRight) / 2);
 
   const double prevTheta = (-prevYaw - gyroOffset);
-  const double theta = (-gyroYaw - gyroOffset);
+  theta = (-gyroYaw - gyroOffset);
   const double midTheta =
       prevTheta + std::remainder(theta - prevTheta, 2 * M_PI) / 2.0;
 
   const double deltaX = wheelDelta * std::cos(midTheta);
   const double deltaY = wheelDelta * std::sin(midTheta);
 
-  w = WorldCoord{w.x + deltaX, w.y + deltaY, theta};
+  w = WorldCoord{w.x + deltaX, w.y + deltaY};
 }

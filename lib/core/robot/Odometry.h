@@ -3,6 +3,7 @@
 
 struct Odometry {
   WorldCoord w{};
+  double theta = 0;
   double gyroOffset = 0;
   double gyroYaw = 0;
   bool seeded = false;
@@ -19,6 +20,7 @@ struct Odometry {
   void update(double leftMeters, double rightMeters, double yaw, double dt);
 
   WorldCoord pose() const { return w; }
+  double heading() const { return theta; }
   void setPose(WorldCoord c) { w = c; }
   void setGyroOffset(double offset) { gyroOffset = offset; }
   double rawGyroYaw() const { return gyroYaw; }
