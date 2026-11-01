@@ -47,24 +47,26 @@ struct ProfiledDriveAction : Action {
   PID irPID = PID{IRadjust};
   PID gyroPID = PID{rot90PIDConstants};
     
-  ProfiledDriveAction(Translation2d begin, Translation2d target, TrapezoidalProfile::Constraints);
+  ProfiledDriveAction(const Translation2d begin, const Translation2d target, const TrapezoidalProfile::Constraints);
 
   void run(Robot &r) override;
   void end(Robot &r) override;
 };
 
 struct ProfiledRotationAction : Action {
-  TrapezoidalProfile profile;
-  TrapezoidalProfile::State profileSetpoint{};
-  PID errorPid = PID{profilePIDConstants};
-  bool started = false;
+  const double target; // absolute heading, rad
+  double setpoint = 0; // signed turn from the starting heading, set in begin()
   double prevTheta = 0;
-  double measurement = 0;
-  double error;
-  double setpoint;
+  double measurement = 0; // accumulated rotation since begin()
 
-  ProfiledRotationAction(double angle);
+  double time = 0;
+  TrapezoidalProfile profile;
 
+  PID errorPid = PID{profilePIDConstants};
+
+  ProfiledRotationAction(double target);
+
+  void begin(Robot &r) override;
   void run(Robot &r) override;
   void end(Robot &r) override;
 };

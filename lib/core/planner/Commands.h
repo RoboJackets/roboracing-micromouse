@@ -9,6 +9,7 @@
 #include <cmath>
 #include <variant>
 #include <memory>
+#include "maze/Maze.h"
 
 // The input to the CommandGenerator is a sequence of Moves
 enum class Move {
@@ -100,12 +101,11 @@ private:
   std::vector<Command> out;
 };
 
-struct CommandTranslator {
-  int goalAngle = 0;
+class CommandTranslator {
+  int angle = 0;
+  Cell cell;
+  Pose2d pose;
 
-  std::unique_ptr<Action> translate(const Command& c, Robot& r, const SpeedProfile& sp);
-
-private:
   std::unique_ptr<Action> makeFwdAction(int8_t amt, Robot &r,
                                         const SpeedProfile &sp);
 
@@ -114,6 +114,9 @@ private:
 
   std::unique_ptr<Action> makeInPlaceTurnAction(int8_t amt, Robot &r,
                                                 const SpeedProfile &sp);
+  
+public:
+  std::unique_ptr<Action> translate(const Command& c, Robot& r, const SpeedProfile& sp);                         
 };
 
 // Translates its command when it begins rather than when it's built, so that

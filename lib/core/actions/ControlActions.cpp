@@ -116,39 +116,39 @@ void ProfiledDriveAction::end(Robot &r) {
   // }
 }
 
-ProfiledRotationAction::ProfiledRotationAction(double angle)
-    : profile({MAX_ROT_SPEED_RAD_S * ROTATION_MAX_SPEED_SCALE,
-               MAX_ROT_SPEED_RAD_S2 * ROTATION_ACCEL_SCALE}),
-      error(angle), setpoint(angle) {}
+ProfiledRotationAction::ProfiledRotationAction(double target)
+    : target{target},
+      profile({MAX_ROT_SPEED_RAD_S * ROTATION_MAX_SPEED_SCALE,
+               MAX_ROT_SPEED_RAD_S2 * ROTATION_ACCEL_SCALE}) {}
+
+void ProfiledRotationAction::begin(Robot &r) {
+  prevTheta = r.getHeading();
+  setpoint = std::remainder(target - prevTheta, 2 * M_PI);
+}
 
 void ProfiledRotationAction::run(Robot &r) {
+  double dt = r.getDt();
+  double theta = r.getHeading();
+
+  measurement += std::remainder(theta - prevTheta, 2 * M_PI);
+  prevTheta = theta;
+
   double avgSpeed =
       0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
+  bool posOk = std::abs(setpoint - measurement) < ROTATION_POS_TOL;
   bool velOk = avgSpeed < VEL_TOL;
-  double theta = r.getHeading();
-  r.io.printf("error: %f\tavgSpeed: %f\n", error, avgSpeed);
-  if (std::abs(error) < ROTATION_POS_TOL && velOk) {
+  if (posOk && velOk) {
     canceled = true;
     return;
   }
   if (canceled) {
     return;
   }
-  Translation2d w = r.getWorldCoord();
-  if (!started) {
-    prevTheta = theta;
-    started = true;
-  }
-  double dTheta = theta - prevTheta;
-  dTheta = std::atan2(std::sin(dTheta), std::cos(dTheta));
-  measurement += dTheta;
-  prevTheta = theta;
-  error = setpoint - measurement;
-  profileSetpoint =
-      profile.calculate(r.getDt(), profileSetpoint, {setpoint, 0});
-  double omega =
-      profileSetpoint.velocity +
-      errorPid.calculate(measurement, profileSetpoint.position, r.getDt());
+
+  time += dt;
+  TrapezoidalProfile::State ref = profile.calculate(time, {0, 0}, {setpoint, 0});
+
+  double omega = ref.velocity + errorPid.calculate(measurement, ref.position, dt);
   omega = std::clamp(omega, -profile.cts.maxSpeed, profile.cts.maxSpeed);
   double wheelSpeed = omega * WHEEL_SEPARATION_M / 2;
   r.driveVelocity(-wheelSpeed, wheelSpeed);

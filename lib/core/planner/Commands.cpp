@@ -111,32 +111,37 @@ std::unique_ptr<Action> CommandTranslator::translate(const Command& c, Robot& r,
 }
 
 std::unique_ptr<Action> CommandTranslator::makeFwdAction(int8_t amt, Robot &r, const SpeedProfile &sp) {
-  const Cell v = octantOffset(goalAngle);
-  const Translation2d pose = r.getWorldCoord();
-  const Translation2d rel = cellRelative(pose, cellOf(pose));
+  const Cell v = octantOffset(angle);
+  const Cell nextCell = cell + v * amt;
+  const Translation2d nextPos = cellEdge(nextCell, (angle + 4) % 8);
+  Pose2d nextPose = pose;
+  nextPose.xy = nextPos;
 
-  double halfCell = CELL_SIZE_METERS / 2.0;
-  double dx = v.x * amt * CELL_SIZE_METERS + halfCell - rel.x - v.x * CELL_STOP_SHORT;
-  double dy = v.y * amt * CELL_SIZE_METERS + halfCell - rel.y - v.y * CELL_STOP_SHORT;
+  std::unique_ptr<Action> action = std::make_unique<ProfiledDriveAction>(
+    pose.xy,
+    nextPos,
+    TrapezoidalProfile::Constraints{
+      sp.maxSpeed,
+      MAX_ACCEL_M_S2 * DRIVE_ACCEL_SCALE
+    }
+  );
 
-  double distance = (dx * v.x + dy * v.y) / std::hypot(v.x, v.y);
-  double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
-  return std::make_unique<SequentialAction>(
-      SequentialAction::make(ProfiledDriveAction{
-          distance, travelAngle, sp.driveFinalVelocity, sp.maxSpeed}));
+  pose.xy = nextPos;
+  cell = nextCell;
+  return action;
 }
 
 std::unique_ptr<Action> CommandTranslator::makeCurveAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
-    goalAngle += amt;
-    goalAngle = normalizeOctant(goalAngle);
+    angle += amt;
+    angle = normalizeOctant(angle);
 
-    double targetTheta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
+    double targetTheta = M_PI / 2.0 - angle * M_PI / 4.0;
     double currentTheta = r.getPose().theta;
     double turnAngle = std::atan2(std::sin(targetTheta - currentTheta),
                                     std::cos(targetTheta - currentTheta));
 
 
-    double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
+    double travelAngle = M_PI / 2.0 - angle * M_PI / 4.0;
     return std::make_unique<SequentialAction>(SequentialAction::make(
         ProfiledCurveAction(sp.curveRadius, turnAngle, sp.curveFinalVelocity,
                             sp.maxSpeed),
@@ -145,23 +150,32 @@ std::unique_ptr<Action> CommandTranslator::makeCurveAction(int8_t amt, Robot& r,
 }
 
 std::unique_ptr<Action> CommandTranslator::makeInPlaceTurnAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
-    const Cell v = octantOffset(goalAngle);
-    const Pose2d pose = r.getPose();
-    const Translation2d rel = cellRelative(pose.xy, cellOf(pose.xy));
+  angle = normalizeOctant(angle + amt);
+  
+  const Translation2d nextPos = cellCenter(cell);
+  
+  double target = M_PI / 2.0 - angle * M_PI / 4.0;
 
-    double halfCell = CELL_SIZE_METERS / 2.0;
-    double centerDistance = ((halfCell - rel.x) * v.x + (halfCell - rel.y) * v.y) /
-                            std::hypot(v.x, v.y);
-    double travelAngle = M_PI / 2.0 - goalAngle * M_PI / 4.0;
+  std::unique_ptr<Action> drive = std::make_unique<ProfiledDriveAction>(
+    pose.xy,
+    nextPos,
+    TrapezoidalProfile::Constraints{
+      sp.maxSpeed,
+      MAX_ACCEL_M_S2 * DRIVE_ACCEL_SCALE
+    }
+  );
 
-    goalAngle += amt;
-    goalAngle = normalizeOctant(goalAngle);
+  std::unique_ptr<Action> turn = std::make_unique<ProfiledRotationAction>(
+    target
+  );
 
-    double targetTheta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
-    double turnAngle = std::atan2(std::sin(targetTheta - pose.theta),
-                                  std::cos(targetTheta - pose.theta));
+  std::vector<std::unique_ptr<Action>> steps;
+  steps.push_back(std::move(drive));
+  steps.push_back(std::move(turn));
+  std::unique_ptr<Action> action = std::make_unique<SequentialAction>(std::move(steps));
 
-    return std::make_unique<SequentialAction>(SequentialAction::make(
-        ProfiledDriveAction{centerDistance, travelAngle, 0, sp.maxSpeed},
-        ProfiledRotationAction{turnAngle}));
+  pose.theta = target;
+  pose.xy = nextPos;
+  
+  return action;
 }
