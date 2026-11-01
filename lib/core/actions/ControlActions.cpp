@@ -87,6 +87,7 @@ void ProfiledDriveAction::run(Robot &r) {
     return;
   }
 
+  time += dt;
   TrapezoidalProfile::State ref = profile.calculate(time, {0, 0}, {dist, 0});
 
   // trapezoidal profile output velocity, plus PID velocity to

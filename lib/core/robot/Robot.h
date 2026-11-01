@@ -47,8 +47,8 @@ struct Robot {
 
   bool buttonPressed() { return io.buttonPressed(); }
 
-  void observe() {
-    map.observe(getPose(), odom.rotationRate(), sensors.state());
+  void observe(Cell at) {
+    map.observe(at, getPose(), odom.rotationRate(), sensors.state());
   }
 
   void driveDuty(double left, double right) { drive.setDuty(io, left, right); }

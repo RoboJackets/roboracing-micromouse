@@ -43,11 +43,10 @@ void MazeMap::addBorderWalls() {
 }
 
 // adds walls to the maze map.
-void MazeMap::observe(const Pose2d &pose, double rotationRate,
+void MazeMap::observe(Cell at, const Pose2d &pose, double rotationRate,
                       const std::array<Translation2d, 4> &readings) {
   if (!updatesEnabled)
     return;
-  const Cell at = cellOf(pose.xy);
   if (!inBounds(at))
     return;
   markKnown(at);

@@ -62,5 +62,5 @@ inline double operator*(const Translation2d& lhs, const Translation2d& rhs) {
 // theta = 0 is to the right, rotates counterclockwise. in radians.
 struct Pose2d {
   Translation2d xy;
-  double theta;
+  double theta = 0;
 };

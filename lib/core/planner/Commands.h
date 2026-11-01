@@ -116,7 +116,11 @@ class CommandTranslator {
                                                 const SpeedProfile &sp);
   
 public:
-  std::unique_ptr<Action> translate(const Command& c, Robot& r, const SpeedProfile& sp);                         
+  std::unique_ptr<Action> translate(const Command& c, Robot& r, const SpeedProfile& sp);
+
+  void reset(Cell c, Pose2d p, int octant) { cell = c; pose = p; angle = octant; }
+  Cell getCell() const { return cell; }
+  Dir getFacing() const { return static_cast<Dir>(normalizeOctant(angle) / 2); }
 };
 
 // Translates its command when it begins rather than when it's built, so that

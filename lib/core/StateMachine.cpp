@@ -65,12 +65,15 @@ void StateMachine::updateState(Cell at, Robot &r) {
 void StateMachine::tick(Robot &r) {
   r.update();
 
-  const Pose2d pose = r.getPose();
-  const Cell at = cellOf(pose.xy);
-  const Dir facing = dirOf(pose.theta);
-  
   if (a->completed()) {
     a->end(r);
+    // startup just placed the robot in the start cell facing north
+    if (a == &startup)
+      translator.reset(Cell{0, 0}, r.getPose(), 0);
+    // odometry can't tell which cell the robot is in when a drive ends exactly
+    // on a cell edge, so use where the plan says it is
+    const Cell at = translator.getCell();
+    const Dir facing = translator.getFacing();
     Action *prev = a;
     updateState(at, r);
     if (a != prev) {
@@ -78,10 +81,9 @@ void StateMachine::tick(Robot &r) {
       return;
     }
     r.map.allowUpdates(phase.mapping);
-    r.observe();
+    r.observe(at);
     if (currentState == GoalState::FAST_PATH) {
       printf("[fast_path]\n");
-      translator.goalAngle = 2 * static_cast<int>(facing);  // octants
       std::vector<Move> route = planFastRoute(r.map, *phase.goal, at, facing);
       r.io.printf("Fast Route:\n");
       for (Move m : route) {

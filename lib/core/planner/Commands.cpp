@@ -9,16 +9,20 @@ CommandGenerator::State CommandGenerator::on(Straight s, Move m) {
   if (m == Move::Forward) {
     return Straight{s.cells + 1};
   } else if (m == Move::Left) {
-    push_cmd({
-      Command::Type::Forward,
-      s.cells
-    });
+    if (s.cells > 0) {
+      push_cmd({
+        Command::Type::Forward,
+        s.cells
+      });
+    }
     return Turning{Side::Left };
   } else if (m == Move::Right) {
-    push_cmd({
-      Command::Type::Forward,
-      s.cells
-    });
+    if (s.cells > 0) {
+      push_cmd({
+        Command::Type::Forward,
+        s.cells
+      });
+    }
     return Turning{Side::Right};
   } else if (m == Move::Stop) {
     if (s.cells > 0) {
@@ -132,21 +136,10 @@ std::unique_ptr<Action> CommandTranslator::makeFwdAction(int8_t amt, Robot &r, c
 }
 
 std::unique_ptr<Action> CommandTranslator::makeCurveAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
-    angle += amt;
-    angle = normalizeOctant(angle);
-
-    double targetTheta = M_PI / 2.0 - angle * M_PI / 4.0;
-    double currentTheta = r.getPose().theta;
-    double turnAngle = std::atan2(std::sin(targetTheta - currentTheta),
-                                    std::cos(targetTheta - currentTheta));
-
-
-    double travelAngle = M_PI / 2.0 - angle * M_PI / 4.0;
-    return std::make_unique<SequentialAction>(SequentialAction::make(
-        ProfiledCurveAction(sp.curveRadius, turnAngle, sp.curveFinalVelocity,
-                            sp.maxSpeed),
-        ProfiledDriveAction{sp.curveTrailDistance, travelAngle,
-                            sp.driveFinalVelocity, sp.maxSpeed}));
+  // TODO: real smooth turn. Until ProfiledCurveAction plans from absolute
+  // geometry, pivot at the cell center; this leaves the translator in the same
+  // state the generator expects after a smooth turn (inside the same cell).
+  return makeInPlaceTurnAction(amt, r, sp);
 }
 
 std::unique_ptr<Action> CommandTranslator::makeInPlaceTurnAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
