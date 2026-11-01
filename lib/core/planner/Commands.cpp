@@ -131,7 +131,7 @@ std::unique_ptr<Action> CommandTranslator::makeCurveAction(int8_t amt, Robot& r,
     goalAngle = normalizeOctant(goalAngle);
 
     double targetTheta = M_PI / 2.0 - goalAngle * M_PI / 4.0;
-    double currentTheta = r.getWorldCoord().theta;
+    double currentTheta = r.getPose().theta;
     double turnAngle = std::atan2(std::sin(targetTheta - currentTheta),
                                     std::cos(targetTheta - currentTheta));
 
@@ -146,8 +146,8 @@ std::unique_ptr<Action> CommandTranslator::makeCurveAction(int8_t amt, Robot& r,
 
 std::unique_ptr<Action> CommandTranslator::makeInPlaceTurnAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
     const Cell v = octantOffset(goalAngle);
-    const Translation2d pose = r.getWorldCoord();
-    const Translation2d rel = cellRelative(pose, cellOf(pose));
+    const Pose2d pose = r.getPose();
+    const Translation2d rel = cellRelative(pose.xy, cellOf(pose.xy));
 
     double halfCell = CELL_SIZE_METERS / 2.0;
     double centerDistance = ((halfCell - rel.x) * v.x + (halfCell - rel.y) * v.y) /

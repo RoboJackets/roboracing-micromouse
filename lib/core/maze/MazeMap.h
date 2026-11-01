@@ -19,6 +19,6 @@ struct MazeMap {
 
   void allowUpdates(bool enabled) { updatesEnabled = enabled; }
 
-  void observe(const Translation2d &pose, double rotationRate,
+  void observe(const Pose2d &pose, double rotationRate,
                const std::array<Translation2d, 4> &readings);
 };

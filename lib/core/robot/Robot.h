@@ -27,6 +27,7 @@ struct Robot {
 
   Translation2d getWorldCoord() const { return odom.pose(); }
   double getHeading() const { return odom.heading(); }
+  Pose2d getPose() const { return Pose2d{odom.pose(), odom.heading()}; }
   void setWorldCoord(Translation2d c) { odom.setPose(c); }
   void setGyroOffset(double offset) { odom.setGyroOffset(offset); }
   double getGyroYaw() const { return odom.rawGyroYaw(); }
@@ -47,7 +48,7 @@ struct Robot {
   bool buttonPressed() { return io.buttonPressed(); }
 
   void observe() {
-    map.observe(odom.pose(), odom.rotationRate(), sensors.state());
+    map.observe(getPose(), odom.rotationRate(), sensors.state());
   }
 
   void driveDuty(double left, double right) { drive.setDuty(io, left, right); }

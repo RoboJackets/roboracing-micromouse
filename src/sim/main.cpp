@@ -41,9 +41,9 @@ int main(int argc, char *argv[]) {
 
         std::cout << "TIME: " << simIO.now() << '\n';
 
-        const Translation2d w = robot.getWorldCoord();
-        std::cout << "WORLD: " << w.x << ", " << w.y << " THETA: "
-                  << w.theta << '\n';
+        const Pose2d p = robot.getPose();
+        std::cout << "WORLD: " << p.xy.x << ", " << p.xy.y << " THETA: "
+                  << p.theta << '\n';
         const auto s = robot.getSensorState();
         for (int i = 0; i < 4; ++i) {
             std::cout << i << ": " << s[i].x << ", " << s[i].y << "     ";

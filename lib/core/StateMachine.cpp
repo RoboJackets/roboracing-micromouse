@@ -65,8 +65,8 @@ void StateMachine::updateState(Cell at, Robot &r) {
 void StateMachine::tick(Robot &r) {
   r.update();
 
-  const Translation2d pose = r.getWorldCoord();
-  const Cell at = cellOf(pose);
+  const Pose2d pose = r.getPose();
+  const Cell at = cellOf(pose.xy);
   const Dir facing = dirOf(pose.theta);
   
   if (a->completed()) {
