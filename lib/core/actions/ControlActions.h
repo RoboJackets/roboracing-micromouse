@@ -35,9 +35,9 @@ struct YawPIDAction : Action {
 };
 
 struct ProfiledDriveAction : Action {
-  const WorldCoord begin;
-  const WorldCoord target;
-  const WorldCoord dir;
+  const Translation2d begin;
+  const Translation2d target;
+  const Translation2d dir;
   const double lineAngle;
   
   double time = 0;
@@ -47,7 +47,7 @@ struct ProfiledDriveAction : Action {
   PID irPID = PID{IRadjust};
   PID gyroPID = PID{rot90PIDConstants};
     
-  ProfiledDriveAction(WorldCoord begin, WorldCoord target, TrapezoidalProfile::Constraints);
+  ProfiledDriveAction(Translation2d begin, Translation2d target, TrapezoidalProfile::Constraints);
 
   void run(Robot &r) override;
   void end(Robot &r) override;

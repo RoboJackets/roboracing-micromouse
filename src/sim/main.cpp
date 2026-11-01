@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 
         std::cout << "TIME: " << simIO.now() << '\n';
 
-        const WorldCoord w = robot.getWorldCoord();
+        const Translation2d w = robot.getWorldCoord();
         std::cout << "WORLD: " << w.x << ", " << w.y << " THETA: "
                   << w.theta << '\n';
         const auto s = robot.getSensorState();

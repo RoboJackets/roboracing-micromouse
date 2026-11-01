@@ -51,7 +51,7 @@ void YawPIDAction::end(Robot &r) {
   p.resetAccum();
 }
 
-ProfiledDriveAction::ProfiledDriveAction(WorldCoord begin, WorldCoord target,
+ProfiledDriveAction::ProfiledDriveAction(Translation2d begin, Translation2d target,
                                          TrapezoidalProfile::Constraints constraints)
     : profile{constraints},
       begin{begin},
@@ -63,14 +63,14 @@ ProfiledDriveAction::ProfiledDriveAction(WorldCoord begin, WorldCoord target,
 
 void ProfiledDriveAction::run(Robot &r) {
   double dt = r.getDt();
-  WorldCoord w = r.getWorldCoord();
+  Translation2d w = r.getWorldCoord();
   double dist = (target - begin).hypot(); // scalar distance to target
   double measuredS = (w - begin).dot(dir); // component of robot "progress" that lies on dir
   double avgSpeed = 0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
 
   r.io.printf("[drive]\n");
-  const std::array<WorldCoord, 4> &ir = r.getSensorState();
-  const std::array<WorldCoord, 4> &irAvg = r.getAverageSensorState();
+  const std::array<Translation2d, 4> &ir = r.getSensorState();
+  const std::array<Translation2d, 4> &irAvg = r.getAverageSensorState();
   // if (irAvg[0].hypot() < FRONT_WALL_STOP_DISTANCE) {
   //   profile.finalVelocity = 0;
   //   canceled = true;
@@ -134,7 +134,7 @@ void ProfiledRotationAction::run(Robot &r) {
   if (canceled) {
     return;
   }
-  WorldCoord w = r.getWorldCoord();
+  Translation2d w = r.getWorldCoord();
   if (!started) {
     prevTheta = theta;
     started = true;
@@ -180,7 +180,7 @@ void ProfiledCurveAction::run(Robot &r) {
   if (canceled) {
     return;
   }
-  WorldCoord w = r.getWorldCoord();
+  Translation2d w = r.getWorldCoord();
   if (!started) {
     prevTheta = theta;
     double vForward = (r.getDriveSpeedLeft() + r.getDriveSpeedRight()) / 2.0;

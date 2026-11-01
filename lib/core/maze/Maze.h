@@ -97,7 +97,7 @@ constexpr Cell octantOffset(int octant) {
   }
 }
 
-inline Cell cellOf(const WorldCoord &w) {
+inline Cell cellOf(const Translation2d &w) {
   return Cell{static_cast<int>(std::floor(w.x / CELL_SIZE_METERS)),
               static_cast<int>(std::floor(w.y / CELL_SIZE_METERS))};
 }
@@ -115,8 +115,8 @@ inline Dir dirOf(double theta) {
   return Dir::South;
 }
 
-inline WorldCoord  cellRelative(const WorldCoord &w, Cell c) {
-  return WorldCoord{w.x - c.x * CELL_SIZE_METERS, w.y - c.y * CELL_SIZE_METERS};
+inline Translation2d  cellRelative(const Translation2d &w, Cell c) {
+  return Translation2d{w.x - c.x * CELL_SIZE_METERS, w.y - c.y * CELL_SIZE_METERS};
 }
 
 struct Goals {

@@ -25,9 +25,9 @@ struct Robot {
 
   double getDt() const { return cachedDt; }
 
-  WorldCoord getWorldCoord() const { return odom.pose(); }
+  Translation2d getWorldCoord() const { return odom.pose(); }
   double getHeading() const { return odom.heading(); }
-  void setWorldCoord(WorldCoord c) { odom.setPose(c); }
+  void setWorldCoord(Translation2d c) { odom.setPose(c); }
   void setGyroOffset(double offset) { odom.setGyroOffset(offset); }
   double getGyroYaw() const { return odom.rawGyroYaw(); }
   double getRotationRate() const { return odom.rotationRate(); }
@@ -37,10 +37,10 @@ struct Robot {
     return {odom.leftSpeed(), odom.rightSpeed()};
   }
 
-  const std::array<WorldCoord, 4> &getSensorState() const {
+  const std::array<Translation2d, 4> &getSensorState() const {
     return sensors.state();
   }
-  const std::array<WorldCoord, 4> &getAverageSensorState() const {
+  const std::array<Translation2d, 4> &getAverageSensorState() const {
     return sensors.averageState();
   }
 

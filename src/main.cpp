@@ -13,7 +13,7 @@ void setup() { mouse.init(robot); }
 void loop() {
   mouse.tick(robot);
 
-  const WorldCoord w = robot.getWorldCoord();
+  const Translation2d w = robot.getWorldCoord();
   double heading = robot.getHeading();
   Serial.printf("WORLD: %0.2f, %0.2f  THETA: %0.2f\n", w.x, w.y, heading);
   const auto s = robot.getSensorState();
