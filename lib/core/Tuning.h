@@ -11,7 +11,7 @@ constexpr double OBSERVE_MAX_HEADING_ERROR = 0.2;
 constexpr double OBSERVE_MAX_ROTATION_RATE = 0.15;
 constexpr double OBSERVE_ENTRY_MARGIN = 0.1;
 
-constexpr double WALL_THRESHOLD_FRONT = 0.18;
+constexpr double WALL_THRESHOLD_FRONT = 0.19;
 constexpr double WALL_THRESHOLD_LEFT = 0.12;
 constexpr double WALL_THRESHOLD_RIGHT = 0.12;
 

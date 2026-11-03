@@ -68,7 +68,6 @@ void ProfiledDriveAction::run(Robot &r) {
   double measuredS = (w - begin).dot(dir); // component of robot "progress" that lies on dir
   double avgSpeed = 0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
 
-  r.io.printf("[drive]\n");
   const std::array<Translation2d, 4> &ir = r.getSensorState();
   const std::array<Translation2d, 4> &irAvg = r.getAverageSensorState();
   // if (irAvg[0].hypot() < FRONT_WALL_STOP_DISTANCE) {
