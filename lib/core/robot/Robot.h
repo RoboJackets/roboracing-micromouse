@@ -7,120 +7,17 @@
 #include "Odometry.h"
 #include "Types.h"
 #include "maze/MazeMap.h"
-#include "ControlAlgorithms.h"
-
-struct WheelSpeeds {
-  double left;
-  double right;
-};
-
-class MotionProfile {
-  TrapezoidalProfile profile;
-  TrapezoidalProfile::State target;
-  TrapezoidalProfile::State ref;
-  static constexpr double POS_EPS = 1e-9;
-  bool done = true;
-  double dir = 1.0;
-
-public:
-  MotionProfile() : profile{{0.0, 0.0}} {
-
-  }
-
-  void startMove(double position, double finalVelocity, TrapezoidalProfile::Constraints constraints) {
-    profile.cts = constraints;
-    target.position += position;
-    target.velocity = finalVelocity;
-    dir = position >= 0 ? 1.0 : -1.0;
-    done = false;
-  }
-
-  void hold() {
-    target = {ref.position, 0};
-    ref.velocity = 0;
-    done = true;
-  }
-
-  void update(double dt) {
-    if (done) {
-      ref.position += ref.velocity * dt;
-      return;
-    }
-    ref = profile.calculate(dt, ref, target);
-    bool reached = (target.position - ref.position) * dir <= POS_EPS;
-    if (reached) {
-      ref = target;
-      done = true;
-    }
-  }
-
-  double position() {
-    return ref.position;
-  }
-
-  double velocity() {
-    return ref.velocity;
-  }
-
-  // Put the reference at rest on the measured value.
-  void reset(double measured) {
-    ref = target = {measured, 0};
-    done = true;
-  }
-
-  bool finished() const { return done; }
-};
-
-struct MotionController {
-  MotionProfile forward;
-  PID forwardPID;
-
-  MotionProfile rotation;
-  PID rotationPID;
-
-  double forwardError = 0;
-  double rotationError = 0;
-
-  MotionController(PIDConstants forward, PIDConstants rotation) :
-    forward{},
-    forwardPID{forward},
-    rotation{},
-    rotationPID{rotation} {
-
-  }
-
-  WheelSpeeds update(double dt, double distance, double angle) {
-    forward.update(dt);
-    rotation.update(dt);
-    forwardError = forward.position() - distance;
-    rotationError = rotation.position() - angle;
-    double v = forward.velocity() + forwardPID.calculate(distance, forward.position(), dt);
-    double w = rotation.velocity() + rotationPID.calculate(angle, rotation.position(), dt);
-    return {v - w * WHEEL_SEPARATION_M / 2, v + w * WHEEL_SEPARATION_M / 2};
-  }
-
-  bool enabled = false;
-
-  void reset(double distance, double angle) {
-    forward.reset(distance);
-    rotation.reset(angle);
-    forwardPID.reset();
-    rotationPID.reset();
-    forwardError = 0;
-    rotationError = 0;
-  }
-
-  bool settled(double measuredSpeed) const {
-    return std::abs(forwardError) < DRIVE_POS_TOL &&
-           std::abs(rotationError) < ROTATION_POS_TOL &&
-           measuredSpeed < VEL_TOL;
-  }
-};
+#include "Constants.h"
+#include "Tuning.h"
+#include "control/ControlAlgorithms.h"
+#include "control/Motion.h"
 
 struct Robot {
   MouseIO &io;
   Odometry odom{};
-  MotionController controller{profilePIDConstants, profilePIDConstants};
+  MotionController controller{profilePIDConstants, profilePIDConstants,
+                              DRIVE_POS_TOL,       ROTATION_POS_TOL,
+                              VEL_TOL,             WHEEL_SEPARATION_M};
   Drivetrain drive{};
   DistanceSensors sensors{};
   MazeMap map{};

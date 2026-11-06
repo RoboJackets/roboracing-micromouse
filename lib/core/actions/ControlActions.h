@@ -1,7 +1,7 @@
 #pragma once
 #include "Action.h"
 #include "Constants.h"
-#include "ControlAlgorithms.h"
+#include "control/ControlAlgorithms.h"
 #include "Tuning.h"
 #include "Types.h"
 #include <cmath>

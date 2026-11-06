@@ -1,6 +1,11 @@
 #pragma once
 #include <cmath>
 
+struct WheelSpeeds {
+  double left;
+  double right;
+};
+
 struct Translation2d {
   double x = 0;
   double y = 0;
