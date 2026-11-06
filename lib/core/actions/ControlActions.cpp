@@ -52,110 +52,125 @@ void YawPIDAction::end(Robot &r) {
 }
 
 ProfiledDriveAction::ProfiledDriveAction(Translation2d begin, Translation2d target,
-                                         TrapezoidalProfile::Constraints constraints)
+                                         TrapezoidalProfile::Constraints constraints,
+                                         const double v0, const double vf)
     : profile{constraints},
-      begin{begin},
+      constraints{constraints},
+      start{begin},
       target{target},
       dir{(target - begin).normalized()},
-      lineAngle{std::atan2(dir.y, dir.x)}
+      lineAngle{std::atan2(dir.y, dir.x)},
+      v0{v0},
+      vf{vf}
 {
 }
 
-void ProfiledDriveAction::run(Robot &r) {
-  double dt = r.getDt();
-  Translation2d w = r.getWorldCoord();
-  double dist = (target - begin).hypot(); // scalar distance to target
-  double measuredS = (w - begin).dot(dir); // component of robot "progress" that lies on dir
-  double avgSpeed = 0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
 
-  const std::array<Translation2d, 4> &ir = r.getSensorState();
-  const std::array<Translation2d, 4> &irAvg = r.getAverageSensorState();
-  // if (irAvg[0].hypot() < FRONT_WALL_STOP_DISTANCE) {
+ProfiledDriveAction::ProfiledDriveAction(Translation2d begin, Translation2d target,
+                                         TrapezoidalProfile::Constraints constraints)
+                                         : ProfiledDriveAction(begin, target, constraints, 0, 0)
+{
+
+}
+
+void ProfiledDriveAction::begin(Robot &r) {
+  double dist = (target - start).hypot(); // scalar distance to target
+
+  r.controller.forward.startMove(dist, vf, constraints);
+  r.controller.rotation.hold();
+}
+
+void ProfiledDriveAction::run(Robot &r) {
+  bool forwardOk = r.controller.forward.finished();
+  bool rotationOk = r.controller.rotation.finished();
+  if (!forwardOk || !rotationOk) {
+    return;
+  }
+
+  // A move that ends stopped also waits for the robot itself to settle, so
+  // whatever follows (observe, pivot) starts from rest.
+  double avgSpeed = 0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
+  if (vf == 0.0 && !r.controller.settled(avgSpeed)) {
+    return;
+  }
+  canceled = true;
+  // double dt = r.getDt();
+  // Translation2d w = r.getWorldCoord();
+  // double dist = (target - begin).hypot(); // scalar distance to target
+  // double measuredS = (w - begin).dot(dir); // component of robot "progress" that lies on dir
+  // double avgSpeed = 0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
+
+  // const std::array<Translation2d, 4> &ir = r.getSensorState();
+  // const std::array<Translation2d, 4> &irAvg = r.getAverageSensorState();
+  // // if (irAvg[0].hypot() < FRONT_WALL_STOP_DISTANCE) {
   //   profile.finalVelocity = 0;
   //   canceled = true;
   //   r.io.printf("canceled\n");
   // }
   
-  bool distOk = std::abs(dist - measuredS) < DRIVE_POS_TOL;
-  bool velOk = avgSpeed < VEL_TOL; // TODO: nonzero target velocity
-  if (distOk && velOk) {
-    canceled = true;
-    return;
-  }
-  if (canceled) {
-    return;
-  }
+  // bool distOk = std::abs(dist - measuredS) < DRIVE_POS_TOL &&
+  //               (vf == 0.0 || measuredS >= dist); // if vf is not 0, must not undershoot
+  // bool velOk = vf > 0.0 || avgSpeed < VEL_TOL; // TODO: nonzero target velocity
+  // if (distOk && velOk) {
+  //   canceled = true;
+  //   return;
+  // }
+  // if (canceled) {
+  //   return;
+  // }
 
-  time += dt;
-  TrapezoidalProfile::State ref = profile.calculate(time, {0, 0}, {dist, 0});
+  // time += dt;
+  // TrapezoidalProfile::State ref = profile.calculate(time, {0, v0}, {dist, vf});
 
   // trapezoidal profile output velocity, plus PID velocity to
   // get robot measuredS closer to trapezoidal profile target
-  double v = ref.velocity + distPID.calculate(measuredS, ref.position, dt);
+  // double v = ref.velocity + distPID.calculate(measuredS, ref.position, dt);
 
-  double c = 0;
-  double gyroError = std::remainder(lineAngle - r.getHeading(), 2 * M_PI);
+  // double c = 0;
+  // double gyroError = std::remainder(lineAngle - r.getHeading(), 2 * M_PI);
 
-  // if (std::abs(ir.at(2).x) < IR_VALID_RANGE &&
-  //     std::abs(ir.at(3).x) < IR_VALID_RANGE) {
-  //   c = irPID.calculate(ir.at(3).x, -ir.at(2).x - IR_CENTER_OFFSET, r.getDt());
-  // } else if (std::abs(ir.at(2).x) < IR_VALID_RANGE) {
-  //   c = irPID.calculate(ir.at(2).x, IR_LEFT_ONLY_SETPOINT, r.getDt());
-  // } else if (std::abs(ir.at(3).x) < IR_VALID_RANGE) {
-  //   c = irPID.calculate(ir.at(3).x, IR_RIGHT_ONLY_SETPOINT, r.getDt());
-  // }
-  c += gyroPID.calculate(-gyroError, 0, r.getDt());
-  r.driveVelocity(v - c, v + c);
+  // // if (std::abs(ir.at(2).x) < IR_VALID_RANGE &&
+  // //     std::abs(ir.at(3).x) < IR_VALID_RANGE) {
+  // //   c = irPID.calculate(ir.at(3).x, -ir.at(2).x - IR_CENTER_OFFSET, r.getDt());
+  // // } else if (std::abs(ir.at(2).x) < IR_VALID_RANGE) {
+  // //   c = irPID.calculate(ir.at(2).x, IR_LEFT_ONLY_SETPOINT, r.getDt());
+  // // } else if (std::abs(ir.at(3).x) < IR_VALID_RANGE) {
+  // //   c = irPID.calculate(ir.at(3).x, IR_RIGHT_ONLY_SETPOINT, r.getDt());
+  // // }
+  // c += gyroPID.calculate(-gyroError, 0, r.getDt());
+  // r.driveVelocity(v - c, v + c);
 }
 
 void ProfiledDriveAction::end(Robot &r) {
-  r.driveDuty(0, 0);
-  // if (profile.finalVelocity == 0) {
-  // } else {
-  //   r.driveVelocity(profile.finalVelocity, profile.finalVelocity);
-  // }
+  // Nothing to command: the controller keeps the reference coasting at vf.
 }
 
 ProfiledRotationAction::ProfiledRotationAction(double target)
     : target{target},
-      profile({MAX_ROT_SPEED_RAD_S * ROTATION_MAX_SPEED_SCALE,
-               MAX_ROT_SPEED_RAD_S2 * ROTATION_ACCEL_SCALE}) {}
+      constraints{MAX_ROT_SPEED_RAD_S * ROTATION_MAX_SPEED_SCALE,
+                  MAX_ROT_SPEED_RAD_S2 * ROTATION_ACCEL_SCALE} {}
 
 void ProfiledRotationAction::begin(Robot &r) {
-  prevTheta = r.getHeading();
-  setpoint = std::remainder(target - prevTheta, 2 * M_PI);
+  r.controller.forward.hold();
+  // Turn measured from the rotation *reference* (not the gyro), so leftover
+  // heading error stays in the controller. remainder picks the short way round.
+  double turn = std::remainder(target - r.controller.rotation.position(), 2 * M_PI);
+  r.controller.rotation.startMove(turn, 0, constraints);
 }
 
 void ProfiledRotationAction::run(Robot &r) {
-  double dt = r.getDt();
-  double theta = r.getHeading();
-
-  measurement += std::remainder(theta - prevTheta, 2 * M_PI);
-  prevTheta = theta;
-
+  if (!r.controller.rotation.finished()) {
+    return;
+  }
   double avgSpeed =
       0.5 * (std::abs(r.getDriveSpeedLeft()) + std::abs(r.getDriveSpeedRight()));
-  bool posOk = std::abs(setpoint - measurement) < ROTATION_POS_TOL;
-  bool velOk = avgSpeed < VEL_TOL;
-  if (posOk && velOk) {
+  if (r.controller.settled(avgSpeed)) {
     canceled = true;
-    return;
   }
-  if (canceled) {
-    return;
-  }
-
-  time += dt;
-  TrapezoidalProfile::State ref = profile.calculate(time, {0, 0}, {setpoint, 0});
-
-  double omega = ref.velocity + errorPid.calculate(measurement, ref.position, dt);
-  omega = std::clamp(omega, -profile.cts.maxSpeed, profile.cts.maxSpeed);
-  double wheelSpeed = omega * WHEEL_SEPARATION_M / 2;
-  r.driveVelocity(-wheelSpeed, wheelSpeed);
 }
 
 void ProfiledRotationAction::end(Robot &r) {
-  r.driveDuty(0, 0);
+  // Nothing to command: the controller holds the new heading.
 }
 
 ProfiledCurveAction::ProfiledCurveAction(double radius, double angle,

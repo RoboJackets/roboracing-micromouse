@@ -22,14 +22,13 @@ struct StateMachine {
   GoalState currentState = GoalState::GOAL_SEARCH;
   Phase phase = phaseFor(GoalState::GOAL_SEARCH);
 
-  SequentialAction startup = makeStartup();
-  EmptyAction empty{};
-  SequentialAction act{};
   CommandTranslator translator{};
-  Action *a = &startup;
+  std::unique_ptr<Action> a = makeStartup();
+  bool startingUp = true; // a is the startup sequence; reset the translator when it ends
 
-  static SequentialAction makeStartup() {
-    return SequentialAction::make(DelayAction(3), StartupAction{});
+  static std::unique_ptr<Action> makeStartup() {
+    return std::make_unique<SequentialAction>(
+        SequentialAction::make(DelayAction(3), StartupAction{}));
   }
 
   static constexpr Phase phaseFor(GoalState state) {
@@ -48,8 +47,10 @@ struct StateMachine {
 
   void init(Robot &r);
   void tick(Robot &r);
+  std::unique_ptr<Action> explore(Robot &r);
   void runFastPath(Robot &r, const std::vector<Move> &moves);
-  void switchState(GoalState state, Robot &r);
-  void updateState(Cell at, Robot &r);
-  SequentialAction movesToAction(Robot& r, const std::vector<Move> &moves, const SpeedProfile speed);
+  // both return whether they replaced the current action
+  bool switchState(GoalState state, Robot &r);
+  bool updateState(Cell at, Robot &r);
+  std::unique_ptr<Action> movesToAction(Robot& r, const std::vector<Move> &moves, const SpeedProfile speed);
 };

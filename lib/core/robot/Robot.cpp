@@ -15,4 +15,8 @@ void Robot::update() {
   io.poll();
   sensors.update(io.irMeters());
   odom.update(io.leftMeters(), io.rightMeters(), io.gyroYaw(), cachedDt);
+  if (controller.enabled) {
+    auto speeds = controller.update(cachedDt, getDistance(), getUnwrappedHeading());
+    driveVelocity(speeds.left, speeds.right);
+  }
 }

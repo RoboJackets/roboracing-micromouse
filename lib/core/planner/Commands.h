@@ -67,6 +67,10 @@ struct Command {
 
 class CommandGenerator {
 public:
+  CommandGenerator(bool explore = false) : explore{explore} {
+
+  }
+
   std::vector<Command> exec(const std::vector<Move>& input) {
     state = Straight{};
     out.clear();
@@ -75,6 +79,7 @@ public:
     }
     return out;
   }
+
 private:
   // State definitions
   struct Straight {
@@ -99,6 +104,7 @@ private:
   
   State state = Straight{};
   std::vector<Command> out;
+  bool explore = false;
 };
 
 class CommandTranslator {
@@ -107,16 +113,18 @@ class CommandTranslator {
   Pose2d pose;
 
   std::unique_ptr<Action> makeFwdAction(int8_t amt, Robot &r,
-                                        const SpeedProfile &sp);
+                                        const SpeedProfile &sp,
+                                        double v0, double vf);
 
   std::unique_ptr<Action> makeCurveAction(int8_t amt, Robot &r,
                                           const SpeedProfile &sp);
 
   std::unique_ptr<Action> makeInPlaceTurnAction(int8_t amt, Robot &r,
-                                                const SpeedProfile &sp);
+                                                const SpeedProfile &sp,
+                                                double v0);
   
 public:
-  std::unique_ptr<Action> translate(const Command& c, Robot& r, const SpeedProfile& sp);
+  std::unique_ptr<Action> translate(const Command& c, Robot& r, const SpeedProfile& sp, double v0 = 0.0, double vf = 0.0);
 
   void reset(Cell c, Pose2d p, int octant) { cell = c; pose = p; angle = octant; }
   Cell getCell() const { return cell; }

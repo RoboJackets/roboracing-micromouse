@@ -62,7 +62,7 @@ CommandGenerator::State CommandGenerator::on(Straight s, Move m) {
 
 CommandGenerator::State CommandGenerator::on(Turning s, Move m) {
   push_cmd({
-    Command::Type::SmoothTurn,
+    explore ? Command::Type::InPlaceTurn : Command::Type::SmoothTurn,
     s.side == Side::Left ? -2 : 2
   });
   // The turn finishes inside the cell it started in, so the cell the turn move
@@ -100,21 +100,21 @@ CommandGenerator::State CommandGenerator::on(Turning s, Move m) {
   return Straight{};
 }
 
-std::unique_ptr<Action> CommandTranslator::translate(const Command& c, Robot& r, const SpeedProfile& sp) {
+std::unique_ptr<Action> CommandTranslator::translate(const Command& c, Robot& r, const SpeedProfile& sp, double v0, double vf) {
   switch (c.type) {
     case Command::Type::Forward:
-      return makeFwdAction(c.amt, r, sp);
+      return makeFwdAction(c.amt, r, sp, v0, vf);
     case Command::Type::SmoothTurn:
       return makeCurveAction(c.amt, r, sp);
     case Command::Type::InPlaceTurn:
-      return makeInPlaceTurnAction(c.amt, r, sp);
+      return makeInPlaceTurnAction(c.amt, r, sp, v0);
     case Command::Type::Stop:
       break;
   }
   return std::make_unique<StopAction>();
 }
 
-std::unique_ptr<Action> CommandTranslator::makeFwdAction(int8_t amt, Robot &r, const SpeedProfile &sp) {
+std::unique_ptr<Action> CommandTranslator::makeFwdAction(int8_t amt, Robot &r, const SpeedProfile &sp, double v0, double vf) {
   const Cell v = octantOffset(angle);
   const Cell nextCell = cell + v * amt;
   const Translation2d nextPos = cellEdge(nextCell, (angle + 4) % 8);
@@ -127,7 +127,9 @@ std::unique_ptr<Action> CommandTranslator::makeFwdAction(int8_t amt, Robot &r, c
     TrapezoidalProfile::Constraints{
       sp.maxSpeed,
       MAX_ACCEL_M_S2 * DRIVE_ACCEL_SCALE
-    }
+    },
+    v0,
+    vf
   );
 
   pose.xy = nextPos;
@@ -139,10 +141,10 @@ std::unique_ptr<Action> CommandTranslator::makeCurveAction(int8_t amt, Robot& r,
   // TODO: real smooth turn. Until ProfiledCurveAction plans from absolute
   // geometry, pivot at the cell center; this leaves the translator in the same
   // state the generator expects after a smooth turn (inside the same cell).
-  return makeInPlaceTurnAction(amt, r, sp);
+  return makeInPlaceTurnAction(amt, r, sp, 0);
 }
 
-std::unique_ptr<Action> CommandTranslator::makeInPlaceTurnAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
+std::unique_ptr<Action> CommandTranslator::makeInPlaceTurnAction(int8_t amt, Robot& r, const SpeedProfile& sp, double v0) {
   angle = normalizeOctant(angle + amt);
   
   const Translation2d nextPos = cellCenter(cell);
@@ -155,7 +157,9 @@ std::unique_ptr<Action> CommandTranslator::makeInPlaceTurnAction(int8_t amt, Rob
     TrapezoidalProfile::Constraints{
       sp.maxSpeed,
       MAX_ACCEL_M_S2 * DRIVE_ACCEL_SCALE
-    }
+    },
+    v0,
+    0
   );
 
   std::unique_ptr<Action> turn = std::make_unique<ProfiledRotationAction>(

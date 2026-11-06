@@ -35,34 +35,34 @@ struct YawPIDAction : Action {
 };
 
 struct ProfiledDriveAction : Action {
-  const Translation2d begin;
+  const Translation2d start;
   const Translation2d target;
   const Translation2d dir;
   const double lineAngle;
+
+  const double v0; // initial speed
+  const double vf; // final speed
   
   double time = 0;
   TrapezoidalProfile profile;
+  TrapezoidalProfile::Constraints constraints;
 
   PID distPID = PID{profilePIDConstants};
   PID irPID = PID{IRadjust};
   PID gyroPID = PID{rot90PIDConstants};
     
-  ProfiledDriveAction(const Translation2d begin, const Translation2d target, const TrapezoidalProfile::Constraints);
+  ProfiledDriveAction(const Translation2d start, const Translation2d target, const TrapezoidalProfile::Constraints);
+  ProfiledDriveAction(const Translation2d start, const Translation2d target, const TrapezoidalProfile::Constraints, const double v0, const double vf);
 
   void run(Robot &r) override;
+  void begin(Robot &r) override;
   void end(Robot &r) override;
 };
 
+// Pivot in place to an absolute heading using the robot's motion controller.
 struct ProfiledRotationAction : Action {
   const double target; // absolute heading, rad
-  double setpoint = 0; // signed turn from the starting heading, set in begin()
-  double prevTheta = 0;
-  double measurement = 0; // accumulated rotation since begin()
-
-  double time = 0;
-  TrapezoidalProfile profile;
-
-  PID errorPid = PID{profilePIDConstants};
+  const TrapezoidalProfile::Constraints constraints; // rad/s, rad/s^2
 
   ProfiledRotationAction(double target);
 
