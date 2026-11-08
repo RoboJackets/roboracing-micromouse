@@ -8,3 +8,8 @@ struct WorldCoord {
   double theta = 0;
   double hypot() const { return std::sqrt(x * x + y * y); }
 };
+
+struct KinematicState {
+  double position = 0;
+  double velocity = 0;
+};
