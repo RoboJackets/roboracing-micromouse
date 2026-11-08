@@ -14,6 +14,18 @@ void StateMachine::init(Robot &r) {
   a->begin(r);
 }
 
+void StateMachine::initTest(Robot &r, const std::vector<Move> &moves,
+                            bool fast) {
+  testMoves = moves;
+  testIndex = 0;
+  testFast = fast;
+
+  currentState = GoalState::TEST;
+  phase = phaseFor(currentState);
+  r.init();
+  a->begin(r);
+}
+
 void StateMachine::switchState(GoalState state, Robot &r) {
   if (currentState == state) {
     return;
@@ -57,6 +69,10 @@ void StateMachine::updateState(Cell at, Robot &r) {
     if (atGoal(at, *phase.goal))
       switchState(GoalState::RETURN, r);
     break;
+  case GoalState::TEST:
+    if (testIndex >= testMoves.size())
+      switchState(GoalState::NONE, r);
+    break;
   case GoalState::NONE:
     break;
   }
@@ -79,19 +95,34 @@ void StateMachine::tick(Robot &r) {
       a->run(r);
       return;
     }
-    
+
+    if (currentState == GoalState::NONE) {
+      r.driveDuty(0, 0);
+      return;
+    }
+
     r.map.allowUpdates(phase.mapping);
     r.observe();
     translator.goalCell = at;
 
-    if (currentState == GoalState::FAST_PATH) {
+    if (currentState == GoalState::TEST && testFast) {
+      r.io.printf("[test_fast]\n");
+      translator.goalAngle = 2 * static_cast<int>(facing);
+      act = movesToAction(testMoves, FAST_SPEED);
+      testIndex = testMoves.size();
+    } else if (currentState == GoalState::TEST) {
+      Move move = testMoves[testIndex++];
+      r.io.printf("[test_explore] move: %d\n", move);
+      std::vector<Move> moves = {move, Move::Continue};
+      act = movesToAction(moves, EXPLORE_SPEED);
+    } else if (currentState == GoalState::FAST_PATH) {
       r.io.printf("[fast_path]\n");
-      translator.goalAngle = 2 * static_cast<int>(facing);  // octants
+      translator.goalAngle = 2 * static_cast<int>(facing); // octants
       act = movesToAction(planFastRoute(r.map, *phase.goal, at, facing),
                           FAST_SPEED);
     } else {
       Move move = exploreStep(r.map, at, facing, *phase.goal, phase.reach(),
-      phase.fastSpeed);
+                              phase.fastSpeed);
       r.io.printf("[explore] move: %d\n", move);
       std::vector<Move> moves = {move, Move::Continue};
       act = movesToAction(moves, EXPLORE_SPEED);
@@ -107,8 +138,15 @@ SequentialAction StateMachine::movesToAction(const std::vector<Move> &moves,
                                              const SpeedProfile speed) {
   const std::vector<Command> commands = CommandGenerator{}.exec(moves);
   std::vector<std::unique_ptr<Action>> steps;
-  for (const Command &c : commands)
-    steps.push_back(std::make_unique<DeferredCommandAction>(c, translator, speed));
+  for (size_t i = 0; i < commands.size(); ++i) {
+    SpeedProfile sp = speed;
+    if (commands[i].type == Command::Type::Forward &&
+        i + 1 < commands.size() &&
+        commands[i + 1].type == Command::Type::Stop)
+      sp.driveFinalVelocity = 0;
+    steps.push_back(
+        std::make_unique<DeferredCommandAction>(commands[i], translator, sp));
+  }
   return SequentialAction(std::move(steps));
 }
 
