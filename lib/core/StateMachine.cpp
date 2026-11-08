@@ -90,7 +90,7 @@ void StateMachine::tick(Robot &r) {
     r.map.allowUpdates(phase.mapping);
     r.observe(at);
     if (currentState == GoalState::FAST_PATH) {
-      printf("[fast_path]\n");
+      r.io.printf("[fast_path]\n");
       std::vector<Move> route = planFastRoute(r.map, *phase.goal, at, facing);
       r.io.printf("Fast Route:\n");
       for (Move m : route) {
@@ -116,7 +116,7 @@ std::unique_ptr<Action> StateMachine::explore(Robot& r) {
   const Dir facing = translator.getFacing();
 
   Move move = exploreStep(r.map, at, facing, *phase.goal, phase.reach(), phase.fastSpeed);
-  printf("[explore] move: %d\n", move);
+  r.io.printf("[explore] move: %d\n", move);
   
   const std::vector<Move> moves = {move, Move::Continue};
   const std::vector<Command> commands = CommandGenerator(true).exec(moves);
