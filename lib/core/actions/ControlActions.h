@@ -37,7 +37,12 @@ struct YawPIDAction : Action {
 
 struct ProfiledDriveAction : Action {
   TrapezoidalProfile profile;
+  PID positionPID{profilePIDConstants};
+  double refPos = 0;
+  double refVel = 0;
+  double maxSpeed;
   double setpoint;
+  double finalVelocity;
   double error;
   double angle;
   double measurement = 0;
@@ -55,6 +60,11 @@ struct ProfiledDriveAction : Action {
 
 struct ProfiledRotationAction : Action {
   TrapezoidalProfile profile;
+  PID positionPID{profilePIDConstants};
+  double refPos = 0;
+  double refVel = 0;
+  double maxSpeed;
+  double finalVelocity = 0;
   bool started = false;
   double prevTheta = 0;
   double measurement = 0;
@@ -69,7 +79,12 @@ struct ProfiledRotationAction : Action {
 
 struct ProfiledCurveAction : Action {
   TrapezoidalProfile profile;
+  PID positionPID{profilePIDConstants};
+  double refPos = 0;
+  double refVel = 0;
+  double maxSpeed;
   PID irPID = PID{IRadjust};
+  double finalVelocity;
   double measurement = 0;
   double radius;
   bool started = false;
