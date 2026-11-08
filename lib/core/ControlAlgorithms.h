@@ -38,15 +38,10 @@ public:
 };
 
 class TrapezoidalProfile {
-  struct Constraints {
-    double maxSpeed;
-    double maxAccel;
-  };
-
-  Constraints cts;
+  KinematicConstraints cts;
 
 public:
-  explicit TrapezoidalProfile(Constraints constraints);
+  explicit TrapezoidalProfile(KinematicConstraints constraints);
 
   KinematicState calculate(double dt, KinematicState setpoint, KinematicState goal) const;
   double totalTime(KinematicState setpoint, KinematicState goal) const;

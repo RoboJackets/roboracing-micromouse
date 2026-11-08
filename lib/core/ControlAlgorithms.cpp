@@ -22,7 +22,7 @@ double PID::calculate(double measurement, double setpoint, double dt) {
   return result;
 }
 
-TrapezoidalProfile::TrapezoidalProfile(Constraints constraints)
+TrapezoidalProfile::TrapezoidalProfile(KinematicConstraints constraints)
     : cts{constraints} {}
 
 KinematicState TrapezoidalProfile::calculate(double dt,
