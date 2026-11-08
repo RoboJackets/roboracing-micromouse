@@ -53,8 +53,8 @@ void YawPIDAction::end(Robot &r) {
 
 ProfiledDriveAction::ProfiledDriveAction(double setpoint, double angle,
                                          double finalVelocity, double maxSpeed)
-    : profile({maxSpeed, MAX_ACCEL_M_S2 * DRIVE_ACCEL_SCALE}),
-      maxSpeed(maxSpeed), setpoint(setpoint), finalVelocity(finalVelocity),
+    : constraints{maxSpeed, MAX_ACCEL_M_S2 * DRIVE_ACCEL_SCALE},
+      profile(constraints), setpoint(setpoint), finalVelocity(finalVelocity),
       error(setpoint), angle(angle) {}
 
 void ProfiledDriveAction::run(Robot &r) {
@@ -93,7 +93,7 @@ void ProfiledDriveAction::run(Robot &r) {
   refPos = ref.position;
   refVel = ref.velocity;
   double v = refVel + positionPID.calculate(measurement, refPos, r.getDt());
-  v = std::clamp(v, -maxSpeed, maxSpeed);
+  v = std::clamp(v, -constraints.maxSpeed, constraints.maxSpeed);
   double c = 0;
   double gyroError = angle - w.theta;
   gyroError = std::atan2(std::sin(gyroError), std::cos(gyroError));
@@ -118,10 +118,9 @@ void ProfiledDriveAction::end(Robot &r) {
 }
 
 ProfiledRotationAction::ProfiledRotationAction(double angle)
-    : profile({MAX_ROT_SPEED_RAD_S * ROTATION_MAX_SPEED_SCALE,
-               MAX_ROT_SPEED_RAD_S2 * ROTATION_ACCEL_SCALE}),
-      maxSpeed(MAX_ROT_SPEED_RAD_S * ROTATION_MAX_SPEED_SCALE), error(angle),
-      setpoint(angle) {}
+    : constraints{MAX_ROT_SPEED_RAD_S * ROTATION_MAX_SPEED_SCALE,
+                  MAX_ROT_SPEED_RAD_S2 * ROTATION_ACCEL_SCALE},
+      profile(constraints), error(angle), setpoint(angle) {}
 
 void ProfiledRotationAction::run(Robot &r) {
   double avgSpeed =
@@ -149,7 +148,7 @@ void ProfiledRotationAction::run(Robot &r) {
   refPos = ref.position;
   refVel = ref.velocity;
   double omega = refVel + positionPID.calculate(measurement, refPos, r.getDt());
-  omega = std::clamp(omega, -maxSpeed, maxSpeed);
+  omega = std::clamp(omega, -constraints.maxSpeed, constraints.maxSpeed);
   double wheelSpeed = omega * WHEEL_SEPARATION_M / 2;
   r.driveVelocity(-wheelSpeed, wheelSpeed);
 }
@@ -160,15 +159,12 @@ void ProfiledRotationAction::end(Robot &r) {
 
 ProfiledCurveAction::ProfiledCurveAction(double radius, double angle,
                                          double finalVelocity, double maxSpeed)
-    : profile({maxSpeed > 0 ? maxSpeed
-                            : std::sqrt(COEF_FRICTION * 9.81 * radius) *
-                                  CURVE_FRICTION_SPEED_SCALE,
-               MAX_ACCEL_M_S2 * CURVE_ACCEL_SCALE}),
-      maxSpeed(maxSpeed > 0 ? maxSpeed
-                            : std::sqrt(COEF_FRICTION * 9.81 * radius) *
-                                  CURVE_FRICTION_SPEED_SCALE),
-      finalVelocity(finalVelocity), radius(radius), setpoint(radius * angle),
-      error(setpoint) {}
+    : constraints{maxSpeed > 0 ? maxSpeed
+                               : std::sqrt(COEF_FRICTION * 9.81 * radius) *
+                                     CURVE_FRICTION_SPEED_SCALE,
+                  MAX_ACCEL_M_S2 * CURVE_ACCEL_SCALE},
+      profile(constraints), finalVelocity(finalVelocity), radius(radius),
+      setpoint(radius * angle), error(setpoint) {}
 
 void ProfiledCurveAction::run(Robot &r) {
   double avgSpeed =
@@ -201,7 +197,7 @@ void ProfiledCurveAction::run(Robot &r) {
   refVel = ref.velocity;
   double v =
       refVel + positionPID.calculate(std::abs(measurement), refPos, r.getDt());
-  v = std::clamp(v, -maxSpeed, maxSpeed);
+  v = std::clamp(v, -constraints.maxSpeed, constraints.maxSpeed);
   double halfTrack = WHEEL_SEPARATION_M / 2.0;
   double outerRatio = (radius + halfTrack) / radius;
   double innerRatio = (radius - halfTrack) / radius;
