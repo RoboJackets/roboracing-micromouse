@@ -1,5 +1,5 @@
 #pragma once
-#include "ControlAlgorithms.h"
+#include "control/ControlAlgorithms.h"
 #include "MouseIO.h"
 #include "Tuning.h"
 

@@ -1,4 +1,3 @@
-#pragma once
 #include "Simulator.h"
 #include <algorithm>
 #include <array>
@@ -38,6 +37,13 @@ void SimIO::printMaze(std::ostream &out) const {
         for (int x = 0; x < 240; x++)
             out << (worldState[x][y] ? '1' : '0');
     out << '\n';
+}
+
+void SimIO::placeAtStart() {
+    const RobotState start{};
+    robotState.x = start.x;
+    robotState.y = start.y;
+    robotState.theta = start.theta;
 }
 
 void SimIO::init() {

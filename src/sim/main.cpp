@@ -28,17 +28,22 @@ int main(int argc, char *argv[]) {
     
     double last_print = -PRINT_PERIOD;
 
+    GoalState prevState = mouse.currentState;
+
     while (simIO.now() < MAX_SIM_TIME) {
         mouse.tick(robot);
+        if (mouse.currentState == GoalState::FAST_PATH && prevState != GoalState::FAST_PATH)
+            simIO.placeAtStart();
+        prevState = mouse.currentState;
         if (simIO.now() - last_print < PRINT_PERIOD)
             continue;
         last_print = simIO.now();
 
         std::cout << "TIME: " << simIO.now() << '\n';
 
-        const WorldCoord w = robot.getWorldCoord();
-        std::cout << "WORLD: " << w.x << ", " << w.y << " THETA: "
-                  << w.theta << '\n';
+        const Pose2d p = robot.getPose();
+        std::cout << "WORLD: " << p.xy.x << ", " << p.xy.y << " THETA: "
+                  << p.theta << '\n';
         const auto s = robot.getSensorState();
         for (int i = 0; i < 4; ++i) {
             std::cout << i << ": " << s[i].x << ", " << s[i].y << "     ";

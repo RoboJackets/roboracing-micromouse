@@ -1,8 +1,7 @@
 #pragma once
 #include "Action.h"
-#include "Commands.h"
 #include "Constants.h"
-#include "ControlAlgorithms.h"
+#include "control/ControlAlgorithms.h"
 #include "Tuning.h"
 #include "Types.h"
 #include <cmath>
@@ -36,40 +35,48 @@ struct YawPIDAction : Action {
 };
 
 struct ProfiledDriveAction : Action {
-  TrapezoidalProfile profile;
-  double setpoint;
-  double error;
-  double angle;
-  double measurement = 0;
-  bool started = false;
-  WorldCoord prevCoord;
+  const Translation2d start;
+  const Translation2d target;
+  const Translation2d dir;
+  const double lineAngle;
 
-  ProfiledDriveAction(double setpoint, double angle, double finalVelocity,
-                      double maxSpeed = DRIVE_DEFAULT_MAX_SPEED);
+  const double v0; // initial speed
+  const double vf; // final speed
+  
+  double time = 0;
+  TrapezoidalProfile profile;
+  TrapezoidalProfile::Constraints constraints;
+
+  PID distPID = PID{profilePIDConstants};
   PID irPID = PID{IRadjust};
   PID gyroPID = PID{rot90PIDConstants};
+    
+  ProfiledDriveAction(const Translation2d start, const Translation2d target, const TrapezoidalProfile::Constraints);
+  ProfiledDriveAction(const Translation2d start, const Translation2d target, const TrapezoidalProfile::Constraints, const double v0, const double vf);
 
   void run(Robot &r) override;
+  void begin(Robot &r) override;
   void end(Robot &r) override;
 };
 
+// Pivot in place to an absolute heading using the robot's motion controller.
 struct ProfiledRotationAction : Action {
-  TrapezoidalProfile profile;
-  bool started = false;
-  double prevTheta = 0;
-  double measurement = 0;
-  double error;
-  double setpoint;
+  const double target; // absolute heading, rad
+  const TrapezoidalProfile::Constraints constraints; // rad/s, rad/s^2
 
-  ProfiledRotationAction(double angle);
+  ProfiledRotationAction(double target);
 
+  void begin(Robot &r) override;
   void run(Robot &r) override;
   void end(Robot &r) override;
 };
 
 struct ProfiledCurveAction : Action {
   TrapezoidalProfile profile;
+  TrapezoidalProfile::State profileSetpoint{};
+  PID errorPid = PID{profilePIDConstants};
   PID irPID = PID{IRadjust};
+  double finalVelocity;
   double measurement = 0;
   double radius;
   bool started = false;

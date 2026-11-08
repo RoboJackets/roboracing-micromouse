@@ -9,14 +9,16 @@ void Odometry::update(double leftMeters, double rightMeters, double yaw,
   if (!seeded) {
     seeded = true;
     gyroYaw = yaw;
+    unwrappedYaw = yaw;
     leftPosition = leftMeters;
     rightPosition = rightMeters;
   }
 
   const double prevYaw = gyroYaw;
   gyroYaw = yaw;
-  const double rawRotationRate =
-      std::remainder(gyroYaw - prevYaw, 2 * M_PI) / dt;
+  const double yawDelta = std::remainder(gyroYaw - prevYaw, 2 * M_PI);
+  unwrappedYaw += yawDelta;
+  const double rawRotationRate = yawDelta / dt;
   filteredRotationRate +=
       ROTATION_FILTER_ALPHA * (rawRotationRate - filteredRotationRate);
 
@@ -35,12 +37,12 @@ void Odometry::update(double leftMeters, double rightMeters, double yaw,
   const double wheelDelta = ((deltaLeft + deltaRight) / 2);
 
   const double prevTheta = (-prevYaw - gyroOffset);
-  const double theta = (-gyroYaw - gyroOffset);
+  theta = (-gyroYaw - gyroOffset);
   const double midTheta =
       prevTheta + std::remainder(theta - prevTheta, 2 * M_PI) / 2.0;
 
   const double deltaX = wheelDelta * std::cos(midTheta);
   const double deltaY = wheelDelta * std::sin(midTheta);
 
-  w = WorldCoord{w.x + deltaX, w.y + deltaY, theta};
+  w = Translation2d{w.x + deltaX, w.y + deltaY};
 }

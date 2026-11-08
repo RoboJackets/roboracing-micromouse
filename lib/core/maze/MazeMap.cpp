@@ -43,11 +43,10 @@ void MazeMap::addBorderWalls() {
 }
 
 // adds walls to the maze map.
-void MazeMap::observe(const WorldCoord &pose, double rotationRate,
-                      const std::array<WorldCoord, 4> &readings) {
+void MazeMap::observe(Cell at, const Pose2d &pose, double rotationRate,
+                      const std::array<Translation2d, 4> &readings) {
   if (!updatesEnabled)
     return;
-  const Cell at = cellOf(pose);
   if (!inBounds(at))
     return;
   markKnown(at);
@@ -58,7 +57,7 @@ void MazeMap::observe(const WorldCoord &pose, double rotationRate,
     return;
 
   const Dir facing = dirOf(pose.theta);
-  const WorldCoord rel = cellRelative(pose, at);
+  const Translation2d rel = cellRelative(pose.xy, at);
 
   switch (facing) {
   case Dir::North:

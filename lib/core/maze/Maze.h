@@ -14,6 +14,9 @@ struct Cell {
 
 constexpr bool operator==(Cell a, Cell b) { return a.x == b.x && a.y == b.y; }
 constexpr bool operator!=(Cell a, Cell b) { return !(a == b); }
+constexpr Cell operator+(Cell a, Cell b) { return Cell{a.x + b.x, a.y + b.y}; }
+constexpr Cell operator*(Cell a, int k) { return Cell{a.x * k, a.y * k}; }
+constexpr Cell operator*(int k, Cell a) { return a * k; }
 
 enum class Dir : uint8_t { North, East, South, West };
 
@@ -97,7 +100,7 @@ constexpr Cell octantOffset(int octant) {
   }
 }
 
-inline Cell cellOf(const WorldCoord &w) {
+inline Cell cellOf(const Translation2d &w) {
   return Cell{static_cast<int>(std::floor(w.x / CELL_SIZE_METERS)),
               static_cast<int>(std::floor(w.y / CELL_SIZE_METERS))};
 }
@@ -115,9 +118,22 @@ inline Dir dirOf(double theta) {
   return Dir::South;
 }
 
-inline WorldCoord cellRelative(const WorldCoord &w, Cell c) {
-  return WorldCoord{w.x - c.x * CELL_SIZE_METERS, w.y - c.y * CELL_SIZE_METERS,
-                    w.theta};
+inline Translation2d cellRelative(const Translation2d &w, Cell c) {
+  return Translation2d{w.x - c.x * CELL_SIZE_METERS, w.y - c.y * CELL_SIZE_METERS};
+}
+
+// world point at the center of cell c.
+inline Translation2d cellCenter(Cell c) {
+  return Translation2d{(c.x + 0.5) * CELL_SIZE_METERS,
+                       (c.y + 0.5) * CELL_SIZE_METERS};
+}
+
+// world point on the boundary of cell c in the given octant direction
+// (0 = north, clockwise): edge midpoints for even octants, corners for odd.
+inline Translation2d cellEdge(Cell c, int octant) {
+  const Cell v = octantOffset(octant);
+  const double halfCell = CELL_SIZE_METERS / 2.0;
+  return cellCenter(c) + Translation2d{v.x * halfCell, v.y * halfCell};
 }
 
 struct Goals {
@@ -135,7 +151,7 @@ struct Goals {
 
 constexpr int TIEBREAK_OFF = 0;
 
-inline constexpr Cell centerGoals[]{{2, 0}};
+inline constexpr Cell centerGoals[]{{3, 3}};
 inline constexpr Cell startGoal[]{{0, 0}};
 
 inline constexpr Goals CENTER_GOALS{centerGoals,
