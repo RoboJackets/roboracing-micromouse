@@ -13,3 +13,8 @@ struct KinematicState {
   double position = 0;
   double velocity = 0;
 };
+
+struct KinematicConstraints {
+  double maxSpeed = 0;
+  double maxAccel = 0;
+};
