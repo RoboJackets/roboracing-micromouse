@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <cmath>
+#include "Types.h"
 
 struct PIDConstants {
   double p = 0;
@@ -36,23 +37,19 @@ public:
   }
 };
 
-struct TrapezoidalProfile {
-  double maxSpeed, maxAccel, initialVelocity, finalVelocity;
-  PIDConstants pidConstants;
-  double setpoint;
-  double time = 0;
-  double startMeasurement = 0;
-  bool started = false;
-  PID errorPid = PID{pidConstants};
+class TrapezoidalProfile {
+  struct Constraints {
+    double maxSpeed;
+    double maxAccel;
+  };
 
-  TrapezoidalProfile(double maxSpeed, double maxAccel, double initialVelocity,
-                     double finalVelocity, PIDConstants pidConstants,
-                     double setpoint);
+  Constraints cts;
 
-  double calculate(double dt, double measurement);
-  void reset();
+public:
+  explicit TrapezoidalProfile(Constraints constraints);
 
-  static double totalTime(double maxAccel, double maxSpeed, double distance);
+  KinematicState calculate(double dt, KinematicState setpoint, KinematicState goal) const;
+  double totalTime(KinematicState setpoint, KinematicState goal) const;
 };
 
 struct MotorFeedForward {
