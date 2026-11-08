@@ -49,6 +49,8 @@ void StateMachine::switchState(GoalState state, Robot &r) {
     break;
   case GoalState::GOAL_SEARCH:
     break;
+  case GoalState::TEST:
+    break;
   case GoalState::RETURN:
     break;
   }
@@ -140,8 +142,7 @@ SequentialAction StateMachine::movesToAction(const std::vector<Move> &moves,
   std::vector<std::unique_ptr<Action>> steps;
   for (size_t i = 0; i < commands.size(); ++i) {
     SpeedProfile sp = speed;
-    if (commands[i].type == Command::Type::Forward &&
-        i + 1 < commands.size() &&
+    if (commands[i].type == Command::Type::Forward && i + 1 < commands.size() &&
         commands[i + 1].type == Command::Type::Stop)
       sp.driveFinalVelocity = 0;
     steps.push_back(

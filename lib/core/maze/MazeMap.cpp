@@ -57,7 +57,7 @@ void MazeMap::observe(const WorldCoord &pose, double rotationRate,
     return;
 
   const Dir facing = dirOf(pose.theta);
-  const WorldCoord rel = cellRelative(pose, at);
+  // const WorldCoord rel = cellRelative(pose, at);
 
   // switch (facing) {
   // case Dir::North:
