@@ -50,7 +50,6 @@ void MazeMap::observe(const WorldCoord &pose, double rotationRate,
   const Cell at = cellOf(pose);
   if (!inBounds(at))
     return;
-  markKnown(at);
 
   if (std::abs(std::remainder(pose.theta, M_PI / 2.0)) > OBSERVE_MAX_HEADING_ERROR)
     return;
@@ -58,26 +57,28 @@ void MazeMap::observe(const WorldCoord &pose, double rotationRate,
     return;
 
   const Dir facing = dirOf(pose.theta);
-  const WorldCoord rel = cellRelative(pose, at);
+  // const WorldCoord rel = cellRelative(pose, at);
 
-  switch (facing) {
-  case Dir::North:
-    if (rel.y > OBSERVE_ENTRY_MARGIN)
-      return;
-    break;
-  case Dir::South:
-    if (rel.y < OBSERVE_ENTRY_MARGIN)
-      return;
-    break;
-  case Dir::West:
-    if (rel.x < OBSERVE_ENTRY_MARGIN)
-      return;
-    break;
-  case Dir::East:
-    if (rel.x > OBSERVE_ENTRY_MARGIN)
-      return;
-    break;
-  }
+  // switch (facing) {
+  // case Dir::North:
+  //   if (rel.y > OBSERVE_ENTRY_MARGIN)
+  //     return;
+  //   break;
+  // case Dir::South:
+  //   if (rel.y < OBSERVE_ENTRY_MARGIN)
+  //     return;
+  //   break;
+  // case Dir::West:
+  //   if (rel.x < OBSERVE_ENTRY_MARGIN)
+  //     return;
+  //   break;
+  // case Dir::East:
+  //   if (rel.x > OBSERVE_ENTRY_MARGIN)
+  //     return;
+  //   break;
+  // }
+
+  markKnown(at);
 
   if (readings[0].y < WALL_THRESHOLD_FRONT)
     addWall(at, facing);
