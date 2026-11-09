@@ -1,4 +1,3 @@
-#pragma once
 #include "Simulator.h"
 #include <algorithm>
 #include <array>
