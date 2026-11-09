@@ -27,7 +27,6 @@ import time
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.animation import FuncAnimation
 from matplotlib.patches import Polygon, Rectangle
 
 N = 16
@@ -175,7 +174,10 @@ class Clock:
 
 
 def update(stream, fig, artists, t=math.inf):
-    """Draw the last frame at or before sim time t."""
+    """Move the artists to the last frame at or before sim time t.
+
+    Returns True when the walls changed, which needs a full redraw rather than a blit.
+    """
     trail, rays, hits, robot, walls = artists
     with stream.lock:
         maze, stream.maze = stream.maze, None
@@ -189,7 +191,7 @@ def update(stream, fig, artists, t=math.inf):
         rgba[maze] = (0.15, 0.15, 0.15, 1.0)
         walls.set_data(rgba)
     if i < 0:
-        return
+        return maze is not None
     trail.set_data([p[0] / CELL_SIZE_METERS for p in pts], [p[1] / CELL_SIZE_METERS for p in pts])
     robot.set_xy(robot_shape(pose))
     robot.set_visible(True)
@@ -209,6 +211,100 @@ def update(stream, fig, artists, t=math.inf):
         hy.append(wy)
     hits.set_data(hx, hy)
     fig.canvas.manager.set_window_title(f"sim  t = {t:.2f} s")
+    return maze is not None
+
+
+class Blitter:
+    """Redraws only the moving artists over a cached copy of the static scene.
+
+    A full matplotlib redraw (grid, tick labels, wall image) takes far longer than a
+    frame, so playback is drawn this way and the cache is refreshed on every full draw
+    (first show, resize, walls arriving).
+    """
+
+    def __init__(self, fig, artists):
+        trail, rays, hits, robot, _ = artists
+        self.fig = fig
+        self.moving = [trail, *rays, hits, robot]
+        self.background = None
+        for a in self.moving:
+            a.set_animated(True)  # left out of full draws, so they aren't in the cache
+        fig.canvas.mpl_connect("draw_event", self.on_draw)
+
+    def on_draw(self, _event):
+        self.background = self.fig.canvas.copy_from_bbox(self.fig.bbox)
+        self.draw_moving()
+
+    def draw_moving(self):
+        for a in self.moving:
+            self.fig.draw_artist(a)
+
+    def blit(self):
+        canvas = self.fig.canvas
+        if self.background is None:  # first full draw hasn't happened yet
+            return
+        canvas.restore_region(self.background)
+        self.draw_moving()
+        if canvas.supports_blit:
+            canvas.blit(self.fig.bbox)
+        elif hasattr(canvas, "queue_draw"):
+            # GTK4 has no blit (it's a silent no-op), but its paint handler just copies
+            # the Agg buffer we drew into above to the window
+            canvas.queue_draw()
+        else:
+            self.fig.canvas.draw_idle()  # no cheap way to present; full redraw
+        canvas.flush_events()
+
+
+def speed_up_gtk4_paint(canvas):
+    """Replace GTK4Agg's paint with one that skips its slow pixel conversion.
+
+    Every paint, matplotlib converts the whole Agg buffer to cairo's premultiplied
+    ARGB32 with a fancy-indexed copy, ~50 ms on a HiDPI window, which caps playback
+    near 8 fps. Our figure is opaque, so premultiplying is a no-op and the conversion
+    is just swapping the red and blue bytes into a reused buffer, ~5x faster.
+    """
+    try:
+        from matplotlib.backends.backend_gtk4agg import FigureCanvasGTK4Agg
+    except (ImportError, ValueError):
+        return
+    if not isinstance(canvas, FigureCanvasGTK4Agg) or sys.byteorder != "little":
+        return
+    import cairo
+    from matplotlib import cbook
+    from matplotlib.backends.backend_gtk4 import GLib, Gtk
+
+    out = None  # reused between paints; reallocated when the window is resized
+
+    def on_draw_event(widget, ctx):
+        nonlocal out
+        if canvas._idle_draw_id:  # same as matplotlib's: finish a pending full draw
+            GLib.source_remove(canvas._idle_draw_id)
+            canvas._idle_draw_id = 0
+            canvas.draw()
+        alloc = canvas.get_allocation()
+        Gtk.render_background(canvas.get_style_context(), ctx,
+                              alloc.x, alloc.y, alloc.width, alloc.height)
+        rgba = np.asarray(canvas.get_renderer().buffer_rgba())
+        if rgba[..., 3].min() == 0xFF:
+            if out is None or out.shape != rgba.shape:
+                out = np.empty_like(rgba)
+            out[..., 0] = rgba[..., 2]  # cairo ARGB32 is B, G, R, A in memory
+            out[..., 1] = rgba[..., 1]
+            out[..., 2] = rgba[..., 0]
+            out[..., 3] = 0xFF
+            argb = out
+        else:  # something translucent: needs real premultiplying
+            argb = cbook._unmultiplied_rgba8888_to_premultiplied_argb32(rgba)
+        height, width, _ = argb.shape
+        image = cairo.ImageSurface.create_for_data(
+            argb.ravel().data, cairo.FORMAT_ARGB32, width, height, width * 4)
+        image.set_device_scale(canvas.device_pixel_ratio, canvas.device_pixel_ratio)
+        ctx.set_source_surface(image, 0, 0)
+        ctx.paint()
+        return False
+
+    canvas.on_draw_event = on_draw_event
 
 
 def main():
@@ -237,19 +333,29 @@ def main():
         fig.savefig(args.save, dpi=100)
         return
 
+    # the reader thread parses as fast as the simulator writes; with the default 5 ms
+    # GIL switch interval it starves the drawing thread and playback freezes
+    sys.setswitchinterval(1e-4)
     threading.Thread(target=stream.read, args=(src,), daemon=True).start()
     clock = Clock(args.speed)
     echo = Echo()
+    blitter = Blitter(fig, artists)
+    speed_up_gtk4_paint(fig.canvas)
 
-    def tick(_):
+    def tick():
         t = clock.now(stream)
-        if t is not None:
-            echo.upto(stream, t)
-            update(stream, fig, artists, t)
+        if t is None:
+            return
+        echo.upto(stream, t)
+        if update(stream, fig, artists, t):
+            fig.canvas.draw_idle()  # walls are part of the cached background
+        else:
+            blitter.blit()
 
-    anim = FuncAnimation(fig, tick, interval=33, cache_frame_data=False)
+    timer = fig.canvas.new_timer(interval=16)
+    timer.add_callback(tick)
+    timer.start()
     plt.show()
-    del anim
 
 
 if __name__ == "__main__":
