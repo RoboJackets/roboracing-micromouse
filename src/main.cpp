@@ -8,7 +8,10 @@ TeensyIO teensyIO{};
 Robot robot{teensyIO};
 StateMachine mouse{};
 
-void setup() { mouse.init(robot); }
+void setup() { 
+  mouse.init(robot);
+  // mouse.initTest(robot, {Move::Forward}, false);
+ }
 
 void loop() {
   mouse.tick(robot);
