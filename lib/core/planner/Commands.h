@@ -11,45 +11,20 @@
 #include <variant>
 #include <memory>
 
-// The input to the CommandGenerator is a sequence of Moves
 enum class Move {
   Forward, Left, Right, Back, Stop, Continue
-};
-
-// Data types for the CommandGenerator state machine
-enum ActionState {
-  START,
-  ORTHO_F,
-  ORTHO_L,
-  ORTHO_R,
-  DIAG_LR,
-  DIAG_RL,
-  E_DIAG_LR,
-  E_DIAG_RL,
-  END
-};
-
-struct State {
-  ActionState action = START;
-  int x = 0;
-  int y = 0;
 };
 
 enum class Side {
   Left = -1, Right = +1
 };
 
-// The output of the CommandGenerator.
-// Represents a smooth path formed from the input moves
 struct Command {
-  enum class Type { Forward, SmoothTurn, Stop, InPlaceTurn };
-
+  enum class Type { Forward, SmoothTurn, SmoothDiagTurn, Stop, InPlaceTurn };
   Type type;
-  int8_t amt; // number of cells if Forward, signed multiple of 45 degrees otherwise
+  int8_t amt;
 
-  Command(Type type, int amt) : type{type}, amt{static_cast<int8_t>(amt)} {
-    
-  }
+  Command(Type type, int amt) : type{type}, amt{static_cast<int8_t>(amt)} {}
 };
 
 class CommandGenerator {
@@ -105,7 +80,10 @@ private:
   std::unique_ptr<Action> makeFwdAction(int8_t amt, Robot &r,
                                         const SpeedProfile &sp);
 
-  std::unique_ptr<Action> makeCurveAction(int8_t amt, Robot &r,
+  std::unique_ptr<Action> makeSmoothCurveAction(int8_t amt, Robot &r,
+                                          const SpeedProfile &sp);
+
+  std::unique_ptr<Action> makeSmoothDiagCurveAction(int8_t amt, Robot &r,
                                           const SpeedProfile &sp);
 
   std::unique_ptr<Action> makeInPlaceTurnAction(int8_t amt, Robot &r,

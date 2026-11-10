@@ -149,7 +149,7 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
   if (s.lastSide == Side::Left) {
     if (m == Move::Forward) {
       push_cmd({
-        Command::Type::InPlaceTurn,
+        Command::Type::SmoothDiagTurn,
         s.generalSide == Side::Left ? -1 : 1 
       });
       push_cmd({
@@ -157,13 +157,13 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
         s.cells / 2
       });
       push_cmd({
-        Command::Type::InPlaceTurn,
-        -1
+        Command::Type::SmoothDiagTurn,
+        s.generalSide == Side::Left ? 1 : -1 
       });
       return Straight{1};
     } else if (m == Move::Left) {
       push_cmd({
-        Command::Type::InPlaceTurn,
+        Command::Type::SmoothDiagTurn,
         s.generalSide == Side::Left ? -1 : 1 
       });
       push_cmd({
@@ -171,7 +171,7 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
         s.cells / 2
       });
       push_cmd({
-        Command::Type::InPlaceTurn,
+        Command::Type::SmoothDiagTurn,
         -3
       });
       return Straight{1};
@@ -179,7 +179,7 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
       return Diagonal{Side::Right, s.generalSide, s.cells + 1};
     } else if (m == Move::Stop) {
       push_cmd({
-        Command::Type::InPlaceTurn,
+        Command::Type::SmoothDiagTurn,
         s.generalSide == Side::Left ? -1 : 1 
       });
       push_cmd({
@@ -195,7 +195,7 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
   } else if (s.lastSide == Side::Right) {
     if (m == Move::Forward) {
       push_cmd({
-        Command::Type::InPlaceTurn,
+        Command::Type::SmoothDiagTurn,
         s.generalSide == Side::Left ? -1 : 1 
       });
       push_cmd({
@@ -203,7 +203,7 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
         s.cells / 2
       });
       push_cmd({
-        Command::Type::InPlaceTurn,
+        Command::Type::SmoothDiagTurn,
         1 
       });
       return Straight{1};
@@ -211,7 +211,7 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
       return Diagonal{Side::Left, s.generalSide, s.cells + 1};
     } else if (m == Move::Right) {
       push_cmd({
-        Command::Type::InPlaceTurn,
+        Command::Type::SmoothDiagTurn,
         s.generalSide == Side::Left ? -1 : 1 
       });
       push_cmd({
@@ -219,13 +219,13 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
         s.cells / 2
       });
       push_cmd({
-        Command::Type::InPlaceTurn,
+        Command::Type::SmoothDiagTurn,
         3
       });
       return Straight{1};
     } else if (m == Move::Stop) {
       push_cmd({
-        Command::Type::InPlaceTurn,
+        Command::Type::SmoothDiagTurn,
         s.generalSide == Side::Left ? -1 : 1 
       });
       push_cmd({
@@ -247,7 +247,9 @@ std::unique_ptr<Action> CommandTranslator::translate(const Command& c, Robot& r,
     case Command::Type::Forward:
       return makeFwdAction(c.amt, r, sp);
     case Command::Type::SmoothTurn:
-      return makeCurveAction(c.amt, r, sp);
+      return makeSmoothCurveAction(c.amt, r, sp);
+    case Command::Type::SmoothDiagTurn:
+      return makeSmoothDiagCurveAction(c.amt, r, sp);
     case Command::Type::InPlaceTurn:
       return makeInPlaceTurnAction(c.amt, r, sp);
     case Command::Type::Stop:
@@ -273,7 +275,7 @@ std::unique_ptr<Action> CommandTranslator::makeFwdAction(int8_t amt, Robot &r, c
           distance, travelAngle, sp.driveFinalVelocity, sp.maxSpeed}));
 }
 
-std::unique_ptr<Action> CommandTranslator::makeCurveAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
+std::unique_ptr<Action> CommandTranslator::makeSmoothCurveAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
     goalAngle += amt;
     goalAngle = normalizeOctant(goalAngle);
     const Cell v = octantOffset(goalAngle);
@@ -292,6 +294,11 @@ std::unique_ptr<Action> CommandTranslator::makeCurveAction(int8_t amt, Robot& r,
         ProfiledDriveAction{sp.curveTrailDistance, travelAngle,
                             sp.driveFinalVelocity, sp.maxSpeed}));
 }
+
+std::unique_ptr<Action> CommandTranslator::makeSmoothDiagCurveAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
+  return 0;
+}
+
 
 std::unique_ptr<Action> CommandTranslator::makeInPlaceTurnAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
     const Cell v = octantOffset(goalAngle);
