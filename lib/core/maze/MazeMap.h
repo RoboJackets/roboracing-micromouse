@@ -19,6 +19,6 @@ struct MazeMap {
 
   void allowUpdates(bool enabled) { updatesEnabled = enabled; }
 
-  void observe(const WorldCoord &pose, double rotationRate,
-               const std::array<WorldCoord, 4> &readings);
+  void observe(const Pose &pose, double rotationRate,
+               const std::array<Pose, 4> &readings);
 };

@@ -42,5 +42,5 @@ void Odometry::update(double leftMeters, double rightMeters, double yaw,
   const double deltaX = wheelDelta * std::cos(midTheta);
   const double deltaY = wheelDelta * std::sin(midTheta);
 
-  w = WorldCoord{w.x + deltaX, w.y + deltaY, theta};
+  w = Pose{{w.xy.x + deltaX, w.xy.y + deltaY}, theta};
 }

@@ -48,7 +48,7 @@ struct ProfiledDriveAction : Action {
   double angle;
   double measurement = 0;
   bool started = false;
-  WorldCoord prevCoord;
+  Pose prevCoord;
 
   ProfiledDriveAction(double setpoint, double angle, double finalVelocity,
                       double maxSpeed = DRIVE_DEFAULT_MAX_SPEED);

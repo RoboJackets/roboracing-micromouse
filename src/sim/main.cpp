@@ -41,12 +41,12 @@ int main(int argc, char *argv[]) {
 
         std::cout << "TIME: " << simIO.now() << '\n';
 
-        const WorldCoord w = robot.getWorldCoord();
-        std::cout << "WORLD: " << w.x << ", " << w.y << " THETA: "
+        const Pose w = robot.getWorldCoord();
+        std::cout << "WORLD: " << w.xy.x << ", " << w.xy.y << " THETA: "
                   << w.theta << '\n';
         const auto s = robot.getSensorState();
         for (int i = 0; i < 4; ++i) {
-            std::cout << i << ": " << s[i].x << ", " << s[i].y << "     ";
+            std::cout << i << ": " << s[i].xy.x << ", " << s[i].xy.y << "     ";
         }
         std::cout << '\n';
     }
