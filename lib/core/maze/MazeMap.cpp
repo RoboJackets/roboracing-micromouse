@@ -43,8 +43,8 @@ void MazeMap::addBorderWalls() {
 }
 
 // adds walls to the maze map.
-void MazeMap::observe(const WorldCoord &pose, double rotationRate,
-                      const std::array<WorldCoord, 4> &readings) {
+void MazeMap::observe(const Pose &pose, double rotationRate,
+                      const std::array<Pose, 4> &readings) {
   if (!updatesEnabled)
     return;
   const Cell at = cellOf(pose);
@@ -80,10 +80,10 @@ void MazeMap::observe(const WorldCoord &pose, double rotationRate,
 
   markKnown(at);
 
-  if (readings[0].y < WALL_THRESHOLD_FRONT)
+  if (readings[0].xy.y < WALL_THRESHOLD_FRONT)
     addWall(at, facing);
-  if (-readings[2].x < WALL_THRESHOLD_LEFT)
+  if (-readings[2].xy.x < WALL_THRESHOLD_LEFT)
     addWall(at, turnLeft(facing));
-  if (readings[3].x < WALL_THRESHOLD_RIGHT)
+  if (readings[3].xy.x < WALL_THRESHOLD_RIGHT)
     addWall(at, turnRight(facing));
 }
