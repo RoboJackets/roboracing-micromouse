@@ -29,6 +29,8 @@ struct SimIO : MouseIO {
   // Prints worldState as one line: "MAZE: 240 240 " followed by 240 * 240
   // '0'/'1' characters, row by row from y = 0, x = 0..239 within each row.
   void printMaze(std::ostream &out) const;
+  
+  void placeAtStart();
 
   void init() override;
 

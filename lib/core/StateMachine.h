@@ -6,7 +6,7 @@
 #include "planner/Commands.h"
 #include "planner/CellSearch.h"
 
-enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, NONE };
+enum class GoalState { GOAL_SEARCH, RETURN, FAST_PATH, TEST, NONE };
 
 struct Phase {
   const Goals *goal;
@@ -28,6 +28,10 @@ struct StateMachine {
   CommandTranslator translator{};
   Action *a = &startup;
 
+  std::vector<Move> testMoves{};
+  size_t testIndex = 0;
+  bool testFast = false;
+
   static SequentialAction makeStartup() {
     return SequentialAction::make(DelayAction(3), StartupAction{});
   }
@@ -40,6 +44,8 @@ struct StateMachine {
       return {&START_GOALS, false, true};
     case GoalState::FAST_PATH:
       return {&CENTER_GOALS, true, false};
+    case GoalState::TEST:
+      return {&CENTER_GOALS, false, false};
     case GoalState::NONE:
       return {&CENTER_GOALS, false, false};
     }
@@ -47,6 +53,7 @@ struct StateMachine {
   }
 
   void init(Robot &r);
+  void initTest(Robot &r, const std::vector<Move> &moves, bool fast);
   void tick(Robot &r);
   void runFastPath(Robot &r, const std::vector<Move> &moves);
   void switchState(GoalState state, Robot &r);

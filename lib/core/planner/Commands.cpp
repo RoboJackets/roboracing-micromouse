@@ -69,13 +69,29 @@ CommandGenerator::State CommandGenerator::on(Turning s, Move m) {
         Command::Type::SmoothTurn,
         -2
       });
-      return Turning{Side::Left};
+      push_cmd({
+        Command::Type::Forward,
+        0
+      });
+      return Turning{Side::Left };
     } else if (m == Move::Right) {
-      return Diagonal{Side::Right, Side::Left};
+      push_cmd({
+        Command::Type::SmoothTurn,
+        -2
+      });
+      push_cmd({
+        Command::Type::Forward,
+        0
+      });
+      return Turning{Side::Right };
     } else if (m == Move::Stop) {
       push_cmd({
         Command::Type::SmoothTurn,
         -2
+      });
+      push_cmd({
+        Command::Type::Forward,
+        0
       });
       push_cmd({
         Command::Type::Stop,
@@ -107,17 +123,33 @@ CommandGenerator::State CommandGenerator::on(Turning s, Move m) {
       });
       return Straight{1};
     } else if (m == Move::Left) {
-      return Diagonal{Side::Left, Side::Right};
+      push_cmd({
+        Command::Type::SmoothTurn,
+        2
+      });
+      push_cmd({
+        Command::Type::Forward,
+        0
+      });
+      return Turning{Side::Left };
     } else if (m == Move::Right) {
       push_cmd({
         Command::Type::SmoothTurn,
         2
+      });
+      push_cmd({
+        Command::Type::Forward,
+        0
       });
       return Turning{Side::Right };
     } else if (m == Move::Stop) {
       push_cmd({
         Command::Type::SmoothTurn,
         2
+      });
+      push_cmd({
+        Command::Type::Forward,
+        0
       });
       push_cmd({
         Command::Type::Stop,
