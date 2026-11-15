@@ -71,4 +71,6 @@ struct MouseIO {
   virtual double now() = 0;
 
   virtual int printf(const char* format, ...) = 0;
+
+  virtual double voltage() const = 0;
 };

@@ -11,11 +11,10 @@
 
 struct TeensyIO : MouseIO {
   // FL, FR, DL, DR
-  std::array<IRSensor, 4> sensors{
-      IRSensor{EMIT_1, RECV_1, 0.968202, 0.500721},
-      IRSensor{EMIT_4, RECV_4, 1.30488, 0.547281},
-      IRSensor{EMIT_2, RECV_2, 1.30488, 0.547281},
-      IRSensor{EMIT_3, RECV_3, 0.818039, 0.53409}};
+  std::array<IRSensor, 4> sensors{IRSensor{EMIT_1, RECV_1, 0.968202, 0.500721},
+                                  IRSensor{EMIT_4, RECV_4, 1.30488, 0.547281},
+                                  IRSensor{EMIT_2, RECV_2, 1.30488, 0.547281},
+                                  IRSensor{EMIT_3, RECV_3, 0.818039, 0.53409}};
   EncoderSensor encoderLeft{ACODER_a, ACODER_b, 0, true};
   EncoderSensor encoderRight{BCODER_a, BCODER_b, 0, false};
 
@@ -46,4 +45,5 @@ struct TeensyIO : MouseIO {
   bool buttonPressed() override;
   double now() override;
   int printf(const char *, ...) override;
+  double voltage() const override { return 7.6; }
 };
