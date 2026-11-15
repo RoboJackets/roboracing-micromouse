@@ -142,8 +142,8 @@ SequentialAction StateMachine::movesToAction(const std::vector<Move> &moves,
   std::vector<std::unique_ptr<Action>> steps;
   for (size_t i = 0; i < commands.size(); ++i) {
     SpeedProfile sp = speed;
-    if (commands[i].type == Command::Type::Forward && i + 1 < commands.size() &&
-        commands[i + 1].type == Command::Type::Stop)
+    if (commands[i].type == Command::Type::STRAIGHT_FORWARD && i + 1 < commands.size() &&
+        commands[i + 1].type == Command::Type::STOP)
       sp.driveFinalVelocity = 0;
     steps.push_back(
         std::make_unique<DeferredCommandAction>(commands[i], translator, sp));

@@ -12,19 +12,40 @@
 #include <memory>
 
 enum class Move {
-  Forward, Left, Right, Back, Stop, Continue
+  Forward,
+  Left,
+  Right,
+  Back,
+  Stop,
+  Continue
 };
 
 enum class Side {
-  Left = -1, Right = +1
+  // ensure that the left and right for move and side can be casted to the same int
+  // makes comparisons much easier later
+  Left = static_cast<int>(Move::Left), 
+  Right = static_cast<int>(Move::Right)
 };
 
 struct Command {
-  enum class Type { Forward, SmoothTurn, SmoothDiagTurn, Stop, InPlaceTurn };
+  // most basic level of commands
+  // future can optimize a diagonal enter and exit if 135 etc.
+  enum class Type {
+    STRAIGHT_FORWARD,
+    DIAG_FORWARD,
+    LEFT_SMOOTH_90,
+    RIGHT_SMOOTH_90,
+    DIAG_TURN_LEFT_ENTER,
+    DIAG_TURN_LEFT_EXIT,
+    DIAG_TURN_RIGHT_ENTER,
+    DIAG_TURN_RIGHT_EXIT,
+    IN_PLACE_180,
+    STOP
+  };
   Type type;
-  int8_t amt;
-
-  Command(Type type, int amt) : type{type}, amt{static_cast<int8_t>(amt)} {}
+  // only need distance for variations of forwards commands
+  // unit is determined by type of forward
+  int distance = -1;
 };
 
 class CommandGenerator {
@@ -39,18 +60,24 @@ public:
   }
 private:
   // State definitions
+
+  // just need to keep track of how many cells straight
   struct Straight {
     int cells = 0;
   };
 
+  // need to keep track of what side we are turning too
   struct Turning {
     Side side;
   };
 
+  // need to keep track of 
+  // last side we turned to as we are traversing the diagonal
+  // what the first turn was, i.e. overall diagonal side
+  // need to keep track of how many diagonal forwards we need to add at the end
   struct Diagonal {
     Side lastSide;
-    Side generalSide;
-    int cells = 2;
+    int cells = 0;
   };
 
   using State = std::variant<Straight, Turning, Diagonal>;
@@ -77,15 +104,35 @@ struct CommandTranslator {
   std::unique_ptr<Action> translate(const Command& c, Robot& r, const SpeedProfile& sp);
 
 private:
-  std::unique_ptr<Action> makeFwdAction(int8_t amt, Robot &r,
+  // all actions ensure that robot starts at beginning of next cell, as in the starting position
+  // diagonal straights must be surrounded by diagonal turns
+
+  // this is a forward action in the "straight" direction
+  // since walls are perpendicular to side IR sensors,
+  // IR can be used for pose correction as well
+  std::unique_ptr<Action> makeFwdActionStraight(int8_t amt, Robot &r,
                                         const SpeedProfile &sp);
 
+  // this is a forward action in the diagonal direction
+  // includes only gyro and odometry level position correction
+  std::unique_ptr<Action> makeFwdActionDiagonal(int8_t amt, Robot &r,
+                                        const SpeedProfile &sp);
+
+  // stand smooth curve action
+  // starts at front of a cell and ends at the start of another cell     
   std::unique_ptr<Action> makeSmoothCurveAction(int8_t amt, Robot &r,
                                           const SpeedProfile &sp);
 
-  std::unique_ptr<Action> makeSmoothDiagCurveAction(int8_t amt, Robot &r,
+  // smooth curve action for diagonals
+  // handles entering and exiting diagonals, ensuring everything connects
+  std::unique_ptr<Action> makeSmoothDiagCurveActionEnter(int8_t amt, Robot &r,
                                           const SpeedProfile &sp);
 
+  std::unique_ptr<Action> makeSmoothDiagCurveActionExit(int8_t amt, Robot &r,
+                                          const SpeedProfile &sp);
+
+
+  // in place is only needed for explore, usually just for 180 deg turns
   std::unique_ptr<Action> makeInPlaceTurnAction(int8_t amt, Robot &r,
                                                 const SpeedProfile &sp);
 };
