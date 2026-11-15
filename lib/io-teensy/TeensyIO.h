@@ -4,8 +4,8 @@
 #include "Constants.h"
 #include "DRV8833.h"
 #include "EncoderSensor.h"
-#include "Gyro.h"
 #include "IRSensor.h"
+#include "MPU6050Gyro.h"
 #include "MouseIO.h"
 #include "Pins.h"
 
@@ -18,7 +18,7 @@ struct TeensyIO : MouseIO {
   EncoderSensor encoderLeft{ACODER_a, ACODER_b, 0, true};
   EncoderSensor encoderRight{BCODER_a, BCODER_b, 0, false};
 
-  Gyro gyro{};
+  MPU6050Gyro gyro{};
 
   uint32_t lastMicros = 0;
   uint64_t microsAccum = 0;

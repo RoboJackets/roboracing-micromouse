@@ -1,6 +1,6 @@
-#include "Gyro.h"
+#include "MPU6050Gyro.h"
 
-void Gyro::initializeGyro() {
+void MPU6050Gyro::initializeGyro() {
   Wire.begin();
   Wire.setClock(400000);
   Wire.setTimeout(3000);
@@ -28,7 +28,7 @@ void Gyro::initializeGyro() {
   }
 }
 
-bool Gyro::update() {
+bool MPU6050Gyro::update() {
   if (!dmpReady)
     return false;
 

@@ -28,3 +28,5 @@ constexpr uint8_t BCODER_b = 35;
 
 constexpr uint8_t B_FRONT = 1;
 constexpr uint8_t B_BACK = 2;
+
+#define GYRO_INT_1 A5
