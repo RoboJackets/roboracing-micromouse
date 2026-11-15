@@ -46,4 +46,5 @@ struct TeensyIO : MouseIO {
   double now() override;
   int printf(const char *, ...) override;
   double voltage() const override { return 7.6; }
+  void setBuzzer(int pwm) override;
 };

@@ -77,3 +77,7 @@ int TeensyIO::printf(const char* format, ...) {
     Serial.write(buf, result < (int)sizeof(buf) ? result : sizeof(buf) - 1);
   return result;
 }
+
+void TeensyIO::setBuzzer(int pwm){
+  analogWrite(BUZZER_PIN, pwm);
+}

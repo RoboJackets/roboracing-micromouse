@@ -73,4 +73,6 @@ struct MouseIO {
   virtual int printf(const char* format, ...) = 0;
 
   virtual double voltage() const = 0;
+
+  virtual void setBuzzer(int pwm) = 0;
 };
