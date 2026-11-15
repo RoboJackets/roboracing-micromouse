@@ -78,6 +78,6 @@ int TeensyIO::printf(const char* format, ...) {
   return result;
 }
 
-// void TeensyIO::setBuzzer(int pwm){
-//   analogWrite(BUZZER_PIN, pwm);
-// }
+void TeensyIO::setBuzzer(int pwm){
+  analogWrite(BUZZER_PIN, pwm);
+}
