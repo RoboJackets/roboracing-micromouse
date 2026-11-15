@@ -29,6 +29,8 @@ constexpr double CURVE_FRICTION_SPEED_SCALE = 0.3;
 constexpr double DRIVE_DEFAULT_MAX_SPEED = 0.1;
 
 constexpr double IR_VALID_RANGE = 0.16;
+constexpr double IR_DIAGONAL_RANGE = 0.07;
+constexpr double IR_DIAGONAL_CORRECTION = 0.02;
 constexpr double IR_CENTER_OFFSET = 0.005;
 constexpr double IR_LEFT_ONLY_SETPOINT = -0.07;
 constexpr double IR_RIGHT_ONLY_SETPOINT = 0.07;

@@ -59,6 +59,29 @@ struct ProfiledDriveAction : Action {
   void end(Robot &r) override;
 };
 
+struct ProfiledDriveActionDiagonal : Action {
+  KinematicConstraints constraints;
+  TrapezoidalProfile profile;
+
+  PID positionPID{profilePIDConstants};
+  double refPos = 0;
+  double refVel = 0;
+  double setpoint;
+  double finalVelocity;
+  double error;
+  double angle;
+  double measurement = 0;
+  bool started = false;
+  WorldCoord prevCoord;
+
+  ProfiledDriveActionDiagonal(double setpoint, double angle, double finalVelocity,
+                      double maxSpeed = DRIVE_DEFAULT_MAX_SPEED);
+  PID gyroPID = PID{rot90PIDConstants};
+
+  void run(Robot &r) override;
+  void end(Robot &r) override;
+};
+
 struct ProfiledRotationAction : Action {
   KinematicConstraints constraints;
   TrapezoidalProfile profile;
