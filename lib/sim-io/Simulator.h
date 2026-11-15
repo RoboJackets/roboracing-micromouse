@@ -14,7 +14,7 @@ struct SimIO : MouseIO {
   double current_left_pwm{0};
   double current_right_pwm{0};
   RobotState robotState{};
-  
+
   double sampledYaw = 0;
   double sampledLeft = 0;
   double sampledRight = 0;
@@ -24,11 +24,11 @@ struct SimIO : MouseIO {
   void addWall(int cx, int cy, Dir d);
   // Replaces worldState with the maze in a .num file ("x y N E S W" per cell,
   // 1 = wall). Returns false if the file can't be opened.
-  bool loadMazeNum(std::ifstream& in);
+  bool loadMazeNum(std::ifstream &in);
   // Prints worldState as one line: "MAZE: 240 240 " followed by 240 * 240
   // '0'/'1' characters, row by row from y = 0, x = 0..239 within each row.
   void printMaze(std::ostream &out) const;
-  
+
   void placeAtStart();
 
   void init() override;
@@ -45,4 +45,5 @@ struct SimIO : MouseIO {
   bool buttonPressed() override;
   double now() override;
   int printf(const char *, ...) override;
+  double voltage() const override { return 7.6; }
 };

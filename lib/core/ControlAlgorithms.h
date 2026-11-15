@@ -11,7 +11,7 @@ struct PIDConstants {
 };
 
 inline PIDConstants rot90PIDConstants{0.5, 0, 0};
-inline PIDConstants velocityPIDConstants{1.1, 0.3, 0.0, 0.3};
+inline PIDConstants velocityPIDConstants{8.36, 2.28, 0.0, 2.28};
 inline PIDConstants profilePIDConstants{4, 0, 0};
 inline PIDConstants IRadjust{0.3, 0, 0};
 
