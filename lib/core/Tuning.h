@@ -21,7 +21,7 @@ constexpr double CURVE_POS_TOL = 0.008;   // m (arc length)
 constexpr double VEL_TOL = 0.06;          // m/s
 
 constexpr double DRIVE_ACCEL_SCALE = 0.5;
-constexpr double ROTATION_MAX_SPEED_SCALE = 0.1;
+constexpr double ROTATION_MAX_SPEED_SCALE = 0.2;
 constexpr double ROTATION_ACCEL_SCALE = 0.5;
 constexpr double CURVE_ACCEL_SCALE = 0.5;
 constexpr double CURVE_FRICTION_SPEED_SCALE = 0.3;
