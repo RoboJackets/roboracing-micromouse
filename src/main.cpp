@@ -9,8 +9,9 @@ Robot robot{teensyIO};
 StateMachine mouse{};
 
 void setup() { 
-  mouse.init(robot);
+  // mouse.init(robot);
   // mouse.initTest(robot, {Move::Forward}, false);
+  mouse.initDiagonalTest(robot, 4);
  }
 
 void loop() {

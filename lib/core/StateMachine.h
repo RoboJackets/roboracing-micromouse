@@ -54,6 +54,8 @@ struct StateMachine {
 
   void init(Robot &r);
   void initTest(Robot &r, const std::vector<Move> &moves, bool fast);
+  void initDiagonalTest(Robot &r, int cells,
+                        double maxSpeed = DRIVE_DEFAULT_MAX_SPEED);
   void tick(Robot &r);
   void runFastPath(Robot &r, const std::vector<Move> &moves);
   void switchState(GoalState state, Robot &r);
