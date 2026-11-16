@@ -97,9 +97,9 @@ constexpr Cell octantOffset(int octant) {
   }
 }
 
-inline Cell cellOf(const WorldCoord &w) {
-  return Cell{static_cast<int>(std::floor(w.x / CELL_SIZE_METERS)),
-              static_cast<int>(std::floor(w.y / CELL_SIZE_METERS))};
+inline Cell cellOf(const Pose &w) {
+  return Cell{static_cast<int>(std::floor(w.xy.x / CELL_SIZE_METERS)),
+              static_cast<int>(std::floor(w.xy.y / CELL_SIZE_METERS))};
 }
 
 inline Dir dirOf(double theta) {
@@ -115,9 +115,9 @@ inline Dir dirOf(double theta) {
   return Dir::South;
 }
 
-inline WorldCoord cellRelative(const WorldCoord &w, Cell c) {
-  return WorldCoord{w.x - c.x * CELL_SIZE_METERS, w.y - c.y * CELL_SIZE_METERS,
-                    w.theta};
+inline WorldCoord cellRelative(const Pose &w, Cell c) {
+  return WorldCoord{w.xy.x - c.x * CELL_SIZE_METERS,
+                    w.xy.y - c.y * CELL_SIZE_METERS};
 }
 
 struct Goals {

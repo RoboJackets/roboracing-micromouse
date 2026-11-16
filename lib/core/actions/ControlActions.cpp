@@ -58,9 +58,9 @@ ProfiledDriveAction::ProfiledDriveAction(double setpoint, double angle,
       error(setpoint), angle(angle) {}
 
 void ProfiledDriveAction::run(Robot &r) {
-  const std::array<WorldCoord, 4> &ir = r.getSensorState();
-  const std::array<WorldCoord, 4> &irAvg = r.getAverageSensorState();
-  if (irAvg[0].hypot() < FRONT_WALL_STOP_DISTANCE) {
+  const std::array<Pose, 4> &ir = r.getSensorState();
+  const std::array<Pose, 4> &irAvg = r.getAverageSensorState();
+  if (irAvg[0].xy.hypot() < FRONT_WALL_STOP_DISTANCE) {
     finalVelocity = 0;
     canceled = true;
   }
@@ -76,7 +76,7 @@ void ProfiledDriveAction::run(Robot &r) {
   if (canceled) {
     return;
   }
-  WorldCoord w = r.getWorldCoord();
+  Pose w = r.getWorldCoord();
   if (!started) {
     prevCoord = w;
     double vForward = (r.getDriveSpeedLeft() + r.getDriveSpeedRight()) / 2.0;
@@ -84,8 +84,8 @@ void ProfiledDriveAction::run(Robot &r) {
     refVel = vForward * std::cos(w.theta - angle);
     started = true;
   }
-  double dx = w.x - prevCoord.x;
-  double dy = w.y - prevCoord.y;
+  double dx = w.xy.x - prevCoord.xy.x;
+  double dy = w.xy.y - prevCoord.xy.y;
   measurement += dx * std::cos(angle) + dy * std::sin(angle);
   prevCoord = w;
   error = setpoint - measurement;
@@ -97,13 +97,14 @@ void ProfiledDriveAction::run(Robot &r) {
   double c = 0;
   double gyroError = angle - w.theta;
   gyroError = std::atan2(std::sin(gyroError), std::cos(gyroError));
-  if (std::abs(ir.at(2).x) < IR_VALID_RANGE &&
-      std::abs(ir.at(3).x) < IR_VALID_RANGE) {
-    c = irPID.calculate(ir.at(3).x, -ir.at(2).x - IR_CENTER_OFFSET, r.getDt());
-  } else if (std::abs(ir.at(2).x) < IR_VALID_RANGE) {
-    c = irPID.calculate(ir.at(2).x, IR_LEFT_ONLY_SETPOINT, r.getDt());
-  } else if (std::abs(ir.at(3).x) < IR_VALID_RANGE) {
-    c = irPID.calculate(ir.at(3).x, IR_RIGHT_ONLY_SETPOINT, r.getDt());
+  if (std::abs(ir.at(2).xy.x) < IR_VALID_RANGE &&
+      std::abs(ir.at(3).xy.x) < IR_VALID_RANGE) {
+    c = irPID.calculate(ir.at(3).xy.x, -ir.at(2).xy.x - IR_CENTER_OFFSET,
+                        r.getDt());
+  } else if (std::abs(ir.at(2).xy.x) < IR_VALID_RANGE) {
+    c = irPID.calculate(ir.at(2).xy.x, IR_LEFT_ONLY_SETPOINT, r.getDt());
+  } else if (std::abs(ir.at(3).xy.x) < IR_VALID_RANGE) {
+    c = irPID.calculate(ir.at(3).xy.x, IR_RIGHT_ONLY_SETPOINT, r.getDt());
   }
   c += gyroPID.calculate(-gyroError, 0, r.getDt());
   r.driveVelocity(v - c, v + c);
@@ -134,7 +135,7 @@ void ProfiledRotationAction::run(Robot &r) {
   if (canceled) {
     return;
   }
-  WorldCoord w = r.getWorldCoord();
+  Pose w = r.getWorldCoord();
   if (!started) {
     prevTheta = w.theta;
     started = true;
@@ -178,7 +179,7 @@ void ProfiledCurveAction::run(Robot &r) {
   if (canceled) {
     return;
   }
-  WorldCoord w = r.getWorldCoord();
+  Pose w = r.getWorldCoord();
   if (!started) {
     prevTheta = w.theta;
     double vForward = (r.getDriveSpeedLeft() + r.getDriveSpeedRight()) / 2.0;

@@ -193,7 +193,7 @@ std::unique_ptr<Action> CommandTranslator::translate(const Command& c, Robot& r,
 
 std::unique_ptr<Action> CommandTranslator::makeFwdAction(int8_t amt, Robot &r, const SpeedProfile &sp) {
   const Cell v = octantOffset(goalAngle);
-  const WorldCoord pose = r.getWorldCoord();
+  const Pose pose = r.getWorldCoord();
   const WorldCoord rel = cellRelative(pose, goalCell);
 
   double halfCell = CELL_SIZE_METERS / 2.0;
@@ -230,7 +230,7 @@ std::unique_ptr<Action> CommandTranslator::makeCurveAction(int8_t amt, Robot& r,
 
 std::unique_ptr<Action> CommandTranslator::makeInPlaceTurnAction(int8_t amt, Robot& r, const SpeedProfile& sp) {
     const Cell v = octantOffset(goalAngle);
-    const WorldCoord pose = r.getWorldCoord();
+    const Pose pose = r.getWorldCoord();
     const WorldCoord rel = cellRelative(pose, goalCell);
 
     double halfCell = CELL_SIZE_METERS / 2.0;

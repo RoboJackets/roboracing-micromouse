@@ -83,7 +83,7 @@ void StateMachine::updateState(Cell at, Robot &r) {
 void StateMachine::tick(Robot &r) {
   r.update();
 
-  const WorldCoord pose = r.getWorldCoord();
+  const Pose pose = r.getWorldCoord();
   const Cell at = cellOf(pose);
   const Dir facing = dirOf(pose.theta);
 

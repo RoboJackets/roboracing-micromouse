@@ -25,18 +25,18 @@ struct Robot {
 
   double getDt() const { return cachedDt; }
 
-  WorldCoord getWorldCoord() const { return odom.pose(); }
-  void setWorldCoord(WorldCoord c) { odom.setPose(c); }
+  Pose getWorldCoord() const { return odom.pose(); }
+  void setWorldCoord(Pose c) { odom.setPose(c); }
   void setGyroOffset(double offset) { odom.setGyroOffset(offset); }
   double getGyroYaw() const { return odom.rawGyroYaw(); }
   double getRotationRate() const { return odom.rotationRate(); }
   double getDriveSpeedLeft() const { return odom.leftSpeed(); }
   double getDriveSpeedRight() const { return odom.rightSpeed(); }
 
-  const std::array<WorldCoord, 4> &getSensorState() const {
+  const std::array<Pose, 4> &getSensorState() const {
     return sensors.state();
   }
-  const std::array<WorldCoord, 4> &getAverageSensorState() const {
+  const std::array<Pose, 4> &getAverageSensorState() const {
     return sensors.averageState();
   }
 
