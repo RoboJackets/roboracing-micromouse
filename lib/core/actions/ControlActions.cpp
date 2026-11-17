@@ -287,3 +287,12 @@ void ProfiledCurveAction::end(Robot &r) {
   }
   irPID.resetAccum();
 }
+
+// ProfiledLinearInterpolationAction::ProfiledLinearInterpolationAction(WorldCoord start, WorldCoord end, 
+//                                                                      double finalVelocity, double maxSpeed = 0.0)
+//   : profile({maxSpeed > 0 ? maxSpeed
+//                             : std::sqrt(COEF_FRICTION * 9.81 * radius) *
+//                                   CURVE_FRICTION_SPEED_SCALE,
+//                MAX_ACCEL_M_S2 * CURVE_ACCEL_SCALE, 0, finalVelocity,
+//                profilePIDConstants, radius * std::abs(angle)}),
+//       radius(radius), setpoint(radius * angle), error(setpoint) {}

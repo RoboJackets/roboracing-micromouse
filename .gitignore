@@ -39,3 +39,4 @@
 !.vscode/extensions.json
 .pio/
 build/*
+.venv/

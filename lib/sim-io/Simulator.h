@@ -3,6 +3,7 @@
 #include "RobotState.h"
 #include "maze/Maze.h"
 #include <array>
+#include <chrono>
 #include <ostream>
 #include <string>
 
