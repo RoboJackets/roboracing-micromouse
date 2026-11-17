@@ -135,6 +135,7 @@ CommandGenerator::State CommandGenerator::on(Diagonal s, Move m) {
       if (side_to_move == m) {
         push_cmd({Command::Type::DIAG_FORWARD, s.cells});
         push_cmd(turn);
+        return Straight{0};
       } else {
         return Diagonal{move_to_side, s.cells + 1};
       }
@@ -170,16 +171,16 @@ std::unique_ptr<Action> CommandTranslator::translate(const Command& c, Robot& r,
       return makeSmoothCurveAction(2.0, r, sp);
 
     case Command::Type::DIAG_TURN_LEFT_ENTER:
-      return makeSmoothDiagCurveAction(-1.0, r, sp);
+      return makeSmoothDiagCurveActionEnter(-1.0, r, sp);
 
     case Command::Type::DIAG_TURN_RIGHT_ENTER:
-      return makeSmoothDiagCurveAction(1.0, r, sp);
+      return makeSmoothDiagCurveActionEnter(1.0, r, sp);
 
     case Command::Type::DIAG_TURN_LEFT_EXIT:
-      return makeSmoothDiagCurveAction(-1.0, r, sp);
+      return makeSmoothDiagCurveActionExit(-1.0, r, sp);
 
     case Command::Type::DIAG_TURN_RIGHT_EXIT:
-      return makeSmoothDiagCurveAction(1.0, r, sp);
+      return makeSmoothDiagCurveActionExit(1.0, r, sp);
 
     case Command::Type::IN_PLACE_180:
       return makeInPlaceTurnAction(4, r, sp);

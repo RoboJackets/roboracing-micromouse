@@ -83,3 +83,23 @@ struct ProfiledCurveAction : Action {
   void run(Robot &r) override;
   void end(Robot &r) override;
 };
+
+// struct ProfiledLinearInterpolationAction : Action {
+//   TrapezoidalProfile profile;
+//   PID irPID = PID{IRadjust};
+//   double measurement = 0;
+//   double radius;
+//   bool started = false;
+//   double prevTheta = 0;
+//   double setpoint;
+//   double error;
+
+//   WorldCoord start;
+//   WorldCoord end;
+
+//   ProfiledLinearInterpolationAction(WorldCoord start, WorldCoord end, double finalVelocity,
+//                       double maxSpeed = 0.0);
+
+//   void run(Robot &r) override;
+//   void end(Robot &r) override;
+// };

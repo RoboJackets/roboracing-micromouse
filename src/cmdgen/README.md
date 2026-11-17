@@ -12,7 +12,15 @@ Now, setup the python environment. Create your venv with `python3 -m venv .venv`
 
 ## Run
 
-Finally, to run, the following command needs to be run: `echo MOVES | .pio/build/cmdgen/program | python3 tools/cmdviz.py`, where `MOVES` is some string of moves, e.g. `"FRFFRLLRFF"`
+There are two ways to use the `cmdgen` tool once set up
+
+### CLI
+
+Run `echo MOVES | .pio/build/cmdgen/program` in the terminal, where `MOVES` is some string of moves, e.g. `"FRFFRLLRFF"`, to print a string of the generated commands. This helps understand the translation layer from moves to commands.
+
+### VIZ
+
+To run the vizualizer as well the following command needs to be run: `echo MOVES | .pio/build/cmdgen/program VIZ | python3 tools/cmdviz.py`, where `MOVES` is some string of moves, e.g. `"FRFFRLLRFF"`
 
 To step through how each input move is converted into commands, run
 `python3 tools/cmdviz.py --moves FFRLRL`. Use the **Previous** and **Next**

@@ -10,6 +10,7 @@
 #include <cmath>
 #include <variant>
 #include <memory>
+#include <iostream>
 
 enum class Move {
   Forward,
@@ -46,6 +47,41 @@ struct Command {
   // only need distance for variations of forwards commands
   // unit is determined by type of forward
   int distance = -1;
+
+  void print() const {
+    switch (type) {
+      case Type::STRAIGHT_FORWARD:
+        std::cout << "STRAIGHT_FORWARD, distance: " << distance << "\n";
+        break;
+      case Type::DIAG_FORWARD:
+        std::cout << "DIAG_FORWARD, distance: " << distance << "\n";
+        break;
+      case Type::LEFT_SMOOTH_90:
+        std::cout << "LEFT_SMOOTH_90" << "\n";
+        break;
+      case Type::RIGHT_SMOOTH_90:
+        std::cout << "RIGHT_SMOOTH_90" << "\n";
+        break;
+      case Type::DIAG_TURN_LEFT_ENTER:
+        std::cout << "DIAG_TURN_LEFT_ENTER" << "\n";
+        break;
+      case Type::DIAG_TURN_LEFT_EXIT:
+        std::cout << "DIAG_TURN_LEFT_EXIT" << "\n";
+        break;
+      case Type::DIAG_TURN_RIGHT_ENTER:
+        std::cout << "DIAG_TURN_RIGHT_ENTER" << "\n";
+        break;
+      case Type::DIAG_TURN_RIGHT_EXIT:
+        std::cout << "DIAG_TURN_RIGHT_EXIT" << "\n";
+        break;
+      case Type::IN_PLACE_180:
+        std::cout << "IN_PLACE_180" << "\n";
+        break;
+      case Type::STOP:
+        std::cout << "STOP" << "\n";
+        break;
+    }
+  }
 };
 
 class CommandGenerator {

@@ -29,8 +29,12 @@ int main(int argc, char *argv[]) {
 
   CommandGenerator gen;
   for (const Command &c : gen.exec(moves)) {
-    const unsigned char* cmd_bytes = reinterpret_cast<const unsigned char*>(&c);
-    for (size_t i = 0; i < sizeof(c); ++i) std::cout << cmd_bytes[i];
+    if (argc == 2 && std::string(argv[1]).compare(std::string("VIZ")) == 0) {
+      const unsigned char* cmd_bytes = reinterpret_cast<const unsigned char*>(&c);
+      for (size_t i = 0; i < sizeof(c); ++i) std::cout << cmd_bytes[i];
+    } else {
+      c.print();
+    }
   }
   return 0;
 }
