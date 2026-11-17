@@ -163,17 +163,17 @@ void ProfiledDriveActionDiagonal::run(Robot &r) {
   refVel = ref.velocity;
   double v = refVel + positionPID.calculate(measurement, refPos, r.getDt());
   v = std::clamp(v, -constraints.maxSpeed, constraints.maxSpeed);
-  double c = 0;
-  double gyroError = angle - w.theta;
-  gyroError = std::atan2(std::sin(gyroError), std::cos(gyroError));
+  double offset = 0;
   bool leftWall = ir.at(0).y < IR_DIAGONAL_RANGE;
   bool rightWall = ir.at(1).y < IR_DIAGONAL_RANGE;
   if (leftWall && (!rightWall || ir.at(0).y < ir.at(1).y)) {
-    c = -IR_DIAGONAL_CORRECTION;
+    offset = -IR_DIAGONAL_CORRECTION;
   } else if (rightWall) {
-    c = IR_DIAGONAL_CORRECTION;
+    offset = IR_DIAGONAL_CORRECTION;
   }
-  c += gyroPID.calculate(-gyroError, 0, r.getDt());
+  double gyroError = angle + offset - w.theta;
+  gyroError = std::atan2(std::sin(gyroError), std::cos(gyroError));
+  double c = gyroPID.calculate(-gyroError, 0, r.getDt());
   r.driveVelocity(v - c, v + c);
 }
 

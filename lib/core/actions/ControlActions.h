@@ -76,7 +76,7 @@ struct ProfiledDriveActionDiagonal : Action {
 
   ProfiledDriveActionDiagonal(double setpoint, double angle, double finalVelocity,
                       double maxSpeed = DRIVE_DEFAULT_MAX_SPEED);
-  PID gyroPID = PID{rot90PIDConstants};
+  PID gyroPID = PID{diagonalGyroPIDConstants};
 
   void run(Robot &r) override;
   void end(Robot &r) override;
