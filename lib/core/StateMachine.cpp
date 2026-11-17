@@ -1,5 +1,6 @@
 #include "StateMachine.h"
 
+#include "actions/ControlActions.h"
 #include "robot/Robot.h"
 
 void StateMachine::init(Robot &r) {
@@ -22,6 +23,24 @@ void StateMachine::initTest(Robot &r, const std::vector<Move> &moves,
 
   currentState = GoalState::TEST;
   phase = phaseFor(currentState);
+  r.init();
+  a->begin(r);
+}
+
+void StateMachine::initDiagonalTest(Robot &r, int cells, double maxSpeed) {
+  testMoves.clear();
+  testIndex = 0;
+  testFast = false;
+
+  currentState = GoalState::TEST;
+  phase = phaseFor(currentState);
+
+  const double theta = M_PI / 4.0;
+  const double distance = cells * CELL_SIZE_METERS / std::sqrt(2.0);
+  act = SequentialAction::make(
+      DelayAction(3), DiagonalStartupAction{},
+      ProfiledDriveActionDiagonal{distance, theta, 0, maxSpeed});
+  a = &act;
   r.init();
   a->begin(r);
 }

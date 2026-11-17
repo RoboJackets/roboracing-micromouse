@@ -7,6 +7,11 @@ struct StartupAction : Action {
   void run(Robot &r) override;
 };
 
+struct DiagonalStartupAction : Action {
+
+  void run(Robot &r) override;
+};
+
 struct DelayAction : Action {
   double time = 0;
   double runTime;
